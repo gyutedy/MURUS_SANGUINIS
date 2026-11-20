@@ -50,8 +50,8 @@ FR_B = [
     ("SF_11_LUMEN",     "V6",  "REVIEW/codex_postprod.json"),                            # preview 2 : GLOW (1 frame)
     ("SF_12_FABRICA",   "G1",  "FR_B_CREATION/SF_12_FABRICA/OUT/clips"),                 # pilote par les 2 codex
     ("SF_13_POLITURA",  "PP2", "FR_B_CREATION/SF_13_POLITURA/OUT/postprod_report.json"), # glow->caption->lut->fade
-    ("SF_14_CAMOUFLAGE", None, "FR_B_CREATION/SF_14_CAMOUFLAGE/OUT/camouflage_report.json"),  # SANS GATE, post-rendu
-    ("SF_15_LUTHER",     None, "FR_B_CREATION/SF_15_LUTHER/OUT/luther_report.json"),          # SANS GATE, post-rendu
+    ("SF_14_CAMOUFLAGE", None, "FR_B_CREATION/SF_14_CAMOUFLAGE/OUT/camouflage_batch_report.json"),  # SANS GATE, post-rendu
+    ("SF_15_LUTHER",     None, "FR_B_CREATION/SF_15_LUTHER/OUT/luther_batch_report.json"),          # SANS GATE, post-rendu
     ("SF_16_MISSIO",    "V7",  "FR_B_CREATION/SF_16_MISSIO/OUT/submissions.json"),       # C3 : < 1 h + tracker
 ]
 CHAIN = FR_A + FR_B

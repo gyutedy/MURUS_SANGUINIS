@@ -31,16 +31,32 @@ NO_GATE = ("SF_14_CAMOUFLAGE", "SF_15_LUTHER")
 
 def gate_v7_refuses_sale_livrable() -> tuple[bool, str]:
     """V7 refuse tout livrable dont le dernier rapport CAMOUFLAGE ou LUTHER
-    porte qa_pass: false. Retourne (ok, motif)."""
-    for sf, rapport in (
-        ("SF_14_CAMOUFLAGE", ROOT / "FR_B_CREATION/SF_14_CAMOUFLAGE/OUT/camouflage_report.json"),
-        ("SF_15_LUTHER",     ROOT / "FR_B_CREATION/SF_15_LUTHER/OUT/luther_report.json"),
+    porte qa_pass: false. Retourne (ok, motif).
+    Accepte les deux formes de rapport pillées : mono (camouflage_report.json /
+    luther_report.json) et batch (camouflage_batch_report.json /
+    luther_batch_report.json — clé videos, all_qa_pass)."""
+    for sf, noms in (
+        ("SF_14_CAMOUFLAGE", ("camouflage_batch_report.json", "camouflage_report.json")),
+        ("SF_15_LUTHER",     ("luther_batch_report.json", "luther_report.json")),
     ):
-        if not rapport.exists():
-            return False, f"{sf} : rapport absent ({rapport.name}) — pas de preuve de passage"
+        rapport = None
+        for nom in noms:
+            p = ROOT / "FR_B_CREATION" / sf / "OUT" / nom
+            if p.exists():
+                rapport = p
+                break
+        if rapport is None:
+            return False, f"{sf} : rapport absent ({' / '.join(noms)}) — pas de preuve de passage"
         data = json.loads(rapport.read_text(encoding="utf-8"))
+        if data.get("all_qa_pass") is False:
+            return False, f"{sf} : all_qa_pass=false ({rapport.name})"
+        videos = data.get("videos") or []
+        bad = [v for v in videos if v.get("qa_pass") is False]
+        if bad:
+            tags = [v.get("suspicious_tags_after") or v.get("error") for v in bad]
+            return False, f"{sf} : qa_pass=false sur {len(bad)} video(s) : {tags}"
         if data.get("qa_pass") is False:
-            tags = data.get("suspicious_tags_after") or data.get("suspicious_tags") or []
+            tags = data.get("suspicious_tags_after") or []
             return False, f"{sf} : qa_pass=false, tags suspects residuels : {tags}"
     return True, ""
 

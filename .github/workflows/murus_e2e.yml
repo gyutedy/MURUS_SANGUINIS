@@ -101,7 +101,7 @@ jobs:
             ffmpeg -y -hide_banner -loglevel error \
               -f lavfi -i "testsrc2=size=1280x720:duration=6:rate=25" \
               -f lavfi -i "sine=frequency=440:duration=6" \
-              -shortest -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest \
+              -shortest -c:v libx264 -pix_fmt yuv420p -c:a aac \
               "$OUT/A0$i.mp4"
           done
           ls -la "$OUT"
@@ -112,14 +112,15 @@ jobs:
             --batch FR_B_CREATION/SF_13_POLITURA/OUT/clips \
             --output FR_B_CREATION/SF_14_CAMOUFLAGE/OUT
           python - << 'PYEOF'
-          import json, glob
-          reps = glob.glob("FR_B_CREATION/SF_14_CAMOUFLAGE/OUT/*camouflage*.json")
-          assert reps, "rapport camouflage absent"
-          rep = json.loads(open(sorted(reps)[-1], encoding="utf-8").read())
+          import json
+          from pathlib import Path
+          p = Path("FR_B_CREATION/SF_14_CAMOUFLAGE/OUT/camouflage_batch_report.json")
+          assert p.exists(), "camouflage_batch_report.json absent"
+          rep = json.loads(p.read_text(encoding="utf-8"))
           assert rep.get("schema_version", "").startswith("dev10-v2.camouflage"), rep.get("schema_version")
-          entries = rep.get("videos") or rep.get("consolidated") or []
-          assert entries and all(e.get("qa_pass") for e in entries), f"qa_pass false : {entries}"
-          print(f"CAMOUFLAGE OK : {len(entries)} MP4, qa_pass tous vrais")
+          assert rep.get("all_qa_pass") is True, f"all_qa_pass false : {rep.get('failed')}"
+          assert rep.get("videos") and all(v.get("qa_pass") for v in rep["videos"])
+          print(f"CAMOUFLAGE OK : {rep['video_count']} MP4, qa_pass tous vrais")
           PYEOF
 
       - name: SF_15 LUTHER — batch réel + QA (T15)
@@ -128,20 +129,18 @@ jobs:
             --batch FR_B_CREATION/SF_14_CAMOUFLAGE/OUT \
             --output FR_B_CREATION/SF_15_LUTHER/OUT
           python - << 'PYEOF'
-          import json, glob
-          reps = [f for f in glob.glob("FR_B_CREATION/SF_15_LUTHER/OUT/*.json")
-                  if "luther" in f.lower()]
-          assert reps, "rapport luther absent"
-          rep = json.loads(open(sorted(reps)[-1], encoding="utf-8").read())
+          import json
+          from pathlib import Path
+          p = Path("FR_B_CREATION/SF_15_LUTHER/OUT/luther_batch_report.json")
+          assert p.exists(), "luther_batch_report.json absent"
+          rep = json.loads(p.read_text(encoding="utf-8"))
           assert rep.get("schema_version", "").startswith("dev10-v2.luther"), rep.get("schema_version")
-          entries = rep.get("videos") or rep.get("consolidated") or []
-          assert entries, "rapport luther vide"
-          bad = [e for e in entries if not e.get("qa_pass")]
-          assert not bad, f"qa_pass false : {bad}"
-          print(f"LUTHER OK : {len(entries)} MP4 normalisés, qa_pass tous vrais")
+          assert rep.get("all_qa_pass") is True, f"all_qa_pass false : {rep.get('failed')}"
+          assert rep.get("videos") and all(v.get("qa_pass") for v in rep["videos"])
+          print(f"LUTHER OK : {len(rep['videos'])} MP4 normalisés, qa_pass tous vrais")
           PYEOF
 
-      - name: T15 RÉEL — MP4 infecté encoder=remotion -> purgé
+      - name: T15 RÉEL — MP4 infecté encoder=remotion -> purgé (F06 mono = rapport avec tags)
         run: |
           mkdir -p /tmp/infected
           ffmpeg -y -hide_banner -loglevel error \
@@ -153,19 +152,16 @@ jobs:
           python FR_B_CREATION/SF_14_CAMOUFLAGE/CODEBASE/lac_f05_camouflage.py \
             --batch /tmp/infected --output /tmp/infected/camo
           python FR_B_CREATION/SF_15_LUTHER/CODEBASE/lac_f06_luther.py \
-            --batch /tmp/infected/camo --output /tmp/infected/final
+            --input /tmp/infected/camo/INFECTED.mp4 --output /tmp/infected/final/INFECTED.mp4
           python - << 'PYEOF'
-          import json, glob, subprocess
-          reps = sorted(glob.glob("/tmp/infected/final/*luther*.json"))
-          assert reps, "rapport luther (infecté) absent"
-          rep = json.loads(open(reps[-1], encoding="utf-8").read())
-          entries = rep.get("videos") or rep.get("consolidated") or []
-          assert entries, "rapport vide"
-          for e in entries:
-              after = e.get("after") or {}
-              tags = e.get("suspicious_tags_after") or after.get("suspicious_tags_after") or []
-              assert not tags, f"tags suspects résiduels : {tags}"
-              assert e.get("qa_pass", after.get("qa_pass", True)), f"qa_pass false : {e}"
+          import json
+          from pathlib import Path
+          p = Path("/tmp/infected/final/luther_report.json")
+          assert p.exists(), "rapport luther mono (infecté) absent"
+          rep = json.loads(p.read_text(encoding="utf-8"))
+          tags = rep.get("suspicious_tags_after")
+          assert tags == [], f"tags suspects résiduels : {tags}"
+          assert rep.get("qa_pass") is True, f"qa_pass false : {rep}"
           print("T15 RÉEL OK : tags remotion/lavf purgés, qa_pass vrai")
           PYEOF
 
@@ -186,7 +182,7 @@ jobs:
           cd ../../../
           python tools/test_codex.py 2>&1 | tail -5
 
-      - name: V7 — refus si qa_pass false (T16 partiel réel)
+      - name: V7 — livraison permise si qa_pass vrai (T16 partiel réel)
         run: |
           python - << 'PYEOF'
           import sys
