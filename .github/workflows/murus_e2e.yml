@@ -65,7 +65,7 @@ jobs:
           print("transcript + seed pack + directive synthetique (cycle futur) OK")
           PYEOF
 
-      - name: mark1 export RÉEL — passe 1 (attendu : waiting_oracle, exit 3)
+      - name: "mark1 export RÉEL - passe 1 (attendu: waiting_oracle, exit 3)"
         run: |
           set +e
           python FR_A_CERVEAU/MARK1/mark1.py export /tmp/seed_pack.json \
