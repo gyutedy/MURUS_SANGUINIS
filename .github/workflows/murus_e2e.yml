@@ -65,7 +65,39 @@ jobs:
           print("transcript + seed pack + directive synthetique (cycle futur) OK")
           PYEOF
 
-      - name: mark1 export RÉEL (D0→X1, pack + sieges + ledger)
+      - name: mark1 export RÉEL — passe 1 (attendu : waiting_oracle, exit 3)
+        run: |
+          set +e
+          python FR_A_CERVEAU/MARK1/mark1.py export /tmp/seed_pack.json \
+            --transcript ARCHIVUM/montage/transcripts/v999999_transcript.json \
+            --platform youtube_shorts --nb-segments 3
+          RC=$?
+          echo "exit=$RC"
+          test "$RC" -eq 0 -o "$RC" -eq 3 || { echo "::error::export inattendu rc=$RC"; exit "$RC"; }
+
+      - name: ORACLE — répondre au pending overlay_title (boucle réelle)
+        run: |
+          python - << 'PYEOF'
+          import json, glob
+          from pathlib import Path
+          pend = sorted(glob.glob("FR_A_CERVEAU/ORACLE/pending/*.json"))
+          answers = []
+          # Titres universels 4 mots avec chiffre : passent overlay_max_words=4,
+          # aucune entité inexpliquée (S1), aucun CTA.
+          cands = ["Il perd 1000 dollars", "Elle gagne 1000 dollars", "Plus que 1000 dollars"]
+          for f in pend:
+              doc = json.loads(Path(f).read_text(encoding="utf-8"))
+              if doc.get("task") != "overlay_title":
+                  continue
+              for ask in doc.get("asks") or []:
+                  answers.append({"asset_id": ask["asset_id"], "candidates": cands})
+          out = Path("FR_A_CERVEAU/ORACLE/answers.json")
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps({"answers": answers}, indent=2), encoding="utf-8")
+          print(f"ORACLE : {len(answers)} reponses ecrites -> {out}")
+          PYEOF
+
+      - name: mark1 export RÉEL — passe 2 (avec réponses ORACLE, D0→X1)
         run: |
           python FR_A_CERVEAU/MARK1/mark1.py export /tmp/seed_pack.json \
             --transcript ARCHIVUM/montage/transcripts/v999999_transcript.json \
