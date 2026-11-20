@@ -62,6 +62,10 @@
     }
   },
   "default_language": "en",
+  "archivum": {
+    "transcripts_dir": "../../ARCHIVUM/montage/transcripts",
+    "_why": "Layout MURUS_SANGUINIS : MARK1 vit dans FR_A_CERVEAU/MARK1, ARCHIVUM est a la racine du depot. Le defaut pille (../ARCHIVUM) pointait FR_A_CERVEAU/ARCHIVUM. Voir EXC-M4."
+  },
   "directiva": {
     "path": "../../ARCHIVUM/campaign/campaign_directive.json",
     "watermark_dir": "../../ARCHIVUM/campaign/watermarks",

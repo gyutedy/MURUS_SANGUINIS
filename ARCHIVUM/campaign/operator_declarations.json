@@ -1,0 +1,32 @@
+{
+  "_what": "Declarations de l'OPERATEUR pour les portes que le moteur ne peut pas mesurer (A1_ACCOUNT, A2_CAMPAIGN, focus_declared). Rien ici n'est devine par le code : null = non declare = la porte refuse.",
+  "_fill_instructions": [
+    "account.warmup_days : age du compte en jours (>= min_warmup_days de la config, 7 par defaut)",
+    "campaign.rate_usd_per_1k : unite reelle de la campagne (USD par 1000 vues). Doit passer le plancher min_cpm_usd_per_1k (0.15).",
+    "campaign.funded : true seulement si l'operateur a la confirmation que la campagne paie",
+    "campaign.budget_remaining_usd : budget restant reel",
+    "focus_declared : true si l'operateur affirme que Preme est bien le point focal du clip (regle visuelle de la campagne ; MARK1 ne voit pas la video)"
+  ],
+  "campaign_id": "PREME_CLIPIFY_OPEN",
+  "declared_by": "Warsmith",
+  "declared_at": "2026-11-20",
+  "account": {
+    "warmup_days": null,
+    "banned": false
+  },
+  "campaign": {
+    "rate_usd_per_1k": null,
+    "funded": null,
+    "budget_remaining_usd": null,
+    "platforms": ["youtube_shorts"],
+    "cap_usd_per_clip": null
+  },
+  "focus_declared": null,
+  "_pending": [
+    "account.warmup_days",
+    "campaign.rate_usd_per_1k",
+    "campaign.funded",
+    "campaign.budget_remaining_usd",
+    "focus_declared"
+  ]
+}

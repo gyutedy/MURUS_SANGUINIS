@@ -1,105 +1,80 @@
 {
-  "campaign_id": "2026-07-24_AISHAH_SOFEY_MULTI",
-  "creator_name": "Aishah Sofey",
-  "parsed_at": "2026-10-16T00:00:00.000000",
-  "source_file": "ARCHIVUM/campaign/clipify_aishahsofey_directive.md",
-  "platforms": [
-    "TikTok",
-    "X (Twitter)",
-    "IG Reels",
-    "YouTube Shorts"
-  ],
+  "campaign_id": "PREME_CLIPIFY_OPEN",
+  "creator_name": "Preme",
   "language": "English",
-  "audience_tier": "Tier 1 (US, UK, AUS, CAN) — at least 40%",
-  "payout": {
-    "per_platform": {
-      "tiktok": {
-        "payout_usd": 15,
-        "views_per_unit": 50000
-      },
-      "twitter_x": {
-        "payout_usd": 10,
-        "views_per_unit": 50000
-      },
-      "instagram_reels": {
-        "payout_usd": 10,
-        "views_per_unit": 50000
-      },
-      "youtube_shorts": {
-        "payout_usd": 15,
-        "views_per_unit": 50000
-      }
-    },
-    "minimum": "50K views total (cumulatively across all posts combined)",
-    "maximum": "$900",
-    "budget": "$5,000",
-    "methods": "USDC, PayPal",
-    "_corrected_from": {
-      "tiktok": 15,
-      "twitter_x": 15,
-      "instagram_reels": 15,
-      "youtube_shorts": 15
-    },
-    "_correction_note": "X et IG paient 10$/50k, pas 15$. Corrige d'apres la directive source du cycle 2026-07-24."
+  "platforms": ["TikTok", "X (Twitter)", "IG Reels", "YouTube Shorts"],
+  "cycle": {
+    "start": "2026-11-20",
+    "end": "2099-12-31",
+    "open_ended": true,
+    "note": "Declaration operateur du 2026-11-20 : campagne SANS limite de duree. M0B_CYCLE exige un cycle.end : la sentinelle 2099-12-31 signifie 'pas de fin', elle n'invente aucune date."
   },
+  "payout": {
+    "per_platform": {},
+    "minimum": null,
+    "maximum": null,
+    "budget": null,
+    "methods": null,
+    "_missing": "Termes de paiement (USD / vues, minimum, maximum, budget) non communiques par l'operateur. Aucune valeur n'est inventee : D0_DIRECTIVE refuse tant qu'ils manquent."
+  },
+  "requirements": [
+    "Preme must be the main focal point of the clip (cannot be in the background, or appear only for a brief moment)",
+    "The Preme watermark must be clearly visible and centered"
+  ],
+  "banned": [
+    "Logos of any kind (besides those required)",
+    "Not Utilizing The Provided Content",
+    "Not Following Requirements",
+    "Posts that add no value (e.g. Random moments + I CAN'T BELIEVE THAT HAPPENED)",
+    "Botting, Fake Engagement Groups",
+    "Wrong Audience"
+  ],
   "caption_rules": {
     "tiktok": {
-      "platform": "tiktok",
-      "handle": "@aishah",
-      "hashtags": [
-        "#aishahsofey"
-      ],
-      "caption_format": "Tag @aishah in caption, use hashtag"
+      "handle": "@Preme",
+      "hashtags": ["#preme", "#ad"],
+      "caption_format": "Tag @Preme, mention #ad, hashtag #preme"
     },
     "twitter_x": {
-      "platform": "twitter_x",
-      "handle": "@aishahsofey",
-      "hashtags": [
-        "#aishahsofey"
-      ],
-      "caption_format": "Include name in caption, tag in comments immediately",
-      "caption_keyword": "Aishah Sofey"
+      "handle": "@Preme",
+      "hashtags": ["#preme", "#ad"],
+      "caption_format": "Tag @Preme, mention #ad, hashtag #preme"
     },
     "instagram_reels": {
-      "platform": "instagram_reels",
-      "handle": "@aishahsofey",
-      "hashtags": [
-        "#aishahsofey"
-      ],
-      "caption_format": "Tag in video overlay + caption"
+      "handle": "@Preme",
+      "hashtags": ["#preme", "#ad"],
+      "caption_format": "Tag @Preme, mention #ad, hashtag #preme"
     },
     "youtube_shorts": {
-      "platform": "youtube_shorts",
-      "handle": "@hiaishahsofey",
-      "hashtags": [
-        "#aishahsofey"
-      ],
-      "caption_format": "Tag + hashtag in description"
+      "handle": "@Preme",
+      "hashtags": ["#preme", "#ad"],
+      "caption_format": "Tag @Preme, mention #ad, hashtag #preme"
     }
   },
   "watermark": {
-    "opacity_min": 0.75,
-    "position": "centered"
+    "file": "preme.png",
+    "required": true,
+    "position": "center",
+    "opacity": 0.8,
+    "size_pct": 15,
+    "platforms_obliged": ["tiktok", "instagram_reels", "youtube_shorts"],
+    "platforms_optional": ["twitter_x"],
+    "source": "watermark.png fourni par l'operateur le 2026-11-20 (RGBA 419x330, texte @Preme + icones X/Instagram/YouTube)"
   },
-  "anti_spam": [
-    "Do not spam large numbers of low-view posts (e.g., posts with only a few hundred views each) in an attempt to farm minimum payouts",
-    "Do not post the same clip on the same account during the same cycle",
-    "Posts must show normal, organic engagement (abnormally low engagement videos may be removed and not paid for)",
-    "Spammy or mass low-performance posts will not count toward payout",
-    "Repeated violations may result in disqualification from the campaign"
-  ],
   "content_source": {
-    "approved_period": "Anything from her streams from 7/20 forward, can be on other streams as long she's the main focus of the clip.",
-    "restrictions": [
-      "**Payment Setup:** You must set your payment method before the campaign cycle ends using `/setpayment`. If your payment method is not set by the deadline, you risk missing your payout.",
-      "The amount shown in your dashboard is not always your final payout.",
-      "Approved content for July 24 cycle: Anything from her streams from 7/20 forward, can be on other streams as long she's the main focus of the clip. No reaction clips.",
-      "**Opacity:** No less than 75%",
-      "**Size:** Not too small — must be easily readable"
-    ]
+    "provided_content_only": true,
+    "main_focus": "Preme",
+    "main_focus_rule": "declaration operateur (focus_declared dans le pack) : MARK1 ne voit pas la video, il transporte la declaration",
+    "watermark_visible_centered": true,
+    "vod": "https://www.twitch.tv/videos/2909800627"
   },
-  "cycle": {
-    "start": "2026-07-20",
-    "end": "2026-11-15"
-  }
+  "anti_spam": true,
+  "cycle_policy": "no_time_limit",
+  "parsed_at": "2026-11-20",
+  "source_file": "ARCHIVUM/campaign/directive_preme.md",
+  "operator": "Warsmith",
+  "notes": [
+    "Handles de caption deduits du watermark fourni (@Preme) : a confirmer par l'operateur.",
+    "Mention #ad ajoutee par le moteur (regle C2 du forge : condition de paiement, pas precaution)."
+  ]
 }

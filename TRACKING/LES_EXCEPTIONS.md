@@ -226,3 +226,24 @@ constante. Aucun autre test, aucun module de production touché.
 ```
 grep -n "when=datetime(2026, 11, 16)" FR_A_CERVEAU/MARK1/tests/   # doit renvoyer 0 ligne
 ```
+
+## EXC-M4 — chemin des transcripts corrigé en config (layout MURUS)
+
+### Le besoin
+`libs/transcript.py::find_transcript` prenait son défaut `../ARCHIVUM/montage/transcripts`
+relatif à la racine MARK1. Dans le layout d'origine (PERTURABO) MARK1 vivait à côté
+d'ARCHIVUM ; dans MURUS_SANGUINIS, MARK1 est dans `FR_A_CERVEAU/MARK1` et ARCHIVUM à la
+racine du dépôt. Le défaut pointait donc `FR_A_CERVEAU/ARCHIVUM` (inexistant) et
+`find_transcript` rendait `None` — sans erreur, ce qui aurait fait échouer M1 en silence
+sur toute VOD dont le transcript est dans ARCHIVUM.
+
+### Le rayon exact
+Une clé ajoutée dans `FR_A_CERVEAU/MARK1/config/selection.json` :
+`archivum.transcripts_dir = ../../ARCHIVUM/montage/transcripts`. Aucun module pillé modifié :
+le code lit déjà `cfg["archivum"]["transcripts_dir"]`.
+
+### Les grep qui le vérifient
+```
+grep -n '"archivum"' FR_A_CERVEAU/MARK1/config/selection.json      # 1 ligne, valeur ../../ARCHIVUM
+grep -rn 'transcripts_dir' FR_A_CERVEAU/MARK1/libs/transcript.py   # le code lit bien la clé
+```

@@ -1,0 +1,340 @@
+name: MURUS — SIÈGE RÉEL (VOD opérateur)
+
+# Siège sur une VRAIE VOD avec la VRAIE directive (ARCHIVUM/campaign/campaign_directive.json).
+# Rien ne tourne sur la machine de l'opérateur : tout ici, sur GitHub Actions.
+#
+# Deux jobs :
+#   1. ingestion  — yt-dlp télécharge l'audio de la VOD, faster-whisper (CPU) transcrit,
+#                   le transcript est COMMITÉ dans ARCHIVUM/montage/transcripts/ (payé une fois,
+#                   relu autant de fois qu'on veut : c'est la doctrine de libs/transcript.py).
+#   2. siege      — le moteur MARK1 est exécuté sur ce transcript. Les portes qui réclament
+#                   une déclaration d'opérateur lisent ARCHIVUM/campaign/operator_declarations.json.
+#                   Ce qui n'est pas déclaré n'est PAS inventé : la porte refuse, et le refus
+#                   est écrit dans TRACKING/SIEGE_PREME.md.
+#
+# Aucun secret requis pour l'instant (pas de Modal déployé : transcription CPU locale au runner).
+
+on:
+  workflow_dispatch:
+    inputs:
+      vod_url:
+        description: 'URL de la VOD'
+        required: true
+        default: 'https://www.twitch.tv/videos/2909800627'
+        type: string
+      nb_segments:
+        description: 'Nombre de clips à sélectionner'
+        required: false
+        default: '5'
+        type: string
+      platform:
+        description: 'Plateforme de destination'
+        required: false
+        default: 'youtube_shorts'
+        type: string
+      whisper_model:
+        description: 'Modèle faster-whisper (base.en / small.en / medium.en)'
+        required: false
+        default: 'base.en'
+        type: string
+      max_minutes:
+        description: 'Fenêtre max de la VOD transcrite (minutes)'
+        required: false
+        default: '180'
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: siege-${{ inputs.vod_url }}
+  cancel-in-progress: false
+
+jobs:
+  ingestion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer ffmpeg + yt-dlp + faster-whisper
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip
+          pip install yt-dlp faster-whisper
+
+      - name: Télécharger l'audio de la VOD
+        env:
+          VOD_URL: ${{ inputs.vod_url }}
+          MAX_MIN: ${{ inputs.max_minutes }}
+        run: |
+          mkdir -p /tmp/vod
+          set +e
+          yt-dlp --no-playlist -f bestaudio -o /tmp/vod/audio.%(ext)s "$VOD_URL" 2>&1 | tail -20
+          RC=${PIPESTATUS[0]}
+          echo "yt-dlp rc=$RC"
+          if [ $RC -ne 0 ]; then echo "::error::téléchargement VOD impossible (rc=$RC) — VOD privée/expirée ou Twitch a changé"; exit $RC; fi
+          IN=$(ls /tmp/vod/audio.* | head -1)
+          echo "audio: $IN ($(du -h "$IN" | cut -f1))"
+          # 16 kHz mono : ce que Whisper attend, et 10x plus léger à traiter.
+          ffmpeg -y -loglevel error -i "$IN" -ac 1 -ar 16000 -t "$((MAX_MIN*60))" /tmp/vod/audio.wav
+          ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 /tmp/vod/audio.wav | \
+            awk '{printf "durée transcrite: %.1f min\n", $1/60}'
+
+      - name: Transcrire (faster-whisper CPU) -> format ARCHIVUM
+        env:
+          VOD_URL: ${{ inputs.vod_url }}
+          MODEL: ${{ inputs.whisper_model }}
+        run: |
+          python - << 'PYEOF'
+          import json, os, re
+          from pathlib import Path
+          from faster_whisper import WhisperModel
+
+          vod_url = os.environ["VOD_URL"]
+          model_name = os.environ["MODEL"]
+          m = re.search(r"/videos?/(\d{6,})", vod_url)
+          vid = m.group(1) if m else "unknown"
+
+          model = WhisperModel(model_name, device="cpu", compute_type="int8")
+          segments, info = model.transcribe(
+              "/tmp/vod/audio.wav", language="en", vad_filter=True,
+              vad_parameters={"min_silence_duration_ms": 500})
+
+          segs, texts = [], []
+          for s in segments:
+              txt = (s.text or "").strip()
+              if not txt:
+                  continue
+              segs.append({"start": round(float(s.start), 2), "text": txt,
+                           "duration": round(float(s.end - s.start), 2)})
+              texts.append(txt)
+          doc = {
+              "video_id": vid,
+              "vod_url": vod_url,
+              "title": "PREME VOD %s" % vid,
+              "duration": round(float(getattr(info, "duration", 0.0) or 0.0), 2),
+              "language": getattr(info, "language", "en"),
+              "transcription_mode": "faster-whisper:%s:cpu" % model_name,
+              "transcript": {
+                  "text": " ".join(texts),
+                  "segments": segs,
+                  "status": "OK",
+                  "segment_count": len(segs),
+              },
+          }
+          dest = Path("ARCHIVUM/montage/transcripts")
+          dest.mkdir(parents=True, exist_ok=True)
+          out = dest / ("v%s_transcript.json" % vid)
+          out.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
+          print("transcript:", out, "|", len(segs), "segments |",
+                round(doc["duration"] / 60, 1), "min | langue", doc["language"])
+          PYEOF
+
+      - name: Committer le transcript dans ARCHIVUM
+        run: |
+          git config user.name "MurusVox"
+          git config user.email "vox@murus.sanguinis"
+          git add ARCHIVUM/montage/transcripts
+          if git diff --cached --quiet; then echo "transcript déjà présent, rien à committer"; exit 0; fi
+          git commit -m "[SIÈGE] transcript VOD réel (faster-whisper CPU, GitHub Actions)"
+          git pull --rebase --autostash origin main
+          git push origin main
+
+  siege:
+    runs-on: ubuntu-latest
+    needs: ingestion
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Construire le pack d'entrée depuis les déclarations de l'opérateur
+        env:
+          VOD_URL: ${{ inputs.vod_url }}
+          NB: ${{ inputs.nb_segments }}
+        run: |
+          python - << 'PYEOF'
+          import json, os, re
+          from pathlib import Path
+
+          decl = json.loads(Path("ARCHIVUM/campaign/operator_declarations.json").read_text(encoding="utf-8"))
+          pack = {
+              "mode": "mark1",
+              "source": {"vod_url": os.environ["VOD_URL"]},
+              "asset_mode": "blur",
+              "nb_segments": int(os.environ["NB"]),
+              # déclarations d'opérateur : recopiées telles quelles, null compris
+              "account": decl.get("account") or {},
+              "campaign": decl.get("campaign") or {},
+              "focus_declared": decl.get("focus_declared"),
+              "_declared_by": decl.get("declared_by"),
+          }
+          Path("/tmp/pack_siege.json").write_text(json.dumps(pack, indent=1), encoding="utf-8")
+          pending = [k for k, v in (decl.get("account") or {}).items() if v is None]
+          pending += ["campaign." + k for k, v in (decl.get("campaign") or {}).items() if v is None]
+          if decl.get("focus_declared") is None:
+              pending.append("focus_declared")
+          print("pack de siège écrit. Déclarations encore NULL (=> la porte refusera) :",
+                pending or "aucune")
+          PYEOF
+
+      - name: SIÈGE — mark1 export sur la VOD réelle (refus attendus si l'opérateur n'a pas déclaré)
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          NB: ${{ inputs.nb_segments }}
+          VOD_URL: ${{ inputs.vod_url }}
+        run: |
+          VID=$(echo "$VOD_URL" | grep -oE '[0-9]{6,}' | head -1)
+          TR="ARCHIVUM/montage/transcripts/v${VID}_transcript.json"
+          test -f "$TR" || { echo "::error::transcript absent : $TR"; exit 1; }
+          set +e
+          python FR_A_CERVEAU/MARK1/mark1.py export /tmp/pack_siege.json \
+            --transcript "$TR" --platform "$PLATFORM" --nb-segments "$NB" 2>&1 | tee /tmp/siege.log
+          echo "SIEGE_RC=${PIPESTATUS[0]}" >> "$GITHUB_ENV"
+
+      - name: M1 sur données réelles — quels moments la VOD offre-t-elle ?
+        env:
+          VOD_URL: ${{ inputs.vod_url }}
+          NB: ${{ inputs.nb_segments }}
+        run: |
+          python - << 'PYEOF' 2>&1 | tee /tmp/m1.log
+          import importlib.util, json, os, sys
+          from pathlib import Path
+
+          root = Path("FR_A_CERVEAU/MARK1").resolve()
+          sys.path.insert(0, str(root))
+
+          def load(rel, name):
+              spec = importlib.util.spec_from_file_location(name, root / rel)
+              mod = importlib.util.module_from_spec(spec)
+              spec.loader.exec_module(mod)
+              return mod
+
+          cfg = json.loads((root / "config" / "selection.json").read_text(encoding="utf-8"))
+          directiva = load("M00A_DIRECTIVA/CODEBASE/directiva.py", "directiva")
+          selector = load("M00B_SELECTOR/CODEBASE/selector.py", "selector")
+          from libs import gates, transcript as tr
+
+          directive = directiva.run(cfg, str(root))
+          vod = os.environ["VOD_URL"]
+          path = tr.find_transcript(cfg, str(root), vod)
+          doc = tr.load(path)
+          windows = tr.candidate_windows(doc, cfg, limit=int(os.environ["NB"]))
+          pack = {"mode": "mark1", "assets": [
+              {"id": "A%02d" % (i + 1), "start_sec": w["start_sec"],
+               "end_sec": w["end_sec"], "source_text": w["source_text"]}
+              for i, w in enumerate(windows)]}
+          segs = selector.select(pack, directive, cfg, str(root))
+          ok, code, msg = gates.m1_selection(segs, directive, cfg)
+          print("transcript :", Path(path).name, "|", len(windows), "fenetres")
+          print("M1_SELECTION :", ok, code, msg)
+          rows = []
+          for s in segs:
+              a, b = float(s.get("start_sec") or 0), float(s.get("end_sec") or 0)
+              txt = " ".join((s.get("source_text") or "").split())
+              print("  %s  %7.1fs -> %7.1fs  (%4.1fs)  %s" % (s.get("id"), a, b, b - a, txt[:110]))
+              rows.append({"id": s.get("id"), "start": a, "end": b, "text": txt[:400]})
+          Path("/tmp/m1.json").write_text(json.dumps(
+              {"gate": {"ok": ok, "code": code, "msg": msg}, "segments": rows}, indent=1),
+              encoding="utf-8")
+          PYEOF
+
+      - name: Rapport de siège (états réels + ce qui manque à l'opérateur)
+        if: always()
+        run: |
+          python - << 'PYEOF'
+          import json, os, re, datetime
+          from pathlib import Path
+
+          log = Path("/tmp/siege.log")
+          txt = log.read_text(encoding="utf-8", errors="replace") if log.exists() else ""
+          lines = [l for l in txt.splitlines() if re.match(r"^\[(OK|FAIL|WAIT)\]", l)]
+          trace = re.findall(r"trace=(\S+)", txt)
+          rc = os.environ.get("SIEGE_RC", "?")
+
+          m1 = {}
+          if Path("/tmp/m1.json").exists():
+              m1 = json.loads(Path("/tmp/m1.json").read_text(encoding="utf-8"))
+
+          decl = json.loads(Path("ARCHIVUM/campaign/operator_declarations.json").read_text(encoding="utf-8"))
+          pending = [k for k, v in (decl.get("account") or {}).items() if v is None]
+          pending += ["campaign." + k for k, v in (decl.get("campaign") or {}).items() if v is None]
+          if decl.get("focus_declared") is None:
+              pending.append("focus_declared")
+
+          out = []
+          out.append("# SIÈGE RÉEL — %s" % datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"))
+          out.append("")
+          out.append("- VOD : `%s`" % os.environ.get("VOD_URL", ""))
+          out.append("- plateforme : `%s`" % os.environ.get("PLATFORM", ""))
+          out.append("- directive : `%s`" % "ARCHIVUM/campaign/campaign_directive.json")
+          out.append("- code retour du moteur : `%s` (0 = siège complet, 2 = porte fermée, 3 = ORACLE attendu)" % rc)
+          out.append("")
+          out.append("## Chaîne des portes (sortie réelle du moteur)")
+          out.append("")
+          out.append("```")
+          out.extend(lines or ["(aucune porte atteinte)"])
+          out.append("```")
+          if trace:
+              out.append("")
+              out.append("Traces : " + ", ".join("`%s`" % t for t in trace))
+          out.append("")
+          out.append("## M1 sur données réelles")
+          out.append("")
+          if m1:
+              g = m1.get("gate") or {}
+              out.append("Porte : **%s** — %s" % (g.get("code"), g.get("msg")))
+              out.append("")
+              out.append("| id | début | fin | durée | texte réel de la VOD |")
+              out.append("|---|---|---|---|---|")
+              for s in m1.get("segments") or []:
+                  out.append("| %s | %.1fs | %.1fs | %.1fs | %s |" % (
+                      s.get("id"), float(s.get("start") or 0), float(s.get("end") or 0),
+                      float(s.get("end") or 0) - float(s.get("start") or 0),
+                      (s.get("source_text") or "")[:100].replace("|", "/").replace("\n", " ")))
+          else:
+              out.append("(pas de sélection : la chaîne s'est arrêtée avant M1)")
+          out.append("")
+          out.append("## Ce que l'opérateur doit déclarer (rien n'est deviné)")
+          out.append("")
+          out.append("Fichier : `ARCHIVUM/campaign/operator_declarations.json`")
+          out.append("")
+          out.append("| champ | état |")
+          out.append("|---|---|")
+          for k in pending or ["—"]:
+              out.append("| `%s` | **non déclaré → porte refusée** |" % k)
+          if not pending:
+              out.append("| — | toutes les déclarations sont fournies |")
+          out.append("")
+          out.append("Compléter ce fichier = répondre aux portes. Aucune valeur n'est inventée par le code.")
+          Path("TRACKING/SIEGE_PREME.md").write_text("\n".join(out) + "\n", encoding="utf-8")
+          print("\n".join(out))
+          PYEOF
+
+      - name: Committer le rapport de siège
+        if: always()
+        run: |
+          git config user.name "MurusSiege"
+          git config user.email "siege@murus.sanguinis"
+          git add TRACKING/SIEGE_PREME.md
+          if git diff --cached --quiet; then echo "rapport inchangé"; exit 0; fi
+          git commit -m "[SIÈGE] rapport réel sur la VOD opérateur"
+          git pull --rebase --autostash origin main
+          git push origin main
+
+      - name: Échec assumé — la porte a refusé ce qu'elle devait refuser
+        if: env.SIEGE_RC != '0'
+        run: |
+          echo "::warning::le moteur a refusé le siège (rc=$SIEGE_RC) — c'est une porte, pas un bug."
+          echo "Voir TRACKING/SIEGE_PREME.md pour le détail et les déclarations manquantes."
