@@ -1,0 +1,33 @@
+# Rien de secret dans un dépôt public [CDC §Installation étape 8]
+.env
+*.env
+!*.example.json
+*secrets.json
+!*.example.json
+f00b_secrets.json
+copywriter_secrets.json
+
+# Sorties de production (locales / CI)
+FR_A_CERVEAU/*/OUT/*
+!FR_A_CERVEAU/*/OUT/.gitkeep
+FR_B_CREATION/*/OUT/*
+!FR_B_CREATION/*/OUT/.gitkeep
+EXPORT/production_pack_*.json
+EXPORT/sieges/*
+!EXPORT/sieges/.gitkeep
+REVIEW/codex_render.json
+REVIEW/codex_postprod.json
+!REVIEW/*.example.json
+
+# Node / Python
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+
+# Médias
+*.mp4
+*.mkv
+*.webm
+*.wav
+*.mp3

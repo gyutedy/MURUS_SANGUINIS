@@ -1,0 +1,20 @@
+{
+  "_comment": "SQUELETTE de directive de campagne — exemple à remplir par l'opérateur (gate M0). Structure alignée sur campaign_directive_parser.py pillé de CLIPPING.",
+  "campaign_id": "EXAMPLE-2026-001",
+  "langue": "en",
+  "handles": {
+    "twitch": "EXEMPLE_CHANNEL",
+    "youtube": "EXEMPLE_HANDLE"
+  },
+  "payout": {
+    "devise": "usd",
+    "par_1k_vues_approuvees": 0.15
+  },
+  "plateforme_cible": "youtube_shorts",
+  "marche": "us_young_english",
+  "nb_clips_demandes": 15,
+  "watermark": {
+    "fichier": "ARCHIVUM/campaign/watermarks/watermark.png",
+    "note": "VEXILLUM ne gère NI opacité, NI position, NI taille — propriétés du consommateur (preview LOOK)."
+  }
+}

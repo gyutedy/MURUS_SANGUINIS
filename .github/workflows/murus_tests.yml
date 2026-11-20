@@ -1,0 +1,55 @@
+name: MURUS — tests e2e + doctrine
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  doctrine:
+    name: T0 — le cerveau ne touche jamais une vidéo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: grep ffmpeg/libx264 dans FR_A_CERVEAU -> 0 ligne
+        run: |
+          if grep -rni "ffmpeg\|libx264" FR_A_CERVEAU/ ; then
+            echo "::error::La frégate cerveau touche une vidéo — doctrine violée"
+            exit 1
+          fi
+      - name: grep opacity dans SF_07_VEXILLUM -> 0 ligne
+        run: |
+          if grep -rni "opacity" FR_A_CERVEAU/SF_07_VEXILLUM/ ; then
+            echo "::error::VEXILLUM gère l'opacité — interdit (propriété du consommateur)"
+            exit 1
+          fi
+
+  tests:
+    name: 16 tests e2e (statut ATTENDU -> sortie réelle)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ffmpeg (requis par T13/T15)
+        run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
+      - name: Run tests/test_murus.py
+        run: python tests/test_murus.py
+      - name: Consigner la sortie réelle dans TRACKING/MURUS_LOG.md
+        if: always()
+        run: |
+          python tests/test_murus.py | tee /tmp/tests_out.txt || true
+          {
+            echo ""
+            echo "## Sortie réelle tests — run $GITHUB_RUN_ID ($(date -u +%F))"
+            '```'
+            cat /tmp/tests_out.txt
+            '```'
+          } >> TRACKING/MURUS_LOG.md
+          git config user.name "MurusCI"
+          git config user.email "murus@murus.sanguinis"
+          git add TRACKING/MURUS_LOG.md
+          git commit -m "[CI] sortie réelle des 16 tests e2e (remplace ATTENDU)" || echo "nothing to commit"
+          git push || echo "push failed (fork/PR)"

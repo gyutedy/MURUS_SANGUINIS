@@ -1,0 +1,84 @@
+name: MURUS — transcription GPU Modal (SF_05_VOX)
+
+# Pattern pillé : PERTURABO/.github/workflows/perturabo_transcribe.yml [VÉRIFIÉ].
+# Déploiement Modal piloté par GitHub Actions — rien ne tourne sur la machine opérateur.
+# Secrets requis : MODAL_TOKEN_ID, MODAL_TOKEN_SECRET.
+
+on:
+  workflow_dispatch:
+    inputs:
+      vod_url:
+        description: 'URL de la VOD Twitch'
+        required: true
+        type: string
+      nb_clips:
+        description: 'Nombre de clips à scorer (cap 15)'
+        required: false
+        type: string
+        default: '15'
+
+jobs:
+  transcribe:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg jq
+          pip install --upgrade pip
+          pip install yt-dlp modal fastapi python-multipart
+
+      - name: Deploy Modal transcription service (pillé F00B_VOX/MODAL)
+        working-directory: FR_A_CERVEAU/SF_04_SELECTIO/CODEBASE
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: |
+          # Le service Modal vit dans le dépôt PERTURABO d'origine :
+          # MONDES_FORGES/CLIPPING/F00_IRON_SENTINEL/F00B_VOX/MODAL/transcribe.py
+          # Il est copié ici : MODAL/transcribe.py (racine du dépôt).
+          set +e
+          modal deploy MODAL/transcribe.py 2>&1 | tee /tmp/modal_deploy.log
+          RC=${PIPESTATUS[0]}
+          if [ $RC -ne 0 ]; then
+            echo "::error::modal deploy failed rc=$RC"
+            exit $RC
+          fi
+          URL=$(grep -oE 'https://[a-zA-Z0-9.-]+\.modal\.run' /tmp/modal_deploy.log | head -1)
+          if [ -z "$URL" ]; then
+            echo "::error::Aucune URL .modal.run trouvée dans la sortie du deploy"
+            exit 1
+          fi
+          echo "MODAL_URL=$URL" >> "$GITHUB_ENV"
+
+      - name: Run SF_05_VOX (transcription via Modal)
+        env:
+          MODAL_URL: ${{ env.MODAL_URL }}
+          VOD_URL: ${{ inputs.vod_url }}
+          NB_CLIPS: ${{ inputs.nb_clips }}
+        run: |
+          mkdir -p FR_A_CERVEAU/SF_05_VOX/IN FR_A_CERVEAU/SF_05_VOX/OUT
+          jq -n --arg url "$VOD_URL" --argjson n "$NB_CLIPS" \
+            '{vod_urls:[{url:$url}], nb_clips_demandes:$n}' \
+            > FR_A_CERVEAU/SF_05_VOX/IN/vox_input.json
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/vox.py --profile vod
+
+      - name: Commit transcript to ARCHIVUM
+        run: |
+          VODID=$(echo "${{ inputs.vod_url }}" | grep -oE '[0-9]{6,}' | head -1)
+          mkdir -p ARCHIVUM/montage/transcripts
+          [ -f FR_A_CERVEAU/SF_05_VOX/OUT/transcript.json ] && \
+            cp FR_A_CERVEAU/SF_05_VOX/OUT/transcript.json "ARCHIVUM/montage/transcripts/v${VODID}_transcript.json" \
+            || echo "no transcript"
+          git config user.name "MurusVox"
+          git config user.email "vox@murus.sanguinis"
+          git add ARCHIVUM/montage/transcripts
+          git commit -m "[SF_05_VOX] transcript v${VODID} (Modal GPU)" || echo "nothing to commit"
+          git push || echo "push failed"
