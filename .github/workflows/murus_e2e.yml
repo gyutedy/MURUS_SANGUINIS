@@ -52,7 +52,17 @@ jobs:
                   "source": {"vod_url": "https://www.twitch.tv/videos/999999"},
                   "asset_mode": "blur"}
           Path("/tmp/seed_pack.json").write_text(json.dumps(seed), encoding="utf-8")
-          print("transcript + seed pack OK")
+
+          # Fixture e2e : la campagne AISHAH RÉELLE est expiree (cycle.end 2026-11-15)
+          # et la porte M0B_CYCLE la refuse — c'est le comportement correct.
+          # Pour l'export e2e on ecrit une copie SYNTHETIQUE a cycle futur
+          # (workspace CI seulement, jamais commitee). Le selftest, lui, a tourne
+          # AVANT sur la vraie directive.
+          d = json.loads(Path("ARCHIVUM/campaign/campaign_directive.json").read_text(encoding="utf-8"))
+          d["campaign_id"] = "SYNTHETIC-E2E"
+          d["cycle"] = {"start": "2026-11-20", "end": "2027-12-31"}
+          Path("ARCHIVUM/campaign/campaign_directive.json").write_text(json.dumps(d, indent=2), encoding="utf-8")
+          print("transcript + seed pack + directive synthetique (cycle futur) OK")
           PYEOF
 
       - name: mark1 export RÉEL (D0→X1, pack + sieges + ledger)
