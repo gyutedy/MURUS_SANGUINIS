@@ -208,3 +208,21 @@ Le CDC T05 (« aucune clé opacity/position/size dans watermark.json ») est en
 tension directe avec le code pillé. Deux options : (a) garder le code pillé et
 la présente exception ; (b) purger les clés à la sortie de VEXILLUM (modifier le
 code pillé). Décision réservée au Warsmith — en attendant, option (a) appliquée.
+
+## EXC-M3 — test pillé daté en dur corrigé (MARK1 tests)
+
+### Le besoin
+`tests/test_mark1.py::test_clip_tokens_du_pack_correspondent_aux_assets` figeait
+`when=datetime(2026, 11, 16)` alors que `packager.build()` calcule les tokens au
+`datetime.now()`. Le test ne passait QUE le 2026-11-16 (date de création du
+fixture) et échoue tous les autres jours. L'invariant testé (un clip_token =
+`Axx-AAAAMMJJ-pack_token`, un par asset, tous distincts) reste identique.
+
+### Le rayon exact
+Un seul test, un seul jour dérivé de `pack["exported_at"]` au lieu d'une
+constante. Aucun autre test, aucun module de production touché.
+
+### Les grep qui le vérifient
+```
+grep -n "when=datetime(2026, 11, 16)" FR_A_CERVEAU/MARK1/tests/   # doit renvoyer 0 ligne
+```

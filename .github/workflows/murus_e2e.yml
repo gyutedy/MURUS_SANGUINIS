@@ -152,11 +152,11 @@ jobs:
           python FR_B_CREATION/SF_14_CAMOUFLAGE/CODEBASE/lac_f05_camouflage.py \
             --batch /tmp/infected --output /tmp/infected/camo
           python FR_B_CREATION/SF_15_LUTHER/CODEBASE/lac_f06_luther.py \
-            --input /tmp/infected/camo/INFECTED.mp4 --output /tmp/infected/final/INFECTED.mp4
+            --input /tmp/infected/camo/INFECTED.mp4 --output /tmp/infected/final
           python - << 'PYEOF'
           import json
           from pathlib import Path
-          p = Path("/tmp/infected/final/luther_report.json")
+          p = Path("/tmp/infected/final/luther_report.json")  # mono : rapport ecrit dans le dossier --output
           assert p.exists(), "rapport luther mono (infecté) absent"
           rep = json.loads(p.read_text(encoding="utf-8"))
           tags = rep.get("suspicious_tags_after")

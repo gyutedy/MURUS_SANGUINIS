@@ -64,8 +64,8 @@
   "default_language": "en",
   "directiva": {
     "path": "../../ARCHIVUM/campaign/campaign_directive.json",
-    "watermark_dir": "../ARCHIVUM/campaign/watermarks",
-    "watermark_rules": "../ARCHIVUM/campaign/watermarks/watermark_rules.json",
+    "watermark_dir": "../../ARCHIVUM/campaign/watermarks",
+    "watermark_rules": "../../ARCHIVUM/campaign/watermarks/watermark_rules.json",
     "required_fields": [
       "campaign_id",
       "language",

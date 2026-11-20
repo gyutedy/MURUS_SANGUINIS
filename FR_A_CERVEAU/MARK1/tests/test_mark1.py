@@ -955,7 +955,11 @@ class TestV38IdentiteUnique(unittest.TestCase):
         pack = packager.build(self._assets(),
                               {"campaign_id": "C", "language": "en", "platforms": ["TikTok"]},
                               {"file": ""}, self.cfg, {})
-        recalcules = tokens.clip_tokens(pack, when=datetime(2026, 11, 16))
+        # EXC-M3 : le test d'origine figeait la date au 2026-11-16 (il ne passait
+        # qu'un seul jour). On recalcule avec la date DU PACK : l'invariant teste
+        # (clip_token == id-date-pack_token) est identique, la fragilite disparait.
+        when = datetime.strptime(pack["exported_at"][:10], "%Y-%m-%d")
+        recalcules = tokens.clip_tokens(pack, when=when)
         for asset in pack["assets"]:
             self.assertEqual(recalcules[asset["id"]], asset["clip_token"])
 
