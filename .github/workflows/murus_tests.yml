@@ -8,26 +8,28 @@ on:
 
 jobs:
   doctrine:
-    name: T0 — le cerveau ne touche jamais une vidéo
+    name: T0 — le cerveau ne touche jamais une vidéo (R3, EXC-M1/M2)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: grep ffmpeg/libx264 dans FR_A_CERVEAU -> 0 ligne
+      - name: Aucune INVOCATION ffmpeg/libx264 dans FR_A_CERVEAU (hors capteur detect/, EXC-M1)
         run: |
-          if grep -rni "ffmpeg\|libx264" FR_A_CERVEAU/ ; then
-            echo "::error::La frégate cerveau touche une vidéo — doctrine violée"
+          if grep -rniE "(subprocess|os\.system|popen).*ffmpeg|ffmpeg.*(run\(|call\()" FR_A_CERVEAU/ --exclude-dir=detect ; then
+            echo "::error::La frégate cerveau INVOQUE ffmpeg hors capteur — doctrine violée (EXC-M1)"
             exit 1
           fi
-      - name: grep opacity dans SF_07_VEXILLUM -> 0 ligne
+      - name: VEXILLUM ne POSE jamais le watermark (EXC-M2)
         run: |
-          if grep -rni "opacity" FR_A_CERVEAU/SF_07_VEXILLUM/ ; then
-            echo "::error::VEXILLUM gère l'opacité — interdit (propriété du consommateur)"
+          if grep -rniE "subprocess|ffmpeg|libx264|drawtext" FR_A_CERVEAU/SF_07_VEXILLUM/ --include="*.py" ; then
+            echo "::error::VEXILLUM applique le watermark — interdit (EXC-M2)"
             exit 1
           fi
 
   tests:
     name: 16 tests e2e (statut ATTENDU -> sortie réelle)
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -44,9 +46,9 @@ jobs:
           {
             echo ""
             echo "## Sortie réelle tests — run $GITHUB_RUN_ID ($(date -u +%F))"
-            '```'
+            printf '\n```\n'
             cat /tmp/tests_out.txt
-            '```'
+            printf '```\n'
           } >> TRACKING/MURUS_LOG.md
           git config user.name "MurusCI"
           git config user.email "murus@murus.sanguinis"
