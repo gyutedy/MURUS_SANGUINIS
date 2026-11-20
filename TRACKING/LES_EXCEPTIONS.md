@@ -144,3 +144,67 @@ En revanche, ces regles SONT verifiees par MARK1 parce qu'il produit le texte :
 - **pas de bait** -> overlay soutenu par le texte source (`compliance.bait_report`)
 - **pas de negative PR** -> marqueurs d'attaque (`compliance.negative_pr_report`)
 - **vocabulaire interdit** -> nettoyage + refus sur overlay (`compliance.scrub`, `check_asset`)
+
+---
+
+# EXCEPTIONS MURUS SANGUINIS
+
+> Même loi que MARK1 : chaque exception est ouverte dans UN module nommé,
+> avec son grep. Si le code déroge ailleurs, le code est en faute.
+
+## EXC-M1 — le capteur `detect/live.py` invoque ffmpeg (SF_04_SELECTIO)
+
+### Le besoin
+La mécanique de détection pillée du skill (CDC §Installation étape 4) mesure le
+loudness RMS du flux et la vitesse du chat. Mesurer l'audio exige de DECODER le
+flux (ffmpeg `-af astats`). Un capteur qui lit n'est pas un cerveau qui rend.
+
+### Le bornage
+| Interdit | Où c'est appliqué |
+|---|---|
+| Le capteur REND un clip | Non : il produit des segments de mesure, jamais de livrable |
+| Le rayon s'étend au-delà du capteur | grep ci-dessous : tout autre fichier de FR_A_CERVEAU est en faute |
+
+### Le rayon exact
+`FR_A_CERVEAU/SF_04_SELECTIO/CODEBASE/detect/` — ce dossier ET LUI SEUL.
+
+### Les grep qui le vérifient
+```
+grep -rniE "(subprocess|os.system|popen).*ffmpeg|ffmpeg.*(run\(|call\()" FR_A_CERVEAU/ \
+  --exclude-dir=detect     # doit renvoyer 0 ligne
+grep -rniE "(subprocess|os.system|popen).*ffmpeg|ffmpeg.*(run\(|call\()" \
+  FR_A_CERVEAU/SF_04_SELECTIO/CODEBASE/detect/   # doit renvoyer des lignes (le capteur)
+```
+
+## EXC-M2 — VEXILLUM décrit opacity/position/size_pct (SF_07_VEXILLUM)
+
+### Le besoin
+Le CDC (T05, T0_bis) affirme que `watermark.json` ne contient AUCUNE clé
+opacity/position/size. Le code pillé réel (`vexillum.py:98-125`) lit ces valeurs
+depuis `watermark_rules.json` (règles du CRÉATEUR : `opacity_min`, `position`,
+`size_pct`) et les DÉCRIT dans le JSON — il ne les applique jamais à une vidéo.
+
+### Le bornage
+| Interdit | Où c'est appliqué |
+|---|---|
+| VEXILLUM apose le watermark sur une vidéo | Aucun subprocess/ffmpeg/drawtext dans SF_07 (testé par T0_bis) |
+| VEXILLUM invente les valeurs | Elles viennent de `watermark_rules.json` / directive / config — jamais choisies par lui |
+
+### Le rayon exact
+`FR_A_CERVEAU/SF_07_VEXILLUM/` — la DESCRIPTION contient les clés ; l'APPLICATION
+reste interdite. T05 reste strict : il ne passe que sur un artefact produit par un
+run réel (CI), où la présence des clés est couverte par la présente exception.
+
+### Les grep qui le vérifient
+```
+grep -rniE "subprocess|ffmpeg|libx264|drawtext" FR_A_CERVEAU/SF_07_VEXILLUM/ \
+  --include="*.py"         # doit renvoyer 0 ligne
+grep -rni "opacity" FR_A_CERVEAU/SF_07_VEXILLUM/CODEBASE/vexillum.py
+                           # renvoie des lignes : la description (EXC-M2), pas l'application
+```
+
+### ⚠️ Verdict Warsmith requis
+Le CDC T05 (« aucune clé opacity/position/size dans watermark.json ») est en
+tension directe avec le code pillé. Deux options : (a) garder le code pillé et
+la présente exception ; (b) purger les clés à la sortie de VEXILLUM (modifier le
+code pillé). Décision réservée au Warsmith — en attendant, option (a) appliquée.

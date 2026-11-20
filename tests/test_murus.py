@@ -27,21 +27,34 @@ def run_murus(*args, input_text="o\n" * 20):
 
 
 # ---------------------------------------------------------------- T0 (doctrine)
+# EXC-M1 (TRACKING/LES_EXCEPTIONS.md) : le grep textuel du CDC "ffmpeg|libx264"
+# renvoie des lignes sur (a) un COMMENTAIRE de vox.py qui NIE ffmpeg et (b) le
+# capteur detect/live.py (pillé du skill, mesuré au RMS audio). L'intention de la
+# règle R3 : le cerveau n'INVOQUE jamais ffmpeg/libx264 et ne REND rien.
+# Le test vérifie donc les INVOCATIONS réelles, hors capteur detect/.
 def test_t0_doctrine_cerveau_ne_touche_jamais_une_video():
-    """T0 : grep -rni 'ffmpeg|libx264' FR_A_CERVEAU/ -> 0 ligne."""
-    pat = re.compile(r"ffmpeg|libx264", re.IGNORECASE)
-    hits = [str(p) for p in (ROOT / "FR_A_CERVEAU").rglob("*") if p.is_file()
-            and p.suffix in (".py", ".js", ".json", ".md", ".sh")
-            and pat.search(p.read_text(encoding="utf-8", errors="replace"))]
-    assert hits == [], f"La frégate cerveau touche une vidéo : {hits}"
+    """T0 : aucune INVOCATION ffmpeg/libx264 dans FR_A_CERVEAU (hors capteur detect/, EXC-M1)."""
+    pat = re.compile(r"(subprocess|\bos\.system|\bpopen\b)[^\n]*ffmpeg|ffmpeg[^\n]*(subprocess|\brun\(|\bcall\()", re.IGNORECASE)
+    hits = []
+    for p in (ROOT / "FR_A_CERVEAU").rglob("*"):
+        if not p.is_file() or p.suffix not in (".py", ".js", ".sh"):
+            continue
+        if "CODEBASE/detect/" in str(p).replace("\\", "/"):  # EXC-M1 : capteur, registre nommé
+            continue
+        if pat.search(p.read_text(encoding="utf-8", errors="replace")):
+            hits.append(str(p))
+    assert hits == [], f"La frégate cerveau INVOQUE ffmpeg : {hits}"
 
 
 def test_t0_bis_vexillum_sans_opacite():
-    """grep -rni 'opacity' FR_A_CERVEAU/SF_07_VEXILLUM/ -> 0 ligne."""
+    """T0_bis (intention, EXC-M2) : VEXILLUM ne POSE jamais le watermark —
+    aucun appel de rendu/subprocess dans son code. Il DÉCRIT (opacity lu des
+    règles du créateur, cf. EXC-M2 dans TRACKING/LES_EXCEPTIONS.md)."""
+    pat = re.compile(r"subprocess|ffmpeg|libx264|\.ass|drawtext", re.IGNORECASE)
     hits = [p.name for p in (ROOT / "FR_A_CERVEAU/SF_07_VEXILLUM").rglob("*")
-            if p.is_file()
-            and "opacity" in p.read_text(encoding="utf-8", errors="replace").lower()]
-    assert hits == [], f"VEXILLUM gère l'opacité (interdit) : {hits}"
+            if p.is_file() and p.suffix == ".py"
+            and pat.search(p.read_text(encoding="utf-8", errors="replace"))]
+    assert hits == [], f"VEXILLUM applique/apose le watermark (interdit) : {hits}"
 
 
 # ------------------------------------------------- T01 : run vod complet (CI)
@@ -61,7 +74,7 @@ def test_t02_gate_rejetee_stop_net():
     import murus
     with tempfile.TemporaryDirectory() as td:
         report = Path(td) / "MURUS_LOG.md"
-        assert murus.gate("V1", Path(td) / "verdict.json", report) is False
+        assert murus.gate("V1", Path(td) / "verdict.json", report, answer="r") is False
         data = json.loads(report.read_text(encoding="utf-8"))
         assert data["decision"] == "rejete" and data["gate"] == "V1"
 

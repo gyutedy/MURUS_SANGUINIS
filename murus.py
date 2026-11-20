@@ -69,11 +69,13 @@ ENTRY_POINTS = {
 }
 
 
-def gate(name: str, artefact: Path, report: Path) -> bool:
+def gate(name: str, artefact: Path, report: Path, answer: str | None = None) -> bool:
     """Porte humaine : l'operateur valide l'artefact AVANT d'ouvrir la sous-fregate suivante.
-    Refus = le run s'arrete. Aucune erreur amont ne peut declencher un run A-Z."""
+    Refus = le run s'arrete. Aucune erreur amont ne peut declencher un run A-Z.
+    answer : reponse pre-fournie (tests/CI) ; None = lecture clavier."""
     print(f"[PORTE {name}] {artefact} — (o)uverte / (r)ejetee ?")
-    if input().strip().lower() not in ("o", "ok", "y"):
+    reply = answer if answer is not None else input()
+    if reply.strip().lower() not in ("o", "ok", "y"):
         report.parent.mkdir(parents=True, exist_ok=True)
         report.write_text(json.dumps(
             {"gate": name, "decision": "rejete", "artefact": str(artefact)}, indent=2), encoding="utf-8")
