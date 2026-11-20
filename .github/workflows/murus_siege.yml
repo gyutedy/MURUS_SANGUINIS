@@ -76,7 +76,7 @@ jobs:
         run: |
           mkdir -p /tmp/vod
           set +e
-          yt-dlp --no-playlist -f bestaudio -o /tmp/vod/audio.%(ext)s "$VOD_URL" 2>&1 | tail -20
+          yt-dlp --no-playlist -f bestaudio -o "/tmp/vod/audio.%(ext)s" "$VOD_URL" 2>&1 | tail -20
           RC=${PIPESTATUS[0]}
           echo "yt-dlp rc=$RC"
           if [ $RC -ne 0 ]; then echo "::error::téléchargement VOD impossible (rc=$RC) — VOD privée/expirée ou Twitch a changé"; exit $RC; fi
