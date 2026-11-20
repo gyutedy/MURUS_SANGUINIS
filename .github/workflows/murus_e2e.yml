@@ -35,11 +35,17 @@ jobs:
           import json, os
           from pathlib import Path
           # Transcript synthétique au format F00B_VOX (segments horodatés).
+          # Le sujet pese >=15% des mots (porte M2B focus) et les overlays
+          # sont soutenus par le texte (bait >=50%).
+          phrases = [
+              "aishah sofey aishah sofey lost 5000 dollars overnight",
+              "aishah sofey aishah sofey she lost everything overnight",
+              "aishah sofey aishah sofey clutch play 1000 damage everything",
+          ]
           segs = []
           t = 0.0
           for i in range(120):
-              txt = f"point {i} this changes everything 1000 damage clutch play"
-              segs.append({"start": round(t, 2), "text": txt, "duration": 2.0})
+              segs.append({"start": round(t, 2), "text": phrases[i % 3], "duration": 2.0})
               t += 2.0
           doc = {"video_id": "999999", "title": "SYNTHETIC E2E", "duration": t,
                  "transcript": {"text": " ".join(s["text"] for s in segs),
@@ -48,9 +54,17 @@ jobs:
           dest.mkdir(parents=True, exist_ok=True)
           (dest / "v999999_transcript.json").write_text(json.dumps(doc), encoding="utf-8")
           # Pack seed conforme G0_PACK (mode=mark1, source.vod_url, asset_mode autorisé).
+          # account/campaign : declarations d'OPERATEUR (lues par A1_ACCOUNT
+          # et A2_CAMPAIGN). Fixture : compte chaud + campagne financee dont
+          # le CPM passe le plancher min_cpm.
           seed = {"mode": "mark1",
                   "source": {"vod_url": "https://www.twitch.tv/videos/999999"},
-                  "asset_mode": "blur"}
+                  "asset_mode": "blur",
+                  "account": {"warmup_days": 42},
+                  "campaign": {"rate_usd_per_1k": 2.5, "funded": True,
+                               "budget_remaining_usd": 5000,
+                               "platforms": ["youtube_shorts"],
+                               "cap_usd_per_clip": 200}}
           Path("/tmp/seed_pack.json").write_text(json.dumps(seed), encoding="utf-8")
 
           # Fixture e2e : la campagne AISHAH RÉELLE est expiree (cycle.end 2026-11-15)
@@ -84,7 +98,12 @@ jobs:
           answers = []
           # Titres universels 4 mots avec chiffre : passent overlay_max_words=4,
           # aucune entité inexpliquée (S1), aucun CTA.
-          cands = ["Il perd 1000 dollars", "Elle gagne 1000 dollars", "Plus que 1000 dollars"]
+          # En spec EN un titre qui COMMENCE par une majuscule est lu comme
+          # entite non expliquee (S1) -> candidats en minuscules, avec chiffre
+          # (stake) et mots presents dans le transcript (bait >=50%).
+          cands = ["she lost 5000 dollars overnight",
+                   "she lost everything overnight",
+                   "lost 5000 dollars overnight"]
           for f in pend:
               doc = json.loads(Path(f).read_text(encoding="utf-8"))
               if doc.get("task") != "overlay_title":
