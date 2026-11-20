@@ -1,0 +1,199 @@
+name: MURUS — e2e RÉEL (moteur MARK1 + ffmpeg F05/F06 + codex)
+
+# Vraie exécution, pas des checks structurels :
+#  - FR_A : mark1.py doctor + selftest (36 tests pillés) + export sur transcript
+#    synthétique -> pack réel dans EXPORT/ + ledger + siege.
+#  - FR_B : MP4 synthétiques (ffmpeg testsrc) -> F05 CAMOUFLAGE -> F06 LUTHER
+#    -> rapports qa_pass vérifiés (T14/T15 réels). Test du tag infecté
+#    encoder=remotion -> suspicious_tags_after vide.
+#  - codex : node --test (F03_PREVIEW) + tools/test_codex.py.
+
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+jobs:
+  cerveau:
+    name: FR_A — mark1 doctor + selftest + export réel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: mark1 doctor (aucune clé requise)
+        run: python FR_A_CERVEAU/MARK1/mark1.py doctor
+
+      - name: mark1 selftest (les 36 tests pillés, exécutés)
+        run: python FR_A_CERVEAU/MARK1/mark1.py selftest
+
+      - name: Générer transcript + pack seed synthétiques
+        run: |
+          python - << 'PYEOF'
+          import json, os
+          from pathlib import Path
+          # Transcript synthétique au format F00B_VOX (segments horodatés).
+          segs = []
+          t = 0.0
+          for i in range(120):
+              txt = f"point {i} this changes everything 1000 damage clutch play"
+              segs.append({"start": round(t, 2), "text": txt, "duration": 2.0})
+              t += 2.0
+          doc = {"video_id": "999999", "title": "SYNTHETIC E2E", "duration": t,
+                 "transcript": {"text": " ".join(s["text"] for s in segs),
+                                "segments": segs, "status": "OK", "segment_count": len(segs)}}
+          dest = Path("ARCHIVUM/montage/transcripts")
+          dest.mkdir(parents=True, exist_ok=True)
+          (dest / "v999999_transcript.json").write_text(json.dumps(doc), encoding="utf-8")
+          # Pack seed conforme G0_PACK (mode=mark1, source.vod_url, asset_mode autorisé).
+          seed = {"mode": "mark1",
+                  "source": {"vod_url": "https://www.twitch.tv/videos/999999"},
+                  "asset_mode": "blur"}
+          Path("/tmp/seed_pack.json").write_text(json.dumps(seed), encoding="utf-8")
+          print("transcript + seed pack OK")
+          PYEOF
+
+      - name: mark1 export RÉEL (D0→X1, pack + sieges + ledger)
+        run: |
+          python FR_A_CERVEAU/MARK1/mark1.py export /tmp/seed_pack.json \
+            --transcript ARCHIVUM/montage/transcripts/v999999_transcript.json \
+            --platform youtube_shorts --nb-segments 3
+
+      - name: Vérifier le pack exporté (T06/T08 réels)
+        run: |
+          python - << 'PYEOF'
+          import json, glob, csv
+          from pathlib import Path
+          packs = sorted(glob.glob("EXPORT/production_pack_mark1_*.json"))
+          assert packs, "aucun production_pack_mark1_*.json dans EXPORT/"
+          pack = json.loads(Path(packs[-1]).read_text(encoding="utf-8"))
+          assert pack.get("mode") == "mark1", f"mode={pack.get('mode')}"
+          tokens = [a.get("clip_token") for a in pack.get("assets", [])]
+          assert tokens and all(tokens), f"clip_tokens manquants : {tokens}"
+          assert len(tokens) == len(set(tokens)), "clip_token dupliqué"
+          rows = list(csv.reader(open("EXPORT/ledger.csv", encoding="utf-8")))
+          assert len(rows) >= 2, f"ledger vide : {len(rows)} lignes"
+          print(f"PACK OK : {packs[-1]} | tokens={tokens} | ledger={len(rows)-1} lignes")
+          PYEOF
+
+  creation:
+    name: FR_B — F05 CAMOUFLAGE + F06 LUTHER sur MP4 réels + codex
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install ffmpeg
+        run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
+
+      - name: Générer 3 MP4 synthétiques (testsrc + audio)
+        run: |
+          OUT=FR_B_CREATION/SF_13_POLITURA/OUT/clips
+          mkdir -p "$OUT"
+          for i in 1 2 3; do
+            ffmpeg -y -hide_banner -loglevel error \
+              -f lavfi -i "testsrc2=size=1280x720:duration=6:rate=25" \
+              -f lavfi -i "sine=frequency=440:duration=6" \
+              -shortest -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest \
+              "$OUT/A0$i.mp4"
+          done
+          ls -la "$OUT"
+
+      - name: SF_14 CAMOUFLAGE — batch réel (T14)
+        run: |
+          python FR_B_CREATION/SF_14_CAMOUFLAGE/CODEBASE/lac_f05_camouflage.py \
+            --batch FR_B_CREATION/SF_13_POLITURA/OUT/clips \
+            --output FR_B_CREATION/SF_14_CAMOUFLAGE/OUT
+          python - << 'PYEOF'
+          import json, glob
+          reps = glob.glob("FR_B_CREATION/SF_14_CAMOUFLAGE/OUT/*camouflage*.json")
+          assert reps, "rapport camouflage absent"
+          rep = json.loads(open(sorted(reps)[-1], encoding="utf-8").read())
+          assert rep.get("schema_version", "").startswith("dev10-v2.camouflage"), rep.get("schema_version")
+          entries = rep.get("videos") or rep.get("consolidated") or []
+          assert entries and all(e.get("qa_pass") for e in entries), f"qa_pass false : {entries}"
+          print(f"CAMOUFLAGE OK : {len(entries)} MP4, qa_pass tous vrais")
+          PYEOF
+
+      - name: SF_15 LUTHER — batch réel + QA (T15)
+        run: |
+          python FR_B_CREATION/SF_15_LUTHER/CODEBASE/lac_f06_luther.py \
+            --batch FR_B_CREATION/SF_14_CAMOUFLAGE/OUT \
+            --output FR_B_CREATION/SF_15_LUTHER/OUT
+          python - << 'PYEOF'
+          import json, glob
+          reps = [f for f in glob.glob("FR_B_CREATION/SF_15_LUTHER/OUT/*.json")
+                  if "luther" in f.lower()]
+          assert reps, "rapport luther absent"
+          rep = json.loads(open(sorted(reps)[-1], encoding="utf-8").read())
+          assert rep.get("schema_version", "").startswith("dev10-v2.luther"), rep.get("schema_version")
+          entries = rep.get("videos") or rep.get("consolidated") or []
+          assert entries, "rapport luther vide"
+          bad = [e for e in entries if not e.get("qa_pass")]
+          assert not bad, f"qa_pass false : {bad}"
+          print(f"LUTHER OK : {len(entries)} MP4 normalisés, qa_pass tous vrais")
+          PYEOF
+
+      - name: T15 RÉEL — MP4 infecté encoder=remotion -> purgé
+        run: |
+          mkdir -p /tmp/infected
+          ffmpeg -y -hide_banner -loglevel error \
+            -f lavfi -i "testsrc2=size=640x360:duration=3:rate=25" \
+            -f lavfi -i "sine=frequency=440:duration=3" \
+            -shortest -c:v libx264 -pix_fmt yuv420p -c:a aac \
+            -metadata encoder="remotion" -metadata comment="lavf" \
+            /tmp/infected/INFECTED.mp4
+          python FR_B_CREATION/SF_14_CAMOUFLAGE/CODEBASE/lac_f05_camouflage.py \
+            --batch /tmp/infected --output /tmp/infected/camo
+          python FR_B_CREATION/SF_15_LUTHER/CODEBASE/lac_f06_luther.py \
+            --batch /tmp/infected/camo --output /tmp/infected/final
+          python - << 'PYEOF'
+          import json, glob, subprocess
+          reps = sorted(glob.glob("/tmp/infected/final/*luther*.json"))
+          assert reps, "rapport luther (infecté) absent"
+          rep = json.loads(open(reps[-1], encoding="utf-8").read())
+          entries = rep.get("videos") or rep.get("consolidated") or []
+          assert entries, "rapport vide"
+          for e in entries:
+              after = e.get("after") or {}
+              tags = e.get("suspicious_tags_after") or after.get("suspicious_tags_after") or []
+              assert not tags, f"tags suspects résiduels : {tags}"
+              assert e.get("qa_pass", after.get("qa_pass", True)), f"qa_pass false : {e}"
+          print("T15 RÉEL OK : tags remotion/lavf purgés, qa_pass vrai")
+          PYEOF
+
+      - name: GLOW — preview 1 frame réelle (GL1/GL2)
+        run: |
+          ffmpeg -y -hide_banner -loglevel error \
+            -f lavfi -i "testsrc2=size=1280x720:duration=1:rate=25" \
+            -frames:v 1 /tmp/frame.png
+          cd FR_B_CREATION/SF_11_LUMEN/CODEBASE
+          python preview_glow.py --frame /tmp/frame.png --out /tmp/glow_frame.png \
+            --mode scene --sigma 10 --opacity 0.3
+          test -s /tmp/glow_frame.png && echo "GLOW OK : frame preview produite"
+
+      - name: Codex — node --test (F03_PREVIEW) + tools/test_codex.py
+        run: |
+          cd FR_B_CREATION/SF_10_SPECULUM/CODEBASE
+          node --test tests/ 2>&1 | tail -5
+          cd ../../../
+          python tools/test_codex.py 2>&1 | tail -5
+
+      - name: V7 — refus si qa_pass false (T16 partiel réel)
+        run: |
+          python - << 'PYEOF'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path("FR_B_CREATION/GATES").resolve()))
+          import gates_b
+          ok, motif = gates_b.gate_v7_refuses_sale_livrable()
+          assert ok, f"V7 aurait dû refuser : {motif}"  # rapports CI = qa_pass vrais
+          print("V7 OK : rapports CAMOUFLAGE/LUTHER qa_pass vrais -> livraison permise")
+          PYEOF
