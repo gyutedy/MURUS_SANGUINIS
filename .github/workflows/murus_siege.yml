@@ -62,7 +62,21 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Transcript déjà présent ? (le paiement d'une transcription ne se refait pas)
+        id: deja
+        env:
+          VOD_URL: ${{ inputs.vod_url }}
+        run: |
+          VID=$(echo "$VOD_URL" | grep -oE '[0-9]{6,}' | head -1)
+          if [ -f "ARCHIVUM/montage/transcripts/v${VID}_transcript.json" ]; then
+            echo "transcript déjà dans ARCHIVUM pour v$VID : ingestion sautée"
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=0" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Installer ffmpeg + yt-dlp + faster-whisper
+        if: steps.deja.outputs.skip != '1'
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ffmpeg
@@ -70,6 +84,7 @@ jobs:
           pip install yt-dlp faster-whisper
 
       - name: Télécharger l'audio de la VOD
+        if: steps.deja.outputs.skip != '1'
         env:
           VOD_URL: ${{ inputs.vod_url }}
           MAX_MIN: ${{ inputs.max_minutes }}
@@ -88,6 +103,7 @@ jobs:
             awk '{printf "durée transcrite: %.1f min\n", $1/60}'
 
       - name: Transcrire (faster-whisper CPU) -> format ARCHIVUM
+        if: steps.deja.outputs.skip != '1'
         env:
           VOD_URL: ${{ inputs.vod_url }}
           MODEL: ${{ inputs.whisper_model }}
@@ -138,6 +154,7 @@ jobs:
           PYEOF
 
       - name: Committer le transcript dans ARCHIVUM
+        if: steps.deja.outputs.skip != '1'
         run: |
           git config user.name "MurusVox"
           git config user.email "vox@murus.sanguinis"
@@ -158,6 +175,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      # Le job d'ingestion vient de committer le transcript sur main. Le checkout de ce job
+      # est fige sur le SHA du run : sans ce fetch, le transcript paraissait absent.
+      - name: Récupérer le transcript committé par l'ingestion
+        run: |
+          git fetch origin main
+          git merge --ff-only origin/main
+          ls -la ARCHIVUM/montage/transcripts/ | tail -5
 
       - name: Construire le pack d'entrée depuis les déclarations de l'opérateur
         env:
