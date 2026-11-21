@@ -1,0 +1,140 @@
+name: MURUS — RENDU RÉEL (clip vertical + watermark Preme)
+
+# But : sortir de la VRAIE video, sur un VRAI moment choisi par M1, un clip vertical
+# 1080x1920 au watermark Preme centre et visible, tel que la directive l'exige.
+#
+# Ce job ne publie rien et ne signe aucun pack : il rend. Les portes qui autorisent
+# la publication (A1_ACCOUNT, A2_CAMPAIGN, ORACLE des titres) restent dans murus_siege.yml.
+#
+# Doctrine : FR_A a choisi les fenetres (M1 a tourne sur le transcript reel), FR_B
+# execute. Ici on exécute les modules pillés (ffmpeg, glow) — aucun code de decision.
+
+on:
+  workflow_dispatch:
+    inputs:
+      vod_url:
+        description: 'URL de la VOD'
+        required: true
+        default: 'https://www.twitch.tv/videos/2909800627'
+      start:
+        description: 'Debut du clip (secondes) — defaut : 1er moment choisi par M1'
+        required: false
+        default: '510.6'
+        type: string
+      duration:
+        description: 'Duree du clip (secondes)'
+        required: false
+        default: '30'
+        type: string
+      platform:
+        description: 'Plateforme (format de sortie)'
+        required: false
+        default: 'youtube_shorts'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  rendu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer ffmpeg + yt-dlp
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg
+          pip install -q yt-dlp
+
+      - name: Télécharger UNIQUEMENT la fenêtre du clip (pas toute la VOD)
+        env:
+          VOD_URL: ${{ inputs.vod_url }}
+          START: ${{ inputs.start }}
+          DUR: ${{ inputs.duration }}
+        run: |
+          mkdir -p WORK_RENDU
+          # --download-sections : yt-dlp ne prend que la fenêtre demandée.
+          yt-dlp --no-playlist -f "bv*[height<=1080]+ba/b[height<=1080]" \
+            --download-sections "*${START}-$(python3 -c "print(float('${START}')+float('${DUR}')+1)")" \
+            --force-keyframes-at-cuts -o "WORK_RENDU/src.%(ext)s" "$VOD_URL"
+          SRC=$(ls WORK_RENDU/src.* | head -1)
+          echo "SRC=$SRC" >> "$GITHUB_ENV"
+          ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$SRC" | \
+            awk '{printf "fenêtre téléchargée : %.1f s\n", $1}'
+
+      - name: Lire la spec watermark de la directive (position/opacité/taille)
+        id: spec
+        run: |
+          python - << 'PYEOF' >> "$GITHUB_OUTPUT"
+          import json
+          d = json.load(open("ARCHIVUM/campaign/campaign_directive.json", encoding="utf-8"))
+          wm = d.get("watermark") or {}
+          print("file=%s" % (wm.get("file") or "preme.png"))
+          print("opacity=%s" % (wm.get("opacity", 0.8)))
+          print("size_pct=%s" % (wm.get("size_pct", 15)))
+          print("position=%s" % (wm.get("position", "center")))
+          PYEOF
+          cat "$GITHUB_OUTPUT"
+
+      - name: Rendu vertical 1080x1920 (asset_mode blur) + watermark centré
+        env:
+          START: ${{ inputs.start }}
+          DUR: ${{ inputs.duration }}
+          WM_FILE: ${{ steps.spec.outputs.file }}
+          WM_OPACITY: ${{ steps.spec.outputs.opacity }}
+          WM_SIZE: ${{ steps.spec.outputs.size_pct }}
+        run: |
+          WM="ARCHIVUM/campaign/watermarks/${WM_FILE}"
+          test -f "$WM" || { echo "::error::watermark introuvable : $WM"; exit 1; }
+          mkdir -p OUT/RENDU
+          # 1. cadre vertical : fond flou (blur) + image entiere au centre (aucun recadrage qui coupe le sujet)
+          # 2. watermark : largeur = size_pct% de 1080, opacite de la directive, posé au CENTRE
+          ffmpeg -y -loglevel error -ss 0 -t "$DUR" -i "$SRC" -i "$WM" -filter_complex "
+            [0:v]split=2[bg][fg];
+            [bg]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,gblur=sigma=28,eq=brightness=-0.06[b];
+            [fg]scale=1080:-2:force_original_aspect_ratio=decrease[f];
+            [b][f]overlay=(W-w)/2:(H-h)/2[base];
+            [1:v]scale=1080*${WM_SIZE}/100:-1,format=rgba,colorchannelmixer=aa=${WM_OPACITY}[wm];
+            [base][wm]overlay=(W-w)/2:(H-h)/2:format=auto[v]" \
+            -map "[v]" -map 0:a? -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p \
+            -c:a aac -b:a 128k -ar 44100 -movflags +faststart "OUT/RENDU/clip_${START}s.mp4"
+          ffprobe -v error -select_streams v:0 -show_entries stream=width,height,duration \
+            -of default=nw=1 "OUT/RENDU/clip_${START}s.mp4"
+
+      - name: "GLOW — preview_glow prend une FRAME, pas une vidéo"
+        run: |
+          ffmpeg -y -loglevel error -ss 1 -i "OUT/RENDU/clip_${{ inputs.start }}s.mp4" -frames:v 1 OUT/RENDU/frame.png
+          python FR_B_CREATION/SF_11_LUMEN/CODEBASE/preview_glow.py --frame OUT/RENDU/frame.png --out OUT/RENDU/glow_preview.png 2>&1 | tail -12
+
+      - name: "QA réelle du clip rendu — SF_14 CAMOUFLAGE, mode mono (dossier de sortie)"
+        run: |
+          python FR_B_CREATION/SF_14_CAMOUFLAGE/CODEBASE/lac_f05_camouflage.py --input "OUT/RENDU/clip_${{ inputs.start }}s.mp4" --output OUT/RENDU/camo 2>&1 | tail -25
+          test -f OUT/RENDU/camo/camouflage_report.json             && echo "rapport CAMOUFLAGE écrit"             || echo "::warning::aucun rapport CAMOUFLAGE produit"
+
+      - name: Publier l'artefact (clip + rapports)
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendu-preme-${{ inputs.start }}s
+          path: |
+            OUT/RENDU/*.mp4
+            OUT/RENDU/camo/*.json
+            OUT/RENDU/*.png
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Résumé lisible
+        if: always()
+        run: |
+          {
+            echo "## Rendu réel — VOD ${{ inputs.vod_url }}"
+            echo ""
+            echo "- fenêtre : ${{ inputs.start }}s → $(( ${START%.*} + ${DUR%.*} ))s (durée ${{ inputs.duration }}s)"
+            echo "- sortie : 1080x1920, fond flou, watermark \`${{ steps.spec.outputs.file }}\` centré, opacité ${{ steps.spec.outputs.opacity }}, largeur ${{ steps.spec.outputs.size_pct }}%"
+            echo "- artefact : \`rendu-preme-${{ inputs.start }}s\` (7 jours)"
+            echo ""
+            [ -f OUT/RENDU/camo/camouflage_report.json ] && echo '```json' && head -30 OUT/RENDU/camo/camouflage_report.json && echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

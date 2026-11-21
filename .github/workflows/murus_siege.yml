@@ -277,6 +277,9 @@ jobs:
 
       - name: Rapport de siège (états réels + ce qui manque à l'opérateur)
         if: always()
+        env:
+          VOD_URL: ${{ inputs.vod_url }}
+          PLATFORM: ${{ inputs.platform }}
         run: |
           python - << 'PYEOF'
           import json, os, re, datetime
@@ -327,7 +330,7 @@ jobs:
                   out.append("| %s | %.1fs | %.1fs | %.1fs | %s |" % (
                       s.get("id"), float(s.get("start") or 0), float(s.get("end") or 0),
                       float(s.get("end") or 0) - float(s.get("start") or 0),
-                      (s.get("source_text") or "")[:100].replace("|", "/").replace("\n", " ")))
+                      " ".join((s.get("text") or "")[:140].split()).replace("|", "/")))
           else:
               out.append("(pas de sélection : la chaîne s'est arrêtée avant M1)")
           out.append("")
