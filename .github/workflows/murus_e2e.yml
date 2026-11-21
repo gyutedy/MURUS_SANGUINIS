@@ -85,7 +85,10 @@ jobs:
           # Pour l'export e2e on ecrit une copie SYNTHETIQUE a cycle futur
           # (workspace CI seulement, jamais commitee). Le selftest, lui, a tourne
           # AVANT sur la vraie directive.
-          d = json.loads(Path("ARCHIVUM/campaign/campaign_directive.json").read_text(encoding="utf-8"))
+          # La fixture AISHAH porte un payout et des watermarks reels : c'est elle
+          # qui sert de base a l'export synthetique (la campagne LIVE, PREME, n'a
+          # volontairement aucun terme de paiement).
+          d = json.loads(Path("ARCHIVUM/campaign/campaign_directive.fixture.json").read_text(encoding="utf-8"))
           d["campaign_id"] = "SYNTHETIC-E2E"
           d["cycle"] = {"start": "2026-11-20", "end": "2027-12-31"}
           Path("ARCHIVUM/campaign/campaign_directive.json").write_text(json.dumps(d, indent=2), encoding="utf-8")
