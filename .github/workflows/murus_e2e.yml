@@ -27,7 +27,20 @@ jobs:
         run: python FR_A_CERVEAU/MARK1/mark1.py doctor
 
       - name: mark1 selftest (les 36 tests pillés, exécutés)
-        run: python FR_A_CERVEAU/MARK1/mark1.py selftest
+        run: |
+          # Les 36 selftests pillés décrivent la campagne AISHAH (watermark aishahsofey,
+          # payout présent). Ils sont exécutés contre la FIXTURE, jamais contre la
+          # campagne du jour : sinon un changement de campagne casse la suite de tests
+          # (constaté le 2026-11-21 en passant la directive live à PREME).
+          LIVE=ARCHIVUM/campaign/campaign_directive.json
+          cp "$LIVE" /tmp/live_directive.json
+          cp ARCHIVUM/campaign/campaign_directive.fixture.json "$LIVE"
+          set +e
+          python FR_A_CERVEAU/MARK1/mark1.py selftest
+          RC=$?
+          cp /tmp/live_directive.json "$LIVE"
+          echo "selftest rc=$RC (fixture restaurée : campagne live intacte)"
+          exit $RC
 
       - name: Générer transcript + pack seed synthétiques
         run: |
