@@ -77,6 +77,20 @@ jobs:
           cp "${{ steps.pack.outputs.path }}" FR_B_CREATION/SF_10_SPECULUM/CODEBASE/dist/pack.json
           ls -la FR_B_CREATION/SF_10_SPECULUM/CODEBASE/dist/
 
+      - name: Garde anti-dérive — les schémas de codex doivent rester identiques
+        run: |
+          python - << 'PYEOF'
+          import hashlib, pathlib, sys
+          bad = []
+          for n in ("codex_render", "codex_postprod"):
+              a = pathlib.Path("REVIEW/SCHEMAS/%s.schema.json" % n).read_bytes()
+              b = pathlib.Path("FR_B_CREATION/REVIEW/SCHEMAS/%s.schema.json" % n).read_bytes()
+              if hashlib.sha256(a).hexdigest() != hashlib.sha256(b).hexdigest():
+                  bad.append(n)
+          print("schemas identiques" if not bad else "DIVERGENTS : %s" % bad)
+          sys.exit(1 if bad else 0)
+          PYEOF
+
       - name: Vérifier que le validateur de codex est joignable (tools/codex.py)
         run: |
           python FR_B_CREATION/tools/codex.py --help 2>&1 | head -5 || \

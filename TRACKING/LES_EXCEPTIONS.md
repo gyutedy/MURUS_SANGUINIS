@@ -247,3 +247,31 @@ le code lit déjà `cfg["archivum"]["transcripts_dir"]`.
 grep -n '"archivum"' FR_A_CERVEAU/MARK1/config/selection.json      # 1 ligne, valeur ../../ARCHIVUM
 grep -rn 'transcripts_dir' FR_A_CERVEAU/MARK1/libs/transcript.py   # le code lit bien la clé
 ```
+
+## EXC-M5 — schémas de codex visibles à l'endroit où le code pillé les cherche
+
+### Le besoin
+`FR_B_CREATION/tools/codex.py` (pillé de LACRIMAE) calcule
+`ROOT = Path(__file__).parent.parent` puis lit `ROOT/REVIEW/SCHEMAS/*.schema.json`.
+Dans le layout MURUS, `tools/` a dû être placé sous `FR_B_CREATION/` (F05/F06
+l'importent via `parents[2]`), donc le validateur cherchait
+`FR_B_CREATION/REVIEW/SCHEMAS` et refusait tout codex : « schema absent ».
+Résultat : aucun codex ne pouvait être validé, donc aucun rendu — sans que rien
+ne le dise.
+
+### Le rayon exact
+Copie à l'identique de `REVIEW/SCHEMAS/*.schema.json` vers
+`FR_B_CREATION/REVIEW/SCHEMAS/`. **Aucun code pillé modifié.** Les schémas restent
+la vérité unique à la racine ; la copie est gardée par un contrôle d'identité en CI.
+
+### Les grep qui le vérifient
+```
+python - <<'PY'
+import hashlib, pathlib
+for n in ("codex_render", "codex_postprod"):
+    a = pathlib.Path("REVIEW/SCHEMAS/%s.schema.json" % n).read_bytes()
+    b = pathlib.Path("FR_B_CREATION/REVIEW/SCHEMAS/%s.schema.json" % n).read_bytes()
+    assert hashlib.sha256(a).hexdigest() == hashlib.sha256(b).hexdigest(), n
+print("schemas identiques")
+PY
+```
