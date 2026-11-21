@@ -1,13 +1,26 @@
-name: MURUS — RENDU RÉEL (clip vertical + watermark Preme)
+name: MURUS — CHAÎNE COMPLÈTE (murus.py, aucune étape sautée)
 
-# But : sortir de la VRAIE video, sur un VRAI moment choisi par M1, un clip vertical
-# 1080x1920 au watermark Preme centre et visible, tel que la directive l'exige.
+# ENTRÉE UNIQUE ET UNIQUE CHEMIN : murus.py.
 #
-# Ce job ne publie rien et ne signe aucun pack : il rend. Les portes qui autorisent
-# la publication (A1_ACCOUNT, A2_CAMPAIGN, ORACLE des titres) restent dans murus_siege.yml.
+# Il n'y a PAS de "workflow de rendu" séparé. Un rendu direct en ffmpeg a été
+# tenté et ANNULE le 2026-11-20 : il sautait 7 étapes gravées de FR_B.
 #
-# Doctrine : FR_A a choisi les fenetres (M1 a tourne sur le transcript reel), FR_B
-# execute. Ici on exécute les modules pillés (ffmpeg, glow) — aucun code de decision.
+# La chaîne que murus.py applique, dans l'ordre, sans possibilité de sauter :
+#
+#   FR_A (décide)                      FR_B (exécute, ne décide jamais)
+#   D0_DIRECTIVE                       V5  -> SF_10_SPECULUM   (preview LOOK)  -> codex_render.json signé
+#   M0B_CYCLE                          V6  -> SF_11_LUMEN      (preview GLOW 1 frame) -> codex_postprod.json signé
+#   M1_SELECTION                       G1  -> SF_12_FABRICA    (rendu, piloté par les 2 codex signés)
+#   M5_VOX                             PP2 -> SF_13_POLITURA   (glow -> caption -> lut -> fade)
+#   M2_METADATA (ORACLE, EXC-1)            -> SF_14_CAMOUFLAGE (post-rendu, SANS gate)
+#   M2B_COMPLIANCE                         -> SF_15_LUTHER     (post-rendu, SANS gate)
+#   M3_WATERMARK                       V7  -> SF_16_MISSIO     (livraison refusée si qa_pass=false)
+#   A1_ACCOUNT
+#   A2_CAMPAIGN
+#   X1_EXPORT (pack + sieges + ledger)
+#
+# Rien ne s'exécute si une porte refuse : c'est le comportement voulu.
+# Les déclarations d'opérateur vivent dans ARCHIVUM/campaign/operator_declarations.json.
 
 on:
   workflow_dispatch:
@@ -16,125 +29,135 @@ on:
         description: 'URL de la VOD'
         required: true
         default: 'https://www.twitch.tv/videos/2909800627'
-      start:
-        description: 'Debut du clip (secondes) — defaut : 1er moment choisi par M1'
-        required: false
-        default: '510.6'
         type: string
-      duration:
-        description: 'Duree du clip (secondes)'
+      profile:
+        description: 'Profil : vod (avec previews codex) ou direct (codex réutilisés)'
         required: false
-        default: '30'
-        type: string
+        default: 'vod'
+        type: choice
+        options: ['vod', 'direct']
       platform:
-        description: 'Plateforme (format de sortie)'
+        description: 'Plateforme'
         required: false
         default: 'youtube_shorts'
+        type: string
+      nb_segments:
+        description: 'Nombre de clips'
+        required: false
+        default: '3'
         type: string
 
 permissions:
   contents: write
 
 jobs:
-  rendu:
+  chaine:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Installer ffmpeg + yt-dlp
+      - name: Installer ffmpeg + node (CLIs pillées)
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ffmpeg
-          pip install -q yt-dlp
+          node --version
 
-      - name: Télécharger UNIQUEMENT la fenêtre du clip (pas toute la VOD)
+      - name: ÉTAT DE L'ORDRE — ce qui est signé, ce qui manque (aucune invention)
+        id: ordre
+        run: |
+          python - << 'PYEOF' | tee /tmp/ordre.txt
+          import json
+          from pathlib import Path
+
+          chain = [
+              ("FR_A", "D0_DIRECTIVE", None),
+              ("FR_A", "M0B_CYCLE", None),
+              ("FR_A", "M1_SELECTION", None),
+              ("FR_A", "M5_VOX", None),
+              ("FR_A", "M2_METADATA", None),
+              ("FR_A", "M2B_COMPLIANCE", None),
+              ("FR_A", "M3_WATERMARK", None),
+              ("FR_A", "A1_ACCOUNT", None),
+              ("FR_A", "A2_CAMPAIGN", None),
+              ("FR_A", "X1_EXPORT", "EXPORT/production_pack_mark1_*.json"),
+              ("FR_B", "V5  SF_10_SPECULUM", "REVIEW/codex_render.json"),
+              ("FR_B", "V6  SF_11_LUMEN", "REVIEW/codex_postprod.json"),
+              ("FR_B", "G1  SF_12_FABRICA", "FR_B_CREATION/SF_12_FABRICA/OUT/clips"),
+              ("FR_B", "PP2 SF_13_POLITURA", "FR_B_CREATION/SF_13_POLITURA/OUT/postprod_report.json"),
+              ("FR_B", "    SF_14_CAMOUFLAGE (sans gate)", None),
+              ("FR_B", "    SF_15_LUTHER (sans gate)", None),
+              ("FR_B", "V7  SF_16_MISSIO", "FR_B_CREATION/SF_16_MISSIO/OUT/submissions.json"),
+          ]
+          manquants = 0
+          for suite, nom, artefact in chain:
+              if artefact is None:
+                  print("  [--] %-4s %s" % (suite, nom))
+                  continue
+              hits = list(Path(".").glob(artefact))
+              state = "OK " if hits else "MANQUE"
+              if not hits:
+                  manquants += 1
+              print("  [%s] %-4s %s  (%s)" % (state, suite, nom, artefact))
+
+          # Les codex doivent en plus porter la signature du Magos.
+          for cx in ("REVIEW/codex_render.json", "REVIEW/codex_postprod.json"):
+              p = Path(cx)
+              if p.exists():
+                  d = json.loads(p.read_text(encoding="utf-8"))
+                  print("  codex %s -> validated_by_magos=%r" % (cx, d.get("validated_by_magos")))
+          print("")
+          print("ÉTAPES NON SATISFAITES : %d" % manquants)
+          Path("/tmp/manquants.txt").write_text(str(manquants), encoding="utf-8")
+          PYEOF
+          echo "MANQUANTS=$(cat /tmp/manquants.txt)" >> "$GITHUB_ENV"
+
+      - name: Refus explicite si l'ordre n'est pas respecté
+        if: env.MANQUANTS != '0'
+        run: |
+          echo "::error::chaîne incomplète : $MANQUANTS étape(s) non satisfaite(s). Aucun rendu, aucun contournement."
+          echo "Voir /tmp/ordre.txt (journal ci-dessus). Remplir d'abord les déclarations d'opérateur puis relancer murus.py."
+          exit 1
+
+      - name: CHAÎNE COMPLÈTE — murus.py (le seul chemin)
+        if: env.MANQUANTS == '0'
         env:
           VOD_URL: ${{ inputs.vod_url }}
-          START: ${{ inputs.start }}
-          DUR: ${{ inputs.duration }}
+          PROFILE: ${{ inputs.profile }}
+          PLATFORM: ${{ inputs.platform }}
+          NB: ${{ inputs.nb_segments }}
         run: |
-          mkdir -p WORK_RENDU
-          # --download-sections : yt-dlp ne prend que la fenêtre demandée.
-          yt-dlp --no-playlist -f "bv*[height<=1080]+ba/b[height<=1080]" \
-            --download-sections "*${START}-$(python3 -c "print(float('${START}')+float('${DUR}')+1)")" \
-            --force-keyframes-at-cuts -o "WORK_RENDU/src.%(ext)s" "$VOD_URL"
-          SRC=$(ls WORK_RENDU/src.* | head -1)
-          echo "SRC=$SRC" >> "$GITHUB_ENV"
-          ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$SRC" | \
-            awk '{printf "fenêtre téléchargée : %.1f s\n", $1}'
-
-      - name: Lire la spec watermark de la directive (position/opacité/taille)
-        id: spec
-        run: |
-          python - << 'PYEOF' >> "$GITHUB_OUTPUT"
-          import json
-          d = json.load(open("ARCHIVUM/campaign/campaign_directive.json", encoding="utf-8"))
-          wm = d.get("watermark") or {}
-          print("file=%s" % (wm.get("file") or "preme.png"))
-          print("opacity=%s" % (wm.get("opacity", 0.8)))
-          print("size_pct=%s" % (wm.get("size_pct", 15)))
-          print("position=%s" % (wm.get("position", "center")))
+          python - << 'PYEOF'
+          import json, os
+          from pathlib import Path
+          decl = json.loads(Path("ARCHIVUM/campaign/operator_declarations.json").read_text(encoding="utf-8"))
+          pack = {"mode": "mark1",
+                  "source": {"vod_url": os.environ["VOD_URL"]},
+                  "asset_mode": "blur",
+                  "account": decl.get("account") or {},
+                  "campaign": decl.get("campaign") or {},
+                  "focus_declared": decl.get("focus_declared")}
+          Path("/tmp/pack_chaine.json").write_text(json.dumps(pack, indent=1), encoding="utf-8")
+          print("pack écrit depuis les déclarations d'opérateur")
           PYEOF
-          cat "$GITHUB_OUTPUT"
+          VID=$(echo "$VOD_URL" | grep -oE '[0-9]{6,}' | head -1)
+          python murus.py --profile "$PROFILE" --pack /tmp/pack_chaine.json \
+            --transcript "ARCHIVUM/montage/transcripts/v${VID}_transcript.json" \
+            --platform "$PLATFORM"
 
-      - name: Rendu vertical 1080x1920 (asset_mode blur) + watermark centré
-        env:
-          START: ${{ inputs.start }}
-          DUR: ${{ inputs.duration }}
-          WM_FILE: ${{ steps.spec.outputs.file }}
-          WM_OPACITY: ${{ steps.spec.outputs.opacity }}
-          WM_SIZE: ${{ steps.spec.outputs.size_pct }}
-        run: |
-          WM="ARCHIVUM/campaign/watermarks/${WM_FILE}"
-          test -f "$WM" || { echo "::error::watermark introuvable : $WM"; exit 1; }
-          mkdir -p OUT/RENDU
-          # 1. cadre vertical : fond flou (blur) + image entiere au centre (aucun recadrage qui coupe le sujet)
-          # 2. watermark : largeur = size_pct% de 1080, opacite de la directive, posé au CENTRE
-          ffmpeg -y -loglevel error -ss 0 -t "$DUR" -i "$SRC" -i "$WM" -filter_complex "
-            [0:v]split=2[bg][fg];
-            [bg]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,gblur=sigma=28,eq=brightness=-0.06[b];
-            [fg]scale=1080:-2:force_original_aspect_ratio=decrease[f];
-            [b][f]overlay=(W-w)/2:(H-h)/2[base];
-            [1:v]scale=1080*${WM_SIZE}/100:-1,format=rgba,colorchannelmixer=aa=${WM_OPACITY}[wm];
-            [base][wm]overlay=(W-w)/2:(H-h)/2:format=auto[v]" \
-            -map "[v]" -map 0:a? -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p \
-            -c:a aac -b:a 128k -ar 44100 -movflags +faststart "OUT/RENDU/clip_${START}s.mp4"
-          ffprobe -v error -select_streams v:0 -show_entries stream=width,height,duration \
-            -of default=nw=1 "OUT/RENDU/clip_${START}s.mp4"
-
-      - name: "GLOW — preview_glow prend une FRAME, pas une vidéo"
-        run: |
-          ffmpeg -y -loglevel error -ss 1 -i "OUT/RENDU/clip_${{ inputs.start }}s.mp4" -frames:v 1 OUT/RENDU/frame.png
-          python FR_B_CREATION/SF_11_LUMEN/CODEBASE/preview_glow.py --frame OUT/RENDU/frame.png --out OUT/RENDU/glow_preview.png 2>&1 | tail -12
-
-      - name: "QA réelle du clip rendu — SF_14 CAMOUFLAGE, mode mono (dossier de sortie)"
-        run: |
-          python FR_B_CREATION/SF_14_CAMOUFLAGE/CODEBASE/lac_f05_camouflage.py --input "OUT/RENDU/clip_${{ inputs.start }}s.mp4" --output OUT/RENDU/camo 2>&1 | tail -25
-          test -f OUT/RENDU/camo/camouflage_report.json             && echo "rapport CAMOUFLAGE écrit"             || echo "::warning::aucun rapport CAMOUFLAGE produit"
-
-      - name: Publier l'artefact (clip + rapports)
+      - name: Journal de chaîne (artefact)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rendu-preme-${{ inputs.start }}s
+          name: journal-chaine
           path: |
-            OUT/RENDU/*.mp4
-            OUT/RENDU/camo/*.json
-            OUT/RENDU/*.png
+            /tmp/ordre.txt
+            TRACKING/*.md
+            EXPORT/*.json
           retention-days: 7
           if-no-files-found: warn
-
-      - name: Résumé lisible
-        if: always()
-        run: |
-          {
-            echo "## Rendu réel — VOD ${{ inputs.vod_url }}"
-            echo ""
-            echo "- fenêtre : ${{ inputs.start }}s → $(( ${START%.*} + ${DUR%.*} ))s (durée ${{ inputs.duration }}s)"
-            echo "- sortie : 1080x1920, fond flou, watermark \`${{ steps.spec.outputs.file }}\` centré, opacité ${{ steps.spec.outputs.opacity }}, largeur ${{ steps.spec.outputs.size_pct }}%"
-            echo "- artefact : \`rendu-preme-${{ inputs.start }}s\` (7 jours)"
-            echo ""
-            [ -f OUT/RENDU/camo/camouflage_report.json ] && echo '```json' && head -30 OUT/RENDU/camo/camouflage_report.json && echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
