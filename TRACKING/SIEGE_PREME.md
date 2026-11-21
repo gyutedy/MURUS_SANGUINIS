@@ -1,30 +1,19 @@
-# SIÈGE RÉEL — 2026-11-20 23:28 UTC
+# SIÈGE RÉEL — 2026-11-21 18:00 UTC
 
-- VOD : ``
-- plateforme : ``
+- VOD : `https://www.twitch.tv/videos/2909800627`
+- plateforme : `youtube_shorts`
 - directive : `ARCHIVUM/campaign/campaign_directive.json`
-- code retour du moteur : `2` (0 = siège complet, 2 = porte fermée, 3 = ORACLE attendu)
+- code retour du moteur : `?` (0 = siège complet, 2 = porte fermée, 3 = ORACLE attendu)
 
 ## Chaîne des portes (sortie réelle du moteur)
 
 ```
-[OK] TRANSCRIPT : v2909800627_transcript.json -> 5 segments choisis
-[FAIL] D0_DIRECTIVE : champs manquants: payout; aucun payout exploitable
+(aucune porte atteinte)
 ```
-
-Traces : `2026-11-20T232858_nopack.json`
 
 ## M1 sur données réelles
 
-Porte : **M1_SELECTION** — 5 segments, langue en
-
-| id | début | fin | durée | texte réel de la VOD |
-|---|---|---|---|---|
-| A01 | 577.6s | 607.6s | 30.0s |  |
-| A02 | 1667.4s | 1697.4s | 30.0s |  |
-| A03 | 510.6s | 540.6s | 30.0s |  |
-| A04 | 1376.2s | 1406.2s | 30.0s |  |
-| A05 | 709.1s | 739.1s | 30.0s |  |
+(pas de sélection : la chaîne s'est arrêtée avant M1)
 
 ## Ce que l'opérateur doit déclarer (rien n'est deviné)
 
