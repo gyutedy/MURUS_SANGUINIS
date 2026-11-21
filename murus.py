@@ -174,8 +174,14 @@ def run_sf(sf: str, args) -> int:
         if (code / "main.py").exists():
             cmd = [sys.executable, str(code / "main.py")]
         else:
-            print(f"[{sf}] SKIP — CLI pillee a appeler manuellement (voir README du SF).")
-            return 0
+            # AVANT : ce chemin faisait "return 0" et la chaine CONTINUAIT sans avoir
+            # produit l'artefact de la sous-fregate — un rendu sans preview ni codex
+            # passait donc pour un succes. Silence = faille. Maintenant : refus nomme.
+            print(f"[{sf}] REFUS — aucune CLI executable trouvee pour cette sous-fregate.")
+            print(f"[{sf}]         attendu : main.py dans {code}")
+            print(f"[{sf}]         ou une entree nommee dans ENTRY_CMDS (murus.py).")
+            print(f"[{sf}]         Aucun artefact produit = aucune porte suivante ouverte.")
+            return 4
     else:
         cmd = [sys.executable, str(code / entry[0])] + list(entry[1:])
     print(f"[{sf}] $ {' '.join(cmd)}")

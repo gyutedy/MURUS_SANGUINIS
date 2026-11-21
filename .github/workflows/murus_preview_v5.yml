@@ -1,0 +1,139 @@
+name: MURUS — PREVIEW V5 (SF_10_SPECULUM, review LOOK)
+
+# Preview 1 de la chaîne : SF_10_SPECULUM, pilotée par la porte V5.
+# L'opérateur (Warsmith) voit le LOOK réel, ajuste le style du titre T1, glisse le
+# logo/watermark, puis EXPORTE les deux codex :
+#     REVIEW/codex_render.json   (LOOK + watermark)
+#     REVIEW/codex_postprod.json (GLOW, 1 frame)
+# L'export de l'app passe par le vrai validateur `tools/codex.py` : un codex refusé
+# n'est jamais écrit. Puis `validated_by_magos` est posé par l'opérateur.
+#
+# Prérequis doctrinal : l'app affiche `public/pack.json`, c'est-à-dire le pack PUR
+# sorti de X1_EXPORT. Sans pack, la review est vide — on ne fabrique pas un faux pack.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pack:
+        description: 'Chemin du pack PUR à reviewer (défaut : dernier EXPORT/production_pack_mark1_*.json)'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+  pages: write
+  id-token: none
+
+concurrency:
+  group: preview-v5
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: État du prérequis — y a-t-il un pack signé à reviewer ?
+        id: pack
+        env:
+          PACK_IN: ${{ inputs.pack }}
+        run: |
+          python - << 'PYEOF' >> "$GITHUB_OUTPUT"
+          import glob, json, os
+          from pathlib import Path
+          want = (os.environ.get("PACK_IN") or "").strip()
+          hits = [want] if want and Path(want).exists() else sorted(glob.glob("EXPORT/production_pack_mark1_*.json"))
+          if not hits:
+              print("found=0")
+              print("path=")
+          else:
+              p = Path(hits[-1])
+              d = json.loads(p.read_text(encoding="utf-8"))
+              print("found=1")
+              print("path=%s" % p)
+              print("campaign=%s" % (d.get("campaign_id") or "?"))
+              print("clips=%d" % len(d.get("assets") or []))
+          PYEOF
+          cat "$GITHUB_OUTPUT"
+
+      - name: Installer + construire la review (Vite/Remotion, CLI pillée)
+        working-directory: FR_B_CREATION/SF_10_SPECULUM/CODEBASE
+        run: |
+          npm ci --no-audit --no-fund 2>&1 | tail -5
+          npm run build 2>&1 | tail -15
+          ls -la dist | head -10
+
+      - name: Stager le pack PUR dans public/ (jamais modifié par la review)
+        if: steps.pack.outputs.found == '1'
+        run: |
+          cp "${{ steps.pack.outputs.path }}" FR_B_CREATION/SF_10_SPECULUM/CODEBASE/dist/pack.json
+          ls -la FR_B_CREATION/SF_10_SPECULUM/CODEBASE/dist/
+
+      - name: Vérifier que le validateur de codex est joignable (tools/codex.py)
+        run: |
+          python FR_B_CREATION/tools/codex.py --help 2>&1 | head -5 || \
+            python FR_B_CREATION/SF_10_SPECULUM/tools/codex.py --help 2>&1 | head -5
+
+      - name: Publier la review (artefact téléchargeable, ouvrable hors ligne)
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-v5-look
+          path: FR_B_CREATION/SF_10_SPECULUM/CODEBASE/dist
+          retention-days: 14
+
+      - name: Publier sur GitHub Pages (lien ouvrable par l'opérateur)
+        if: steps.pack.outputs.found == '1'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: FR_B_CREATION/SF_10_SPECULUM/CODEBASE/dist
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: 'preview V5 (SF_10_SPECULUM) — ${{ github.sha }}'
+
+      - name: Résumé opérateur
+        if: always()
+        run: |
+          {
+            echo "## Preview V5 — SF_10_SPECULUM (review LOOK)"
+            echo ""
+            if [ "${{ steps.pack.outputs.found }}" = "1" ]; then
+              echo "- pack reviewer : \`${{ steps.pack.outputs.path }}\`"
+              echo "- campagne : ${{ steps.pack.outputs.campaign }} — clips : ${{ steps.pack.outputs.clips }}"
+              echo "- **lien** : https://gyutedy.github.io/MURUS_SANGUINIS/"
+              echo ""
+              echo "### Ce que tu fais dans la review"
+              echo "1. style du titre T1 (taille / place / 2 lignes / contour / fond)"
+              echo "2. taille de la vidéo claire (blur) : \`fg_scale\`, \`fg_y_pct\`"
+              echo "3. glisser le watermark \`preme.png\` : \`x_pct\`, \`y_pct\`, \`width_pct\`, \`opacity\`"
+              echo "4. **Export** → l'app valide via \`tools/codex.py\` et écrit"
+              echo "   \`REVIEW/codex_render.json\` + \`REVIEW/codex_postprod.json\`"
+              echo "5. ajouter \`\"validated_by_magos\": true\` puis committer les deux fichiers"
+              echo ""
+              echo "Ensuite : V6 (GLOW) puis G1 (rendu) deviennent possibles."
+            else
+              echo "- **aucun pack signé dans EXPORT/** : la review serait vide, donc rien n'est publié."
+              echo ""
+              echo "### Ce qu'il faut pour débloquer (déclarations d'opérateur, rien n'est deviné)"
+              echo "Fichier \`ARCHIVUM/campaign/operator_declarations.json\` :"
+              echo ""
+              echo "| champ | pourquoi |"
+              echo "|---|---|"
+              echo "| \`campaign.rate_usd_per_1k\` | D0_DIRECTIVE refuse sans payout exploitable |"
+              echo "| \`campaign.funded\` | A2_CAMPAIGN |"
+              echo "| \`campaign.budget_remaining_usd\` | A2_CAMPAIGN |"
+              echo "| \`campaign.cap_usd_per_clip\` | A2_CAMPAIGN (cap) |"
+              echo "| \`account.warmup_days\` | A1_ACCOUNT |"
+              echo "| \`focus_declared\` | M2B_COMPLIANCE (Preme = point focal, règle visuelle) |"
+              echo ""
+              echo "Puis relancer \`MURUS — SIÈGE RÉEL\` : il produit le pack → cette preview devient utilisable."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
