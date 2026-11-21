@@ -103,10 +103,10 @@ jobs:
           path: FR_B_CREATION/SF_10_SPECULUM/CODEBASE/dist
           retention-days: 14
 
-      # Pages publie TOUJOURS : la review doit être ouvrable même vide.
-      # Si aucun pack n'est staged, l'app affiche son état sans pack.json —
-      # jamais un faux pack, mais le lien existe et l'UI est utilisable.
-      - name: Publier sur GitHub Pages (lien ouvrable par l'opérateur)
+      # Pages ne publie QUE si un pack est stagé : une review vide qui réclame
+      # un JSON à l'opérateur n'est pas une preview, c'est un formulaire.
+      - name: Publier sur GitHub Pages (uniquement avec un pack signé)
+        if: steps.pack.outputs.found == '1'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -24,6 +24,11 @@ import argparse, json, subprocess, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+
+sys.path.insert(0, str(ROOT / "FR_A_CERVEAU" / "GATES"))
+import demande  # noqa: E402  — le projet DEMANDE a l'operateur, il ne decide pas
+
+CAP_CLIPS = 15   # plafond du CDC ("cap 15"), verifie dans tests/test_murus.py (T03)
 # L1 : console Windows cp1252 -> forcer UTF-8 avec repli tolerant
 # [pattern : run_all.py LACRIMAE, crash reel apres G0 vertes]
 for _s in (sys.stdout, sys.stderr):
@@ -119,8 +124,24 @@ def run_sf(sf: str, args) -> int:
         if args.pack is None:
             print("[SF_04_SELECTIO] ECHEC — --pack <pack_seed.json> requis (mode=mark1).")
             return 1
+        ok, nb, motif = demande.exiger("nb_clips", plafond=CAP_CLIPS)
+        if not ok:
+            pend = demande.demander(
+                "nb_clips",
+                "Combien de clips pour ce siege ?",
+                pourquoi="Le nombre de clips conditionne la selection M1 : c'est une "
+                          "decision d'operateur, pas un defaut de workflow.",
+                attendu="entier entre 1 et %d" % CAP_CLIPS,
+                plafond=CAP_CLIPS,
+            )
+            print("[SF_04_SELECTIO] DEMANDE A L'OPERATEUR — nombre de clips")
+            print("      question : %s" % pend)
+            print("      repondre : %s" % demande.chemin_answers(str(ROOT)))
+            print("      refus : %s" % motif)
+            return 5
         cmd = [sys.executable, str(MARK1 / "mark1.py"), "export", str(args.pack),
-               "--platform", args.platform]
+               "--platform", args.platform, "--nb-segments", str(nb)]
+        print(f"[SF_04_SELECTIO] nb_clips = {nb} (declare par l'operateur, cap {CAP_CLIPS})")
         if args.transcript:
             cmd += ["--transcript", args.transcript]
         print(f"[{sf}] $ {' '.join(cmd)}")

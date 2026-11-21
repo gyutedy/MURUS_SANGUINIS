@@ -22,11 +22,8 @@ on:
         required: true
         default: 'https://www.twitch.tv/videos/2909800627'
         type: string
-      nb_segments:
-        description: 'Nombre de clips à sélectionner'
-        required: false
-        default: '5'
-        type: string
+      # PAS d'input "nombre de clips" : le nombre est DEMANDE a l'operateur
+      # (ARCHIVUM/demande/answers.json) et plafonne a 15 par le CDC.
       platform:
         description: 'Plateforme de destination'
         required: false
@@ -184,10 +181,45 @@ jobs:
           git merge --ff-only origin/main
           ls -la ARCHIVUM/montage/transcripts/ | tail -5
 
+      - name: DEMANDE À L'OPÉRATEUR — nombre de clips (le projet demande, il ne décide pas)
+        id: demande
+        run: |
+          python - << 'PYEOF'
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, str(Path("FR_A_CERVEAU/GATES").resolve()))
+          import demande
+
+          CAP = 15   # plafond du CDC
+          ok, nb, motif = demande.exiger("nb_clips", plafond=CAP, root=".")
+          if not ok:
+              pend = demande.demander(
+                  "nb_clips",
+                  "Combien de clips pour ce siège ?",
+                  pourquoi="Le nombre de clips conditionne la sélection M1 : "
+                            "c'est une décision d'opérateur, pas un défaut de workflow.",
+                  attendu="entier entre 1 et %d" % CAP,
+                  plafond=CAP, root=".")
+              print("=" * 72)
+              print("LE PROJET DEMANDE À L'OPÉRATEUR")
+              print("  question posée : %s" % pend)
+              print("  répondre dans  : ARCHIVUM/demande/answers.json")
+              print('  forme          : {"answers": {"nb_clips": 15}}')
+              print("  plafond CDC    : %d clips" % CAP)
+              print("  refus          : %s" % motif)
+              print("=" * 72)
+              Path("/tmp/nb_clips.txt").write_text("", encoding="utf-8")
+              sys.exit(1)
+          print("nb_clips déclaré par l'opérateur : %d (cap %d)" % (nb, CAP))
+          Path("/tmp/nb_clips.txt").write_text(str(nb), encoding="utf-8")
+          PYEOF
+          echo "NB=$(cat /tmp/nb_clips.txt)" >> "$GITHUB_ENV"
+
       - name: Construire le pack d'entrée depuis les déclarations de l'opérateur
         env:
           VOD_URL: ${{ inputs.vod_url }}
-          NB: ${{ inputs.nb_segments }}
+          NB: ${{ env.NB }}
         run: |
           python - << 'PYEOF'
           import json, os, re
@@ -214,24 +246,10 @@ jobs:
                 pending or "aucune")
           PYEOF
 
-      - name: SIÈGE — mark1 export sur la VOD réelle (refus attendus si l'opérateur n'a pas déclaré)
-        env:
-          PLATFORM: ${{ inputs.platform }}
-          NB: ${{ inputs.nb_segments }}
-          VOD_URL: ${{ inputs.vod_url }}
-        run: |
-          VID=$(echo "$VOD_URL" | grep -oE '[0-9]{6,}' | head -1)
-          TR="ARCHIVUM/montage/transcripts/v${VID}_transcript.json"
-          test -f "$TR" || { echo "::error::transcript absent : $TR"; exit 1; }
-          set +e
-          python FR_A_CERVEAU/MARK1/mark1.py export /tmp/pack_siege.json \
-            --transcript "$TR" --platform "$PLATFORM" --nb-segments "$NB" 2>&1 | tee /tmp/siege.log
-          echo "SIEGE_RC=${PIPESTATUS[0]}" >> "$GITHUB_ENV"
-
       - name: M1 sur données réelles — quels moments la VOD offre-t-elle ?
         env:
           VOD_URL: ${{ inputs.vod_url }}
-          NB: ${{ inputs.nb_segments }}
+          NB: ${{ env.NB }}
         run: |
           python - << 'PYEOF' 2>&1 | tee /tmp/m1.log
           import importlib.util, json, os, sys
@@ -264,16 +282,67 @@ jobs:
           ok, code, msg = gates.m1_selection(segs, directive, cfg)
           print("transcript :", Path(path).name, "|", len(windows), "fenetres")
           print("M1_SELECTION :", ok, code, msg)
+
+          # FORCE de chaque fenetre : score rendu par candidate_windows
+          # (marqueurs d'enjeu + 2 x chiffres). Sans ce chiffre, la selection
+          # n'etait pas discutable : l'operateur ne pouvait pas valider.
+          forces = [int(w.get("score") or 0) for w in windows]
           rows = []
-          for s in segs:
-              a, b = float(s.get("start_sec") or 0), float(s.get("end_sec") or 0)
-              txt = " ".join((s.get("source_text") or "").split())
-              print("  %s  %7.1fs -> %7.1fs  (%4.1fs)  %s" % (s.get("id"), a, b, b - a, txt[:110]))
-              rows.append({"id": s.get("id"), "start": a, "end": b, "text": txt[:400]})
+          for i, s_ in enumerate(segs):
+              a, b = float(s_.get("start_sec") or 0), float(s_.get("end_sec") or 0)
+              txt = " ".join((s_.get("source_text") or "").split())
+              force = forces[i] if i < len(forces) else 0
+              print("  %s  force=%-3d %7.1fs -> %7.1fs  (%4.1fs)  %s"
+                    % (s_.get("id"), force, a, b, b - a, txt[:100]))
+              rows.append({"id": s_.get("id"), "start": a, "end": b,
+                           "force": force, "text": txt[:400]})
           Path("/tmp/m1.json").write_text(json.dumps(
-              {"gate": {"ok": ok, "code": code, "msg": msg}, "segments": rows}, indent=1),
+              {"gate": {"ok": ok, "code": code, "msg": msg},
+               "nb_demande": int(os.environ["NB"]), "segments": rows}, indent=1),
               encoding="utf-8")
+
+          # La selection est SOUMISE a l'operateur, pas consommee d'office.
+          sys.path.insert(0, str(Path("FR_A_CERVEAU/GATES").resolve()))
+          import demande
+          pend = demande.demander(
+              "selection",
+              "Valides-tu ces %d clips ?" % len(rows),
+              pourquoi="M1 propose, l'operateur decide : rien n'est rendu avant validation.",
+              attendu='{"selection_approved": true} (ou false + "selection_note")',
+              payload={"vod": os.environ["VOD_URL"], "clips": rows}, root=".")
+          print("SELECTION SOUMISE A VALIDATION :", pend)
+          print('repondre : ARCHIVUM/demande/answers.json -> {"answers": {"selection_approved": true}}')
           PYEOF
+
+      - name: Refus si la sélection n'est pas validée par l'opérateur
+        run: |
+          python - << 'PYEOF'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path("FR_A_CERVEAU/GATES").resolve()))
+          import demande
+          ok, val, motif = demande.exiger("selection_approved", root=".")
+          if not ok or val is not True:
+              print("::error::sélection non validée — aucun clip ne sort. %s" % motif)
+              print("question : ARCHIVUM/demande/pending/selection.json")
+              print('réponse  : ARCHIVUM/demande/answers.json -> {"answers": {"selection_approved": true}}')
+              sys.exit(1)
+          print("sélection validée par l'opérateur")
+          PYEOF
+
+      - name: SIÈGE — mark1 export sur la VOD réelle (refus attendus si l'opérateur n'a pas déclaré)
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          NB: ${{ env.NB }}
+          VOD_URL: ${{ inputs.vod_url }}
+        run: |
+          VID=$(echo "$VOD_URL" | grep -oE '[0-9]{6,}' | head -1)
+          TR="ARCHIVUM/montage/transcripts/v${VID}_transcript.json"
+          test -f "$TR" || { echo "::error::transcript absent : $TR"; exit 1; }
+          set +e
+          python FR_A_CERVEAU/MARK1/mark1.py export /tmp/pack_siege.json \
+            --transcript "$TR" --platform "$PLATFORM" --nb-segments "$NB" 2>&1 | tee /tmp/siege.log
+          echo "SIEGE_RC=${PIPESTATUS[0]}" >> "$GITHUB_ENV"
 
       - name: Rapport de siège (états réels + ce qui manque à l'opérateur)
         if: always()
