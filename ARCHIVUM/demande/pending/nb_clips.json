@@ -1,0 +1,15 @@
+{
+  "cle": "nb_clips",
+  "question": "Combien de clips pour ce siège ?",
+  "pourquoi": "Le nombre de clips conditionne la sélection M1 : c'est une décision d'opérateur, pas un défaut de workflow.",
+  "attendu": "entier entre 1 et 15",
+  "plafond": 15,
+  "posee_le": "2026-11-21T18:03:27Z",
+  "reponse_dans": "ARCHIVUM/demande/answers.json",
+  "forme": {
+    "answers": {
+      "nb_clips": "<votre reponse>"
+    }
+  },
+  "payload": {}
+}
