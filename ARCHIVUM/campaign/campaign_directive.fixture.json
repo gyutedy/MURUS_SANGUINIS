@@ -100,8 +100,8 @@
   },
   "cycle": {
     "start": "2026-01-01",
-    "end": "2099-12-31",
-    "_why": "fixture de test : les 36 selftests pilles decrivent la campagne AISHAH (watermark aishahsofey, payout present). Ils ne doivent pas dependre de la campagne LIVE."
+    "end": "2027-12-31",
+    "_why": "fixture de test : ouverte aujourd'hui (2026) mais expiree en 2030, ce qu'attend test_cycle_expire_refuse ; la campagne LIVE n'est jamais utilisee par les tests."
   },
   "_fixture": true
 }
