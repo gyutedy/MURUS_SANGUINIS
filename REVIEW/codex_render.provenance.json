@@ -1,0 +1,19 @@
+{
+  "declared_by": "operateur",
+  "source": "review preview 1 (SF_10_SPECULUM) -> Export codex_render.json",
+  "pack_token": "70f120a8",
+  "pack_token_coherent": true,
+  "clips_couverts": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06",
+    "A07",
+    "A08",
+    "A09"
+  ],
+  "sha256": "9b20434a4af8912fac7d340f314bf437d8219978f943daa0587cfe0690ebfd84",
+  "note": "Le codex est la verite signee ; la provenance vit ici (schemas stricts, ERRATA E-5)."
+}

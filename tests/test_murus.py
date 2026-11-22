@@ -399,6 +399,40 @@ def test_t21_watermark_png_et_panneau_titre():
     for champ in ("taille {t.size}px", "couleur du titre", "police du titre"):
         assert champ in src, "reglage manquant dans le panneau titre : %s" % champ
 
+
+def test_t22_codex_render_signe():
+    """Le codex LOOK signe est valide, coherent avec le pack, et sa provenance est en sidecar."""
+    import hashlib
+    import json
+    import sys as _sys
+
+    cx = ROOT / "REVIEW/codex_render.json"
+    assert cx.exists(), "REVIEW/codex_render.json absent : aucun rendu sans codex signe"
+    raw = cx.read_text(encoding="utf-8")
+    codex = json.loads(raw)
+
+    _sys.path.insert(0, str((ROOT / "FR_B_CREATION/SF_11_LUMEN/tools").resolve()))
+    import codex as C
+    errs = C.check("render", codex)
+    assert errs == [], "le codex signe ne passe pas le schema : %s" % errs
+    assert codex.get("validated_by_magos") is True, "le codex n'est pas signe"
+
+    pack = json.loads((ROOT / "REVIEW/pack_stage.json").read_text(encoding="utf-8"))
+    assert codex.get("pack_token") == pack.get("pack_token"),         "le codex ne porte pas le pack_token du pack exporte"
+
+    prov = ROOT / "REVIEW/codex_render.provenance.json"
+    assert prov.exists(), "provenance du codex absente (ERRATA E-5 : sidecar obligatoire)"
+    pv = json.loads(prov.read_text(encoding="utf-8"))
+    assert pv.get("declared_by") == "operateur", "la provenance doit designer l'operateur"
+    assert pv.get("sha256") == hashlib.sha256(raw.encode("utf-8")).hexdigest(),         "le sha256 de provenance ne correspond plus au codex (codex modifie apres signature)"
+
+    # les schemas existent la ou le code pille les cherche (EXC-M5) et ne divergent pas
+    a = ROOT / "REVIEW/SCHEMAS"
+    b = ROOT / "FR_B_CREATION/SF_11_LUMEN/REVIEW/SCHEMAS"
+    for nom in ("codex_render.schema.json", "codex_postprod.schema.json"):
+        assert (b / nom).exists(), "schema absent a l'endroit ou SF_11 le cherche : %s" % nom
+        assert (a / nom).read_text(encoding="utf-8") == (b / nom).read_text(encoding="utf-8"),             "copie de schema divergente : %s" % nom
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):
