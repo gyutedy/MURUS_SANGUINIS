@@ -47,7 +47,21 @@ Downloading nine windows in one job means one failure kills nine clips and one
 timeout kills the siege. `strategy.matrix` + `fail-fast: false`: one job per clip,
 each uploading its own artefact, then an `assemble` job.
 
+### E-9 — The watermark is the campaign PNG from the pack, never an invented name
+`src: 'wm.png'` showed a broken image and the stage drew a green circle labelled
+`WM`. The logo must come from `pack.watermark.file` (`watermarks/preme.png`), be
+displayed as a real `<img>` on the stage, and the panel must show the PNG — not
+the file name. Same rule for titles: they come from the pack
+(`assets[].overlay_title`) and are seeded at load, otherwise the panel looks empty.
+
 ## FR
+
+### E-9 — Le watermark est le PNG de campagne du pack, jamais un nom inventé
+`src: 'wm.png'` affichait une image cassée et la scène dessinait un cercle vert
+« WM ». Le logo doit venir de `pack.watermark.file` (`watermarks/preme.png`),
+s'afficher comme un vrai `<img>` sur la scène, et le panneau doit montrer le PNG —
+pas le nom du fichier. Même règle pour les titres : ils viennent du pack
+(`assets[].overlay_title`) et sont chargés d'emblée, sinon le panneau paraît vide.
 
 ### E-1 — Nommage des fichiers de clip : `clips/pur_<id>.mp4`
 `SF_10` résout les clips par `clipFileCandidates(angleId)` =

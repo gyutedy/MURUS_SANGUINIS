@@ -351,6 +351,34 @@ def test_t20_errata():
     p2draft = p2
     assert "codex_postprod.provenance.json" in p2draft, "la provenance doit etre en sidecar"
 
+
+def test_t21_watermark_png_et_panneau_titre():
+    """Le logo affiche est le PNG de campagne du pack, et le panneau titre est complet.
+
+    Fautes payees : le double-clic posait src:'wm.png' (image cassee) et la scene
+    affichait un cercle vert "WM" au lieu du PNG ; les titres du pack n'apparaissaient
+    pas (review.titles vide) et la police n'etait pas reglable.
+    """
+    src = (ROOT / "FR_B_CREATION/SF_10_SPECULUM/CODEBASE/src/App.jsx").read_text(encoding="utf-8")
+
+    # 1. plus de nom de fichier invente
+    assert "src: 'wm.png'" not in src, "le watermark est encore pose avec un nom invente"
+    assert "packWatermarkSrc" in src, "le PNG doit venir du pack (watermark.file)"
+    assert "packs[0].watermark" in src or "(packs[0] && packs[0].watermark" in src,         "le pack n'est pas la source du fichier watermark"
+
+    # 2. la scene affiche l'image, pas un cercle
+    assert 'alt="watermark"' in src, "la scene n'affiche pas le PNG du watermark"
+    import re as _re
+    assert not _re.search(r">\s*WM\s*<", src), "la scene dessine encore un cercle WM au lieu du PNG"
+
+    # 3. le logo et les titres du pack sont la des le chargement
+    assert "seededImages" in src, "le logo n'est pas present d'emblee"
+    assert "overlay_title" in src, "les titres du pack ne sont pas charges (panneau vide)"
+
+    # 4. le panneau titre est complet : hauteur, taille, couleur, police
+    for champ in ("taille {t.size}px", "couleur du titre", "police du titre"):
+        assert champ in src, "reglage manquant dans le panneau titre : %s" % champ
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):

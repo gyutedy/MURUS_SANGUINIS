@@ -97,6 +97,14 @@ export default function App() {
   });
   const [validated, setValidated] = useState(true);
 
+  // Le PNG du watermark vient du PACK (watermark.file), jamais d'un nom invente.
+  // Faute payee : le double-clic posait src:'wm.png' => image cassee, et le panneau
+  // affichait le nom du fichier au lieu du logo.
+  const packWatermarkSrc =
+    (packs[0] && packs[0].watermark && packs[0].watermark.file) ||
+    (review.watermark && review.watermark.file) ||
+    'watermarks/preme.png';
+
   const size = CANVAS[canvas] || CANVAS['9:16'];
   const overlay = normalizePurOverlayParams(manifest?.narrative?.overlay?.style_params);
   const styleParams = normalizePurStyleParams(manifest?.style_params, manifest?.style || style);
@@ -149,12 +157,12 @@ export default function App() {
           images: [
             ...((s.watermark && s.watermark.images) || []),
             {
-              src: 'wm.png',
+              src: packWatermarkSrc,
               position: 'custom',
               x_pct: logoPending.x_pct,
               y_pct: logoPending.y_pct,
-              opacity: 0.7,
-              width_pct: 18,
+              opacity: Number((packs[0] && packs[0].watermark && packs[0].watermark.opacity) ?? 0.8),
+              width_pct: Number((packs[0] && packs[0].watermark && packs[0].watermark.size_pct) ?? 15),
             },
           ],
         },
@@ -208,10 +216,26 @@ export default function App() {
     const sp = first.style_pack || {};
     const st = sp.style || nextStyle || style;
     setStyle(st);
+    const wmp = sp.watermark || {};
+    const wmSrc = wmp.file || '';
+    const seededImages = (wmp.images && wmp.images.length)
+      ? wmp.images
+      : (wmSrc ? [{
+          src: wmSrc,
+          position: 'custom',
+          x_pct: 50,
+          y_pct: 50,
+          width_pct: Number(wmp.size_pct ?? 15),
+          opacity: Number(wmp.opacity ?? 0.8),
+        }] : []);
+    const packTitles = (sp.titles && sp.titles.length)
+      ? sp.titles
+      : expanded.flatMap((pk) => (pk.assets || []).map((a) => a.overlay_title)).filter(Boolean)
+          .map((txt) => ({ text: txt, in: 0, out: 3, position: 'bottom', y_pct: 82, size: 64, color: '#FFFFFF' }));
     setReview((s) => ({
       ...s,
-      titles: (sp.titles || s.titles || []).map(normalizeTitle),
-      watermark: sp.watermark || s.watermark,
+      titles: packTitles.map(normalizeTitle),
+      watermark: { ...wmp, enabled: Boolean(wmSrc), images: seededImages },
       look: {
         style: st,
         style_params: { ...(defaultLook(st).style_params), ...(sp.look?.style_params || {}), ...(sp.style_params || {}) },
@@ -434,20 +458,19 @@ export default function App() {
                   pointerEvents: 'auto',
                 }}
               >
-                <div style={{
-                  width: '100%',
-                  aspectRatio: '1',
-                  borderRadius: '50%',
-                  border: '3px solid #00ff88',
-                  background: 'rgba(0,0,0,0.45)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#00ff88',
-                  fontSize: 11,
-                  fontWeight: 800,
-                }}>
-                  WM
+                <div style={{ position: 'relative', width: '100%' }}>
+                  {/* le PNG de la campagne, celui du pack : on affiche le logo reel */}
+                  <img
+                    src={`./${String(img.src || '').replace(/^\.?\//, '')}`}
+                    alt="watermark"
+                    draggable={false}
+                    style={{ width: '100%', display: 'block', userSelect: 'none' }}
+                  />
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    border: '1px dashed rgba(0,255,136,0.55)',
+                    borderRadius: 4, pointerEvents: 'none',
+                  }} />
                 </div>
               </div>
             ))}
@@ -567,6 +590,14 @@ export default function App() {
               <input style={slider} type="range" min="4" max="90" value={t.y_pct} onChange={(e) => patchTitle(i, { y_pct: Number(e.target.value) })} />
               <label style={field}>taille {t.size}px</label>
               <input style={slider} type="range" min="24" max="160" value={t.size} onChange={(e) => patchTitle(i, { size: Number(e.target.value) })} />
+              <label style={field}>police du titre</label>
+              <select style={input} value={overlay.font_family || 'Montserrat'} onChange={(e) => patchOverlay({ font_family: e.target.value })}>
+                <option value="Montserrat">Montserrat ExtraBold (fournie, charges par le moteur)</option>
+                <option value="Arial Black, Impact">Arial Black</option>
+                <option value="Impact">Impact</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Georgia">Georgia</option>
+              </select>
               <label style={field}>couleur du titre {t.color || '#FFFFFF'}</label>
               <input style={{ ...input, padding: 2, height: 28 }} type="color" value={t.color || '#FFFFFF'} onChange={(e) => patchTitle(i, { color: e.target.value })} />
               <label style={field}>in / out</label>
@@ -580,11 +611,14 @@ export default function App() {
 
         <fieldset>
           <legend>W1 watermark curseur</legend>
-          <p style={{ fontSize: 12 }}>Double-clic sur la video, Oui, puis glisse le cercle WM.</p>
+          <p style={{ fontSize: 12 }}>Double-clic sur la video, Oui, puis glisse le logo (le PNG de la campagne).</p>
           <p style={{ fontSize: 12 }}>enabled={String(!!review.watermark?.enabled)} images={wmImages.length}</p>
           {wmImages.map((img, i) => (
             <div key={i} style={{ fontSize: 12, marginBottom: 8 }}>
-              <div>{img.src} {img.x_pct},{img.y_pct}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <img src={`./${String(img.src || '').replace(/^\.?\//, '')}`} alt="watermark" style={{ width: 64, background: '#000', border: '1px solid #333', borderRadius: 4 }} />
+                <span style={{ opacity: 0.7 }}>{img.src}</span>
+              </div>
               <label style={field}>taille {img.width_pct || 18}%</label>
               <input style={slider} type="range" min="6" max="40" value={img.width_pct || 18} onChange={(e) => patchWm(i, { width_pct: Number(e.target.value) })} />
               <label style={field}>position horizontale (gauche / droite) {Math.round(img.x_pct ?? 50)}%</label>
