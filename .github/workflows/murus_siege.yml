@@ -345,8 +345,7 @@ jobs:
                              "transcript, acceptee par les juges du moteur. Verifie par "
                              "TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md condition 4.")
           Path("FR_A_CERVEAU/ORACLE/answers.json").write_text(
-              json.dumps(titres, indent=2, ensure_ascii=False) + "
-", encoding="utf-8")
+              json.dumps(titres, indent=2, ensure_ascii=False), encoding="utf-8")
           segs = selector.select(pack, directive, cfg, str(root))
           ok, code, msg = gates.m1_selection(segs, directive, cfg)
           print("transcript :", Path(path).name, "|", len(windows), "fenetres")
