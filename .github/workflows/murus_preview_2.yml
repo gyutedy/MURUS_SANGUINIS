@@ -1,98 +1,54 @@
-name: MURUS — PREVIEW 2 (SF_11_LUMEN, frame + GLOW, codex postprod)
+name: MURUS — PREVIEW 2 (SF_13_POLITURA, postprod glow + sous-titres + lut + fade)
 
-# PREVIEW 2 = la frame du clip + le sous-titre glow, réglés par l'opérateur.
-# Rien ne rend ici : on produit la comparaison avant/après et le BROUILLON du
-# codex_postprod.json (validated_by_magos: false). Le rendu attend la signature.
+# PREVIEW 2 = une REVIEW, pas un rapport (voir TRACKING/PREVIEW2_SPEC.md).
+# Même châssis que la preview 1 : lecteur vidéo en haut, frame du clip, et QUATRE
+# panneaux à curseurs à droite (glow vidéo, sous-titres, lut, fade).
+# Elle signe codex_postprod.json et rien d'autre.
 #
 # ARCHITECTURE (consigne opérateur) :
-#   - aucune exécution locale : tout sur GitHub Actions (déclenchement futur
-#     Telegram/Discord) ;
-#   - UN JOB PAR CLIP (matrice) : frame + glow isolés, un clip raté n'annule rien ;
-#   - les paramètres viennent de l'opérateur AU LANCEMENT (workflow_dispatch),
-#     le projet écrit la trace avec provenance ; le projet ne choisit pas le style.
+#   - aucune exécution locale : tout sur GitHub Actions (déclenchement futur Telegram/Discord) ;
+#   - UN JOB PAR CLIP (matrice) : frame isolée, un clip raté n'annule rien ;
+#   - les clips publiés par la preview 1 (Pages) sont réutilisés ; yt-dlp en secours.
 #
-# Portes appliquées ici (code pillé, pas réécrit) :
-#   GL1 — mode scene|subject, sigma 4..30, opacité 0..0.6  (preview_glow.py)
-#   GL2 — zone caption (y >= 78 %) exclue du glow
-#   PP2 — l'ordre du postprod reste glow -> caption -> lut -> fade (rappel dans le codex)
+# OPTION A (choisie par l'opérateur) : l'aperçu navigateur est approximatif (CSS),
+# et le job exact_frame applique la VRAIE chaîne ffmpeg (glow/modal_glow.py) sur la frame.
+#
+# Portes : GL1 (mode scene|subject, sigma 4..30, opacité 0..0.6), GL2 (bande sous-titres
+# jamais floutée), PP2 (ordre gravé glow -> caption -> lut -> fade), PP1 (signature).
 
 on:
   workflow_dispatch:
     inputs:
       vod_url:
-        description: 'VOD source (si absente du pack)'
+        description: 'VOD source (si le clip nest pas deja publie par la preview 1)'
         required: false
         default: 'https://www.twitch.tv/videos/2909800627'
         type: string
-      glow_mode:
-        description: 'GLOW mode (scene|subject) — ton choix'
-        required: false
-        default: 'scene'
-        type: string
-      glow_sigma:
-        description: 'GLOW sigma (4..30) — ton choix'
-        required: false
-        default: '12'
-        type: string
-      glow_opacity:
-        description: 'GLOW opacité (0..0.6) — ton choix'
-        required: false
-        default: '0.35'
-        type: string
-      lut_profile:
-        description: 'LUT (hdr_imperator|hdr_aurum|neutre...) — ton choix'
-        required: false
-        default: 'hdr_imperator'
-        type: string
-      fade_mode:
-        description: 'fade fin de clip (darken|black)'
-        required: false
-        default: 'darken'
-        type: string
-      fade_sec:
-        description: 'duree du fade (0.2..4)'
-        required: false
-        default: '0.8'
-        type: string
-      caption_size:
-        description: 'sous-titres : taille (24..160)'
-        required: false
-        default: '72'
-        type: string
-      caption_y_pct:
-        description: 'sous-titres : hauteur y_pct (50..95)'
-        required: false
-        default: '78'
-        type: string
-      caption_font:
-        description: 'sous-titres : police'
-        required: false
-        default: 'Montserrat-ExtraBold.ttf'
-        type: string
       publish_pages:
-        description: 'Publier la comparaison sur Pages (oui/non)'
+        description: 'Publier sur GitHub Pages (oui|non)'
         required: false
         default: 'oui'
         type: string
 
+concurrency:
+  group: murus-preview2-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   plan:
     runs-on: ubuntu-latest
     outputs:
       assets: ${{ steps.list.outputs.assets }}
-      vod: ${{ steps.list.outputs.vod }}
+      count: ${{ steps.list.outputs.count }}
       found: ${{ steps.list.outputs.found }}
     steps:
       - uses: actions/checkout@v4
-      - name: Lister les clips du pack exporté
+
+      - name: Lister les clips du pack exporte
         id: list
-        env:
-          INPUT_VOD: ${{ inputs.vod_url }}
         run: |
           if [ ! -f REVIEW/pack_stage.json ]; then
             echo "found=0" >> "$GITHUB_OUTPUT"
@@ -101,19 +57,22 @@ jobs:
           python - << 'PYEOF'
           import json, os
           from pathlib import Path
+
           pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
           assets = pack.get("assets") or []
-          plan = [{"index": i, "id": (a.get("id") or ("clip%02d" % (i + 1))),
+          plan = [{"index": i,
+                   "id": (a.get("id") or ("clip%02d" % (i + 1))),
                    "start": float(a.get("start_sec") or 0),
                    "end": float(a.get("end_sec") or 0),
-                   "titre": a.get("overlay_title") or a.get("titre") or ""}
+                   "text": (a.get("caption") or a.get("overlay_title") or "")}
                   for i, a in enumerate(assets)]
-          vod = (pack.get("source") or {}).get("vod_url") or os.environ.get("INPUT_VOD") or ""
-          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+
+          out = Path(os.environ["GITHUB_OUTPUT"])
+          with out.open("a", encoding="utf-8") as f:
               f.write("assets=" + json.dumps(plan) + "\n")
-              f.write("vod=" + vod + "\n")
+              f.write("count=%d\n" % len(plan))
               f.write("found=1\n")
-          print("plan preview 2 : %d frames, vod=%s" % (len(plan), vod or "(dispatch)"))
+          print("plan : %d clips" % len(plan))
           PYEOF
 
   frame:
@@ -124,209 +83,321 @@ jobs:
       fail-fast: false
       matrix:
         clip: ${{ fromJson(needs.plan.outputs.assets) }}
-    env:
-      VOD: ${{ needs.plan.outputs.vod }}
-      INPUT_VOD: ${{ inputs.vod_url }}
-      SIGMA: ${{ inputs.glow_sigma }}
-      OPACITY: ${{ inputs.glow_opacity }}
-      GMODE: ${{ inputs.glow_mode }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Installer ffmpeg + yt-dlp + Pillow
+
+      - name: Installer ffmpeg + yt-dlp
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ffmpeg
-          python -m pip install --quiet --upgrade yt-dlp pillow
-      - name: Récupérer LA fenêtre de ce clip
-        env:
-          IDX: ${{ matrix.clip.index }}
-        run: |
-          VOD_URL="${VOD:-$INPUT_VOD}"
-          python FR_B_CREATION/tools/recuperer_clip.py \
-            --pack REVIEW/pack_stage.json --index "$IDX" \
-            --out-dir /tmp/work --no-frame --vod "$VOD_URL"
-      - name: Extraire la frame (milieu de fenêtre) puis appliquer le GLOW
-        run: |
-          set -e
-          CLIP=$(ls /tmp/work/pur_*.mp4 | head -1)
-          ID="${{ matrix.clip.id }}"
-          mkdir -p /tmp/out
-          # GL2 : la frame sert de reference AVANT postprod
-          ffmpeg -y -loglevel error -ss 5 -i "$CLIP" -frames:v 1 "/tmp/out/frame_${ID}.png"
-          # le glow vient du code pillé (portes GL1/GL2 incluses), pas d'une reecriture
-          python FR_B_CREATION/SF_11_LUMEN/CODEBASE/preview_glow.py \
-            --frame "/tmp/out/frame_${ID}.png" \
-            --out "/tmp/out/glow_${ID}.png" \
-            --mode "$GMODE" --sigma "$SIGMA" --opacity "$OPACITY"
-          python - << 'PYEOF'
-          import json, os
-          from pathlib import Path
-          Path("/tmp/out/params_%s.json" % os.environ["ID"]).write_text(json.dumps({
-              "asset_id": os.environ["ID"], "mode": os.environ["GMODE"],
-              "sigma": float(os.environ["SIGMA"]), "opacity": float(os.environ["OPACITY"]),
-          }, indent=2), encoding="utf-8")
-          PYEOF
+          python -m pip install --quiet --upgrade yt-dlp
+
+      - name: Prendre le clip publie par la preview 1 (yt-dlp en secours)
         env:
           ID: ${{ matrix.clip.id }}
-      - name: Publier frame + glow de ce clip
+          IDX: ${{ matrix.clip.index }}
+          INPUT_VOD: ${{ inputs.vod_url }}
+        run: |
+          mkdir -p /tmp/work/clips /tmp/work/frames
+          OUT="/tmp/work/clips/pur_${ID}.mp4"
+          curl -fsSL --max-time 300 "https://gyutedy.github.io/MURUS_SANGUINIS/clips/pur_${ID}.mp4" -o "$OUT" || true
+          if [ ! -s "$OUT" ] || [ "$(stat -c%s "$OUT")" -lt 1000000 ]; then
+            echo "clip absent des Pages : recuperation par yt-dlp"
+            python FR_B_CREATION/tools/recuperer_clip.py --pack REVIEW/pack_stage.json \
+              --index "$IDX" --out-dir /tmp/work/clips --no-frame --vod "$INPUT_VOD"
+          fi
+          ls -la /tmp/work/clips
+
+      - name: Extraire la frame de reference (40 pourcent du clip)
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          CLIP="/tmp/work/clips/pur_${ID}.mp4"
+          DUR=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$CLIP")
+          AT=$(python -c "print(max(0.2, float('$DUR') * 0.4))")
+          ffmpeg -y -v error -ss "$AT" -i "$CLIP" -frames:v 1 "/tmp/work/frames/frame_${ID}.png"
+          ls -la /tmp/work/frames
+
+      - name: Publier clip + frame (un artefact par clip)
         uses: actions/upload-artifact@v4
         with:
-          name: frame-${{ matrix.clip.id }}
-          path: /tmp/out
+          name: p2-${{ matrix.clip.id }}
+          path: /tmp/work
           if-no-files-found: error
           retention-days: 14
 
   assemble:
     needs: [plan, frame]
-    if: always() && fromJSON(needs.plan.outputs.found) == 1
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Installer jsonschema (le brouillon est valide contre le schema)
-        run: python -m pip install --quiet jsonschema
-      - name: Réunir les images
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Telecharger clips + frames
         uses: actions/download-artifact@v4
         with:
-          pattern: frame-*
+          path: /tmp/work
+          pattern: p2-*
           merge-multiple: true
-          path: REVIEW/preview2
 
-      - name: Comparaison avant / après (page statique) + brouillon de codex
-        env:
-          GMODE: ${{ inputs.glow_mode }}
-          SIGMA: ${{ inputs.glow_sigma }}
-          OPACITY: ${{ inputs.glow_opacity }}
-          LUT: ${{ inputs.lut_profile }}
-          FADE_MODE: ${{ inputs.fade_mode }}
-          FADE_SEC: ${{ inputs.fade_sec }}
-          CAP_SIZE: ${{ inputs.caption_size }}
-          CAP_Y: ${{ inputs.caption_y_pct }}
-          CAP_FONT: ${{ inputs.caption_font }}
+      - name: Verifier le compte (anti-remplissage - on annonce ce qui est la)
+        run: |
+          N=$(ls /tmp/work/frames/frame_*.png 2>/dev/null | wc -l)
+          echo "frames presentes : $N"
+          if [ "$N" -eq 0 ]; then
+            echo "::error::aucune frame : rien a reviewer"
+            exit 1
+          fi
+          ls -la /tmp/work/clips | head
+
+      - name: Construire le manifeste de la review
         run: |
           python - << 'PYEOF'
-          import json, os
+          import json, os, shutil
           from pathlib import Path
 
-          out = Path("REVIEW/preview2")
-          frames = sorted(p.name for p in out.glob("frame_*.png"))
-          glows = sorted(p.name for p in out.glob("glow_*.png"))
-          ids = [n[6:-4] for n in frames]
-          print("frames: %d | glow: %d" % (len(frames), len(glows)))
+          pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
+          app = Path("FR_B_CREATION/SF_13_POLITURA/PREVIEW2")
+          pub = app / "public"
+          (pub / "clips").mkdir(parents=True, exist_ok=True)
+          (pub / "frames").mkdir(parents=True, exist_ok=True)
 
-          rows = "\n".join(
-              "<tr><td><b>%s</b></td><td><img src='frame_%s.png'></td>"
-              "<td><img src='glow_%s.png'></td></tr>" % (i, i, i) for i in ids)
-          p_head = ("<!doctype html><meta charset=utf-8><title>PREVIEW 2 - GLOW</title>"
-                    "<style>body{background:#111;color:#eee;font:14px system-ui;margin:24px}"
-                    "table{border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid #333}"
-                    "img{width:320px;border-radius:6px}h1{font-size:18px}</style>"
-                    "<h1>PREVIEW 2 - GLOW (frame reelle, mode %s, sigma %s, opacite %s)</h1>"
-                    % (os.environ["GMODE"], os.environ["SIGMA"], os.environ["OPACITY"]))
-          p_doc = ("<p><b>EN</b> - Before / after on a real frame. Say your numbers; the draft "
-                   "codex is written with your provenance, then you sign it (validated_by_magos).</p>"
-                   "<p><b>FR</b> - Avant / apres sur une frame reelle. Tu donnes tes chiffres ; le "
-                   "brouillon de codex est ecrit avec ta provenance, puis tu le signes.</p>"
-                   "<p>Ordre du postprod, grave : glow -&gt; caption -&gt; lut -&gt; fade (PP2).</p>")
-          html = (p_head + p_doc + "<table><tr><th>clip</th><th>avant</th><th>apres glow</th></tr>"
-                  + rows + "</table>")
-          (out / "index.html").write_text(html, encoding="utf-8")
+          clips = []
+          for a in pack.get("assets") or []:
+              cid = a.get("id")
+              src_clip = Path("/tmp/work/clips/pur_%s.mp4" % cid)
+              src_frame = Path("/tmp/work/frames/frame_%s.png" % cid)
+              if not src_frame.exists():
+                  print("frame absente, clip ignore :", cid)
+                  continue
+              if src_clip.exists():
+                  shutil.copy(src_clip, pub / "clips" / ("pur_%s.mp4" % cid))
+              shutil.copy(src_frame, pub / "frames" / ("frame_%s.png" % cid))
+              clips.append({
+                  "id": cid,
+                  "file": "./clips/pur_%s.mp4" % cid,
+                  "frame": "./frames/frame_%s.png" % cid,
+                  "text": a.get("caption") or a.get("overlay_title") or "",
+                  "exact_frame": ("./exact/frame_%s.png" % cid) if Path("REVIEW/preview2/exact/frame_%s.png" % cid).exists() else "",
+              })
 
-          # BROUILLON de codex : les chiffres de l'OPERATEUR, pas ceux du projet.
-          codex = {
-              "schema_version": "sanguinala.postprod.codex.v1",
-              "pack_token": (json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8")).get("pack_token") or ""),
-              "order": ["glow", "caption", "lut", "fade"],
-              "caption": {
-                  "schema_version": "dev11.caption.style.v1",
-                  "id": "s1",
-                  "font": os.environ.get("CAP_FONT") or "Montserrat-ExtraBold.ttf",
-                  "position": {"x_pct": 50, "y_pct": float(os.environ.get("CAP_Y") or 78)},
-                  "size": int(float(os.environ.get("CAP_SIZE") or 72)),
-                  "color": "#FFFFFF",
-                  "outline": {"width": 4, "color": "#000000"},
-                  "glow": {"intensity": 1.2, "color": "#FFFFFF"},
-                  "motion": "pop-in",
-                  "motion_speed": 1,
-                  "canvas": "9:16",
-              },
-              "glow": {"enabled": True,
-                       "mode": os.environ["GMODE"],
-                       "sigma": float(os.environ["SIGMA"]),
-                       "opacity": float(os.environ["OPACITY"])},
-              "lut": {"enabled": True, "profile": os.environ.get("LUT") or "hdr_imperator"},
-              "fade_out": {"mode": os.environ.get("FADE_MODE") or "darken",
-                           "duration_sec": float(os.environ.get("FADE_SEC") or 0.8)},
-              "validated_by_magos": False,
+          prof = json.loads(Path("FR_B_CREATION/SF_13_POLITURA/CODEBASE/lut/profiles/atom_ic_profiles.json").read_text(encoding="utf-8"))
+          man = {
+              "pack_token": pack.get("pack_token"),
+              "clips": clips,
+              "lut_profiles": list((prof.get("profiles") or {}).keys()),
+              "lut_default": prof.get("default_profile"),
+              "note": "manifeste ecrit par murus_preview_2.yml (assemble)",
           }
-          # La provenance ne peut pas vivre DANS le codex : les schemas sont stricts
-          # (additionalProperties: false). Elle vit en sidecar, et c'est elle qui dit
-          # d'ou viennent les chiffres.
-          Path("REVIEW/codex_postprod.provenance.json").write_text(json.dumps({
-              "declared_by": "operateur",
-              "source": "workflow_dispatch:murus_preview_2",
-              "params": {"glow": {"mode": os.environ["GMODE"],
-                                  "sigma": float(os.environ["SIGMA"]),
-                                  "opacity": float(os.environ["OPACITY"])},
-                         "lut": os.environ.get("LUT"),
-                         "fade": {"mode": os.environ.get("FADE_MODE"),
-                                  "duration_sec": os.environ.get("FADE_SEC")},
-                         "caption": {"size": os.environ.get("CAP_SIZE"),
-                                     "y_pct": os.environ.get("CAP_Y"),
-                                     "font": os.environ.get("CAP_FONT")}},
-              "note": "BROUILLON - rien n'est rendu avant validated_by_magos",
-          }, indent=2, ensure_ascii=False), encoding="utf-8")
-          Path("REVIEW/codex_postprod.draft.json").write_text(
-              json.dumps(codex, indent=2, ensure_ascii=False), encoding="utf-8")
-          # PORTE : le brouillon doit passer le schema du repo, sinon le job echoue.
-          import jsonschema
-          schema = json.loads(Path("REVIEW/SCHEMAS/codex_postprod.schema.json").read_text(encoding="utf-8"))
-          jsonschema.validate(codex, schema)
-          print("brouillon VALIDE contre REVIEW/SCHEMAS/codex_postprod.schema.json")
-          print("brouillon écrit : REVIEW/codex_postprod.draft.json (signature requise)")
+          (pub / "manifest.json").write_text(json.dumps(man, indent=2, ensure_ascii=False), encoding="utf-8")
+          print("manifeste :", len(clips), "clips |", len(man["lut_profiles"]), "profils LUT")
           PYEOF
 
-      - name: Committer la comparaison et le brouillon de codex
+      - name: Construire la review (Vite)
+        working-directory: FR_B_CREATION/SF_13_POLITURA/PREVIEW2
         run: |
-          git config user.name "MurusPreview"
-          git config user.email "preview@murus.sanguinis"
-          git add REVIEW/preview2 REVIEW/codex_postprod.draft.json REVIEW/codex_postprod.provenance.json
-          if git diff --cached --quiet; then echo "rien de neuf"; exit 0; fi
-          git commit -m "[PREVIEW 2] comparison avant/apres glow + brouillon codex_postprod (non signe)"
-          git pull --rebase --autostash origin main
-          git push origin main
+          npm install --no-audit --no-fund --loglevel=error
+          npm run build
 
-      - name: Publier l'artefact
+      - name: Rester sous la limite de taille de Pages
+        working-directory: FR_B_CREATION/SF_13_POLITURA/PREVIEW2
+        run: |
+          du -sh dist || true
+          find dist -type f -size +50M -print -delete || true
+
+      - name: Publier la review (artefact telechargeable)
         uses: actions/upload-artifact@v4
         with:
-          name: preview-2-glow
-          path: REVIEW/preview2
+          name: preview-2-postprod
+          path: FR_B_CREATION/SF_13_POLITURA/PREVIEW2/dist
+          if-no-files-found: error
           retention-days: 14
 
-      - name: Publier sur Pages (comparaison)
+      - name: Publier sur GitHub Pages (sous-dossier preview2)
         if: inputs.publish_pages == 'oui'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: REVIEW/preview2
           publish_branch: gh-pages
+          publish_dir: FR_B_CREATION/SF_13_POLITURA/PREVIEW2/dist
           destination_dir: preview2
           keep_files: true
 
-      - name: Résumé opérateur
-        if: always()
+  exact_frame:
+    needs: [assemble]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer ffmpeg
         run: |
-          {
-            echo "## PREVIEW 2 — GLOW"
-            echo ""
-            echo "- mode \`${{ inputs.glow_mode }}\`, sigma \`${{ inputs.glow_sigma }}\`, opacité \`${{ inputs.glow_opacity }}\`"
-            echo "- brouillon : \`REVIEW/codex_postprod.draft.json\` (**non signé**)"
-            echo ""
-            echo "**EN** — These numbers are yours, not the project's. Nothing renders until you sign."
-            echo "**FR** — Ces chiffres sont les tiens, pas ceux du projet. Rien n'est rendu avant ta signature."
-          } >> "$GITHUB_STEP_SUMMARY"
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/work
+          pattern: p2-*
+          merge-multiple: true
+
+      - name: Rendre la frame avec la VRAIE chaine ffmpeg (option A)
+        run: |
+          mkdir -p REVIEW/preview2/exact
+          python - << 'PYEOF'
+          import json, subprocess, sys
+          from pathlib import Path
+
+          codex_path = Path("REVIEW/codex_postprod.json")
+          if codex_path.is_file():
+              codex = json.loads(codex_path.read_text(encoding="utf-8"))
+              glow = codex.get("glow") or {}
+              src = "codex signe"
+          else:
+              glow = {"mode": "scene", "sigma": 14, "opacity": 0.35, "enabled": True}
+              src = "defauts (codex non signe) : apercu seulement"
+          print("parametres exact_frame :", src, glow)
+
+          frames = sorted(Path("/tmp/work/frames").glob("frame_*.png"))
+          if not frames:
+              print("::error::aucune frame a rendre")
+              sys.exit(1)
+          for fr in frames:
+              out = Path("REVIEW/preview2/exact") / fr.name
+              cmd = [sys.executable, "FR_B_CREATION/SF_11_LUMEN/CODEBASE/preview_glow.py",
+                     "--in", str(fr), "--out", str(out),
+                     "--mode", str(glow.get("mode", "scene")),
+                     "--sigma", str(glow.get("sigma", 14)),
+                     "--opacity", str(glow.get("opacity", 0.35))]
+              r = subprocess.run(cmd, capture_output=True, text=True)
+              print(fr.name, "->", "OK" if r.returncode == 0 else "ECHEC")
+              if r.returncode != 0:
+                  print((r.stdout or "")[-800:])
+                  print((r.stderr or "")[-800:])
+          PYEOF
+
+      - name: Republier la frame exacte dans la review
+        if: inputs.publish_pages == 'oui'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: REVIEW/preview2/exact
+          destination_dir: preview2/exact
+          keep_files: true
+
+  codex_trace:
+    needs: [assemble]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Valider le codex signe et ecrire sa provenance (sidecar E-5)
+        run: |
+          python - << 'PYEOF'
+          import hashlib, json, subprocess, sys
+          from pathlib import Path
+
+          cx = Path("REVIEW/codex_postprod.json")
+          if not cx.is_file():
+              print("codex_postprod.json absent : rien a tracer (PP1 tient : aucun rendu)")
+              print("on apprend a l operateur ou signer : la review /preview2/ exporte ce fichier")
+              sys.exit(0)
+
+          raw = cx.read_text(encoding="utf-8")
+          r = subprocess.run([sys.executable, "FR_B_CREATION/tools/codex.py", "check", str(cx), "--kind", "postprod"],
+                             capture_output=True, text=True)
+          if r.returncode != 0:
+              print("::error::codex_postprod.json refuse par le validateur")
+              print((r.stdout or "")[-2000:])
+              print((r.stderr or "")[-2000:])
+              sys.exit(1)
+
+          pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
+          prov = {
+              "declared_by": "operateur",
+              "source": "review preview 2 (SF_13_POLITURA/PREVIEW2) -> Export codex_postprod.json",
+              "pack_token": pack.get("pack_token"),
+              "pack_token_coherent": pack.get("pack_token") == json.loads(raw).get("pack_token"),
+              "sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+              "validated_by_magos": json.loads(raw).get("validated_by_magos"),
+              "note": "Le codex est la verite signee ; la provenance vit ici (ERRATA E-5).",
+          }
+          Path("REVIEW/codex_postprod.provenance.json").write_text(json.dumps(prov, indent=2, ensure_ascii=False) + chr(10), encoding="utf-8")
+          print("provenance ecrite | sha256:", prov["sha256"][:16], "| pack coherent:", prov["pack_token_coherent"])
+          PYEOF
+
+      - name: Commiter la provenance (pas de retard local/GitHub)
+        run: |
+          git config user.name "murus-bot"
+          git config user.email "murus-bot@users.noreply.github.com"
+          git add REVIEW/codex_postprod.provenance.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "provenance inchangee"
+          else
+            git commit -m "[CI] provenance du codex postprod (sha256 relu)"
+            git push
+          fi
+
+  ui_check:
+    needs: [assemble]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: preview-2-postprod
+          path: /tmp/site
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Servir le site construit
+        working-directory: /tmp/site
+        run: |
+          npx --yes http-server . -p 8098 --silent &
+          sleep 3
+          curl -s -o /dev/null -w "site HTTP %{http_code}\n" http://127.0.0.1:8098/
+
+      - name: Installer Chromium
+        run: |
+          npm init -y > /dev/null 2>&1
+          npm i --no-audit --no-fund puppeteer@23 > /dev/null 2>&1
+
+      - name: Verifier les quatre panneaux dans un vrai navigateur
+        env:
+          P2_URL: http://127.0.0.1:8098/
+        run: node tests/ui_preview2.mjs
+
+      - name: Publier la capture d ecran
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-2-screenshot
+          path: |
+            preview-2.png
+            preview-2.json
+          if-no-files-found: warn
+          retention-days: 14
