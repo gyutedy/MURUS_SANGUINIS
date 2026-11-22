@@ -1473,3 +1473,38 @@ PASS test_t25_lut_reelle_et_soustitre_temporel
 
 TOUTES LES PORTES SONT VERTES
 ```
+
+## Sortie réelle tests — run 45055761675 (2026-11-22)
+
+```
+PASS test_t01_run_vod_complet
+[PORTE V1] /tmp/tmpblmmzmsw/verdict.json — (o)uverte / (r)ejetee ?
+[PORTE V1] REJETEE — arret du siege. Rien n'a ete rendu.
+PASS test_t02_gate_rejetee_stop_net
+PASS test_t03_cap_15
+PASS test_t04_vox_avant_libellus
+PASS test_t05_vexillum_watermark_json_sans_opacite
+PASS test_t06_pack_embarque_watermark
+PASS test_t07_purgatio_cle_morte_nommee
+PASS test_t08_clip_token_format_unique
+PASS test_t09_aucun_rendu_sans_codex
+PASS test_t0_bis_vexillum_sans_opacite
+PASS test_t0_doctrine_cerveau_ne_touche_jamais_une_video
+PASS test_t10_codex_ne_porte_pas_de_texte
+PASS test_t11_schema_codex_strict
+PASS test_t12_ordre_pp2_grave
+PASS test_t13_glow_sans_preview_refuse
+PASS test_t14_camouflage_sans_gate
+PASS test_t15_luther_qa_tags_suspects
+PASS test_t16_v7_refuse_vende_qa_false
+PASS test_t17_docs_operateur_bilingues
+PASS test_t18_anti_remplissage
+PASS test_t19_previews_separees
+PASS test_t20_errata
+PASS test_t21_watermark_png_et_panneau_titre
+PASS test_t22_codex_render_signe
+PASS test_t24_preview2_glow_et_motion
+PASS test_t25_lut_reelle_et_soustitre_temporel
+
+TOUTES LES PORTES SONT VERTES
+```
