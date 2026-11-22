@@ -399,50 +399,74 @@ jobs:
               pending.append("focus_declared")
 
           out = []
-          out.append("# SIÈGE RÉEL — %s" % datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"))
+          out.append("# SIÈGE RÉEL / REAL SIEGE — %s" % datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"))
+          out.append("")
+          out.append("Document bilingue (EXC-M8, `TRACKING/DOCTRINE_BILINGUE.md`) : EN = source de")
+          out.append("vérité machine, FR = traduction de compréhension.")
           out.append("")
           out.append("- VOD : `%s`" % os.environ.get("VOD_URL", ""))
-          out.append("- plateforme : `%s`" % os.environ.get("PLATFORM", ""))
-          out.append("- directive : `%s`" % "ARCHIVUM/campaign/campaign_directive.json")
-          out.append("- code retour du moteur : `%s` (0 = siège complet, 2 = porte fermée, 3 = ORACLE attendu)" % rc)
+          out.append("- plateforme / platform : `%s`" % os.environ.get("PLATFORM", ""))
+          out.append("- directive : `ARCHIVUM/campaign/campaign_directive.json`")
+          out.append("- code retour moteur / engine rc : `%s` (0 = siège complet, 2 = porte fermée, 3 = ORACLE attendu)" % rc)
           out.append("")
-          out.append("## Chaîne des portes (sortie réelle du moteur)")
-          out.append("")
-          out.append("```")
-          out.extend(lines or ["(aucune porte atteinte)"])
-          out.append("```")
-          if trace:
+
+          def bloc_tables(titre_chain, titre_m1, titre_decl, champs, etat_non, etat_ok, note):
+              out.append("## " + titre_chain)
               out.append("")
-              out.append("Traces : " + ", ".join("`%s`" % t for t in trace))
-          out.append("")
-          out.append("## M1 sur données réelles")
-          out.append("")
-          if m1:
-              g = m1.get("gate") or {}
-              out.append("Porte : **%s** — %s" % (g.get("code"), g.get("msg")))
+              out.append("```")
+              out.extend(lines or ["(aucune porte atteinte / no gate reached)"])
+              out.append("```")
+              if trace:
+                  out.append("")
+                  out.append("Traces : " + ", ".join("`%s`" % t for t in trace))
               out.append("")
-              out.append("| id | début | fin | durée | texte réel de la VOD |")
-              out.append("|---|---|---|---|---|")
-              for s in m1.get("segments") or []:
-                  out.append("| %s | %.1fs | %.1fs | %.1fs | %s |" % (
-                      s.get("id"), float(s.get("start") or 0), float(s.get("end") or 0),
-                      float(s.get("end") or 0) - float(s.get("start") or 0),
-                      " ".join((s.get("text") or "")[:140].split()).replace("|", "/")))
-          else:
-              out.append("(pas de sélection : la chaîne s'est arrêtée avant M1)")
-          out.append("")
-          out.append("## Ce que l'opérateur doit déclarer (rien n'est deviné)")
-          out.append("")
-          out.append("Fichier : `ARCHIVUM/campaign/operator_declarations.json`")
-          out.append("")
-          out.append("| champ | état |")
-          out.append("|---|---|")
-          for k in pending or ["—"]:
-              out.append("| `%s` | **non déclaré → porte refusée** |" % k)
-          if not pending:
-              out.append("| — | toutes les déclarations sont fournies |")
-          out.append("")
-          out.append("Compléter ce fichier = répondre aux portes. Aucune valeur n'est inventée par le code.")
+              out.append("## " + titre_m1)
+              out.append("")
+              if m1:
+                  g = m1.get("gate") or {}
+                  out.append("Porte / gate : **%s** — %s" % (g.get("code"), g.get("msg")))
+                  out.append("")
+                  out.append("| id | %s | | %s |" % (champs[0], champs[1]))
+                  out.append("|---|---|---|---|")
+                  for sg in m1.get("segments") or []:
+                      out.append("| %s | %.1fs → %.1fs (%.1fs) | force=%s | %s |" % (
+                          sg.get("id"), float(sg.get("start") or 0), float(sg.get("end") or 0),
+                          float(sg.get("end") or 0) - float(sg.get("start") or 0),
+                          sg.get("force"),
+                          " ".join((sg.get("text") or "")[:180].split()).replace("|", "/")))
+              else:
+                  out.append("(pas de sélection / no selection: la chaîne s'est arrêtée avant M1)")
+              out.append("")
+              out.append("## " + titre_decl)
+              out.append("")
+              out.append("Fichier / file : `ARCHIVUM/campaign/operator_declarations.json`")
+              out.append("")
+              out.append("| champ / field | état / state |")
+              out.append("|---|---|")
+              for k in pending or ["—"]:
+                  out.append("| `%s` | %s |" % (k, etat_non))
+              if not pending:
+                  out.append("| — | %s |" % etat_ok)
+              out.append("")
+              out.append(note)
+              out.append("")
+
+          bloc_tables(
+              "EN — Gate chain (real engine output)",
+              "EN — M1 on real data",
+              "EN — What the operator must declare (nothing is guessed)",
+              ("window", "transcript (real VOD)"),
+              "**undeclared → gate refused**",
+              "all declarations provided (example values, EXC-M7)",
+              "Filling this file = answering the gates. The code never invents a value.")
+          bloc_tables(
+              "FR — Chaîne des portes (sortie réelle du moteur)",
+              "FR — M1 sur données réelles",
+              "FR — Ce que l'opérateur doit déclarer (rien n'est deviné)",
+              ("fenêtre", "texte réel de la VOD"),
+              "**non déclaré → porte refusée**",
+              "toutes les déclarations sont fournies (valeurs d'exemple, EXC-M7)",
+              "Compléter ce fichier = répondre aux portes. Aucune valeur n'est inventée par le code.")
           Path("TRACKING/SIEGE_PREME.md").write_text("\n".join(out) + "\n", encoding="utf-8")
           print("\n".join(out))
           PYEOF

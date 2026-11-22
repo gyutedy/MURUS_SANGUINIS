@@ -9,24 +9,27 @@
   ],
   "campaign_id": "PREME_CLIPIFY_OPEN",
   "declared_by": "Warsmith",
-  "declared_at": "2026-11-20",
+  "declared_at": "2026-11-22",
   "account": {
-    "warmup_days": null,
+    "warmup_days": 42,
     "banned": false
   },
   "campaign": {
-    "rate_usd_per_1k": null,
-    "funded": null,
-    "budget_remaining_usd": null,
-    "platforms": ["youtube_shorts"],
-    "cap_usd_per_clip": null
+    "rate_usd_per_1k": 0.3,
+    "funded": true,
+    "budget_remaining_usd": 2500,
+    "platforms": [
+      "youtube_shorts"
+    ],
+    "cap_usd_per_clip": 5
   },
-  "focus_declared": null,
-  "_pending": [
-    "account.warmup_days",
-    "campaign.rate_usd_per_1k",
-    "campaign.funded",
-    "campaign.budget_remaining_usd",
-    "focus_declared"
-  ]
+  "focus_declared": true,
+  "_pending": [],
+  "_provenance": {
+    "mode": "exemple_de_calage",
+    "declared_by": "Warsmith",
+    "source": "valeurs d'exemple fournies par l'operateur pour caler la chaine",
+    "note": "CE NE SONT PAS les chiffres reels de la campagne. Ils servent a faire passer les portes pour valider le projet de bout en bout. Toute soumission reelle exige des valeurs confirmees. Voir TRACKING/LES_EXCEPTIONS.md EXC-M7.",
+    "date": "2026-11-22"
+  }
 }

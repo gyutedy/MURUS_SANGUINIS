@@ -275,3 +275,83 @@ for n in ("codex_render", "codex_postprod"):
 print("schemas identiques")
 PY
 ```
+
+---
+
+## EXC-M7 — Campagne calée sur valeurs d'exemple (non réelles)
+
+### La doctrine qui aurait dû s'appliquer
+Aucune valeur de campagne n'est inventée : `payout`, `rate`, `funded`,
+`budget_remaining_usd`, `cap_usd_per_clip`, `warmup_days`, `focus_declared` sont des
+déclarations d'opérateur. Un `null` fait refuser la porte D0/A1/A2 (c'est le
+comportement correct, vérifié en siège réel le 2026-11-22 : `[FAIL] D0_DIRECTIVE :
+champs manquants: payout`).
+
+### Le besoin
+L'opérateur a demandé explicitement d'**avancer avec des valeurs d'exemple** pour
+caler la chaîne de bout en bout et valider le projet, sans attendre les chiffres
+réels de la campagne PREME.
+
+### La dérogation exacte
+`ARCHIVUM/campaign/operator_declarations.json` et
+`ARCHIVUM/campaign/campaign_directive.json` contiennent des valeurs d'exemple :
+`rate_usd_per_1k = 0.30`, `funded = true`, `budget_remaining_usd = 2500`,
+`cap_usd_per_clip = 5`, `warmup_days = 42`, `focus_declared = true`,
+`payouts.youtube_shorts.usd_per_1k = 0.30`.
+
+Chacune porte `_provenance.mode = "exemple_de_calage"` et la mention explicite
+« CE NE SONT PAS les chiffres réels ». **Aucune soumission réelle ne peut partir
+avec ces valeurs** : le codex exige toujours la signature de l'opérateur, et le
+tracker V7 écrit la ligne de soumission réelle.
+
+### Le rayon exact
+Deux fichiers de données, aucun code. Le moteur ne sait pas distinguer un exemple
+d'une valeur réelle — c'est pourquoi la provenance est écrite dans le fichier et
+répétée dans les rapports (`TRACKING/SIEGE_PREME.md`, section « déclarations »).
+
+### Les grep qui le vérifient
+```
+python - <<'PY'
+import json
+d = json.load(open("ARCHIVUM/campaign/operator_declarations.json"))
+p = d["_provenance"]
+assert p["mode"] == "exemple_de_calage", p
+assert "CE NE SONT PAS" in p["note"]
+c = json.load(open("ARCHIVUM/campaign/campaign_directive.json"))
+assert c["payouts"]["youtube_shorts"]["_provenance"]["mode"] == "exemple_de_calage"
+print("valeurs d'exemple marquees comme telles")
+PY
+```
+
+---
+
+## EXC-M8 — Documents opérateur en EN + FR (règle permanente)
+
+### La doctrine qui aurait dû s'appliquer
+Rien n'imposait la langue. Les documents partaient en français seul, alors que le
+moteur travaille en anglais (`default_language: en`) et que la transcription est
+anglaise : l'opérateur devait valider des clips dont il ne pouvait pas lire le
+texte source, ou lire une traduction dont le moteur ne se sert jamais.
+
+### Le besoin
+Consigne explicite de l'opérateur : « tu dois toujours me sortir deux versions, une
+anglaise et une française, pour compréhension », et la règle doit vivre **dans le
+projet**, pas dans une conversation.
+
+### La dérogation exacte
+Ce n'est pas une dérogation mais une **règle ajoutée** :
+`TRACKING/DOCTRINE_BILINGUE.md` (elle-même bilingue) impose que tout document
+opérateur — `TRACKING/SELECTION_*.md`, `TRACKING/SIEGE_*.md` — contienne une
+section `## EN` **et** une section `## FR`. Le EN est la transcription verbatim,
+source de vérité ; le FR est une traduction de compréhension, jamais lue par une
+porte.
+
+### Le rayon exact
+Documents et générateur de rapport de siège. Aucune logique de décision modifiée.
+
+### Les grep qui le vérifient
+```
+python tests/test_murus.py | grep test_t17_docs_operateur_bilingues
+grep -c "^## EN" TRACKING/SELECTION_15_PREME.md TRACKING/SIEGE_PREME.md
+grep -c "^## FR" TRACKING/SELECTION_15_PREME.md TRACKING/SIEGE_PREME.md
+```

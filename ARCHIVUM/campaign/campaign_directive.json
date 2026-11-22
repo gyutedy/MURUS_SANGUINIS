@@ -2,7 +2,12 @@
   "campaign_id": "PREME_CLIPIFY_OPEN",
   "creator_name": "Preme",
   "language": "English",
-  "platforms": ["TikTok", "X (Twitter)", "IG Reels", "YouTube Shorts"],
+  "platforms": [
+    "TikTok",
+    "X (Twitter)",
+    "IG Reels",
+    "YouTube Shorts"
+  ],
   "cycle": {
     "start": "2026-11-20",
     "end": "2099-12-31",
@@ -32,22 +37,34 @@
   "caption_rules": {
     "tiktok": {
       "handle": "@Preme",
-      "hashtags": ["#preme", "#ad"],
+      "hashtags": [
+        "#preme",
+        "#ad"
+      ],
       "caption_format": "Tag @Preme, mention #ad, hashtag #preme"
     },
     "twitter_x": {
       "handle": "@Preme",
-      "hashtags": ["#preme", "#ad"],
+      "hashtags": [
+        "#preme",
+        "#ad"
+      ],
       "caption_format": "Tag @Preme, mention #ad, hashtag #preme"
     },
     "instagram_reels": {
       "handle": "@Preme",
-      "hashtags": ["#preme", "#ad"],
+      "hashtags": [
+        "#preme",
+        "#ad"
+      ],
       "caption_format": "Tag @Preme, mention #ad, hashtag #preme"
     },
     "youtube_shorts": {
       "handle": "@Preme",
-      "hashtags": ["#preme", "#ad"],
+      "hashtags": [
+        "#preme",
+        "#ad"
+      ],
       "caption_format": "Tag @Preme, mention #ad, hashtag #preme"
     }
   },
@@ -57,8 +74,14 @@
     "position": "center",
     "opacity": 0.8,
     "size_pct": 15,
-    "platforms_obliged": ["tiktok", "instagram_reels", "youtube_shorts"],
-    "platforms_optional": ["twitter_x"],
+    "platforms_obliged": [
+      "tiktok",
+      "instagram_reels",
+      "youtube_shorts"
+    ],
+    "platforms_optional": [
+      "twitter_x"
+    ],
     "source": "watermark.png fourni par l'operateur le 2026-11-20 (RGBA 419x330, texte @Preme + icones X/Instagram/YouTube)"
   },
   "content_source": {
@@ -76,5 +99,17 @@
   "notes": [
     "Handles de caption deduits du watermark fourni (@Preme) : a confirmer par l'operateur.",
     "Mention #ad ajoutee par le moteur (regle C2 du forge : condition de paiement, pas precaution)."
-  ]
+  ],
+  "payouts": {
+    "youtube_shorts": {
+      "usd_per_1k": 0.3,
+      "_provenance": {
+        "mode": "exemple_de_calage",
+        "declared_by": "Warsmith",
+        "source": "valeurs d'exemple fournies par l'operateur pour caler la chaine",
+        "note": "CE NE SONT PAS les chiffres reels de la campagne. Ils servent a faire passer les portes pour valider le projet de bout en bout. Toute soumission reelle exige des valeurs confirmees. Voir TRACKING/LES_EXCEPTIONS.md EXC-M7.",
+        "date": "2026-11-22"
+      }
+    }
+  }
 }

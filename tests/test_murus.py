@@ -225,6 +225,30 @@ def test_t16_v7_refuse_vende_qa_false():
     assert re.search(r"1\s*h|une heure|60\s*min", rules, re.IGNORECASE), "règle C3 absente des contrats"
 
 
+def test_t17_docs_operateur_bilingues():
+    """DOCTRINE_BILINGUE : tout document operateur existe en EN et en FR.
+
+    Un document qui perd une langue est un document qui cache le sens a l'une des
+    deux parties. La CI refuse.
+    """
+    import glob
+
+    doc = ROOT / "TRACKING/DOCTRINE_BILINGUE.md"
+    assert doc.exists(), "doctrine bilingue absente : TRACKING/DOCTRINE_BILINGUE.md"
+    txt = doc.read_text(encoding="utf-8")
+    assert "## EN" in txt and "## FR" in txt, "DOCTRINE_BILINGUE.md doit etre elle-meme bilingue"
+
+    docs = []
+    for motif in ("TRACKING/SELECTION_*.md", "TRACKING/SIEGE_*.md"):
+        docs += glob.glob(str(ROOT / motif))
+    assert docs, "aucun document operateur a verifier : la selection doit etre publiee"
+
+    for d in docs:
+        t = Path(d).read_text(encoding="utf-8", errors="replace")
+        assert "## EN" in t, "%s : section EN absente (doctrine bilingue)" % Path(d).name
+        assert "## FR" in t, "%s : section FR absente (doctrine bilingue)" % Path(d).name
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):
