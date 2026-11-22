@@ -296,6 +296,30 @@ export default function App() {
     setReview((s) => ({ ...s, titles: (s.titles || []).filter((_, idx) => idx !== i) }));
   };
 
+  // Les curseurs W1 doivent marcher avant meme que le logo soit pose : le premier
+  // mouvement pose le PNG de campagne, puis les suivants l'ajustent.
+  const patchWmAny = (partial) => {
+    setReview((s) => {
+      const cur = (s.watermark && s.watermark.images) || [];
+      const base = cur[0] || {
+        src: packWatermarkSrc,
+        position: 'custom',
+        x_pct: 50,
+        y_pct: 50,
+        width_pct: 15,
+        opacity: 0.8,
+      };
+      return {
+        ...s,
+        watermark: {
+          ...(s.watermark || {}),
+          enabled: true,
+          images: [{ ...base, ...partial }, ...cur.slice(1)],
+        },
+      };
+    });
+  };
+
   const patchWm = (i, partial) => {
     setReview((s) => {
       const images = [...((s.watermark && s.watermark.images) || [])];
@@ -640,6 +664,31 @@ export default function App() {
           <legend>W1 watermark curseur</legend>
           <p style={{ fontSize: 12 }}>Double-clic sur la video, Oui, puis glisse le logo (le PNG de la campagne).</p>
           <p style={{ fontSize: 12 }}>enabled={String(!!review.watermark?.enabled)} images={wmImages.length}</p>
+          <button type="button" style={{ ...btn, marginBottom: 8 }} onClick={() => patchWmAny({})}>
+            Poser le logo de campagne ({String(packWatermarkSrc).split('/').pop()})
+          </button>
+          {(() => {
+            const cur = wmImages[0] || {
+              src: packWatermarkSrc, x_pct: 50, y_pct: 50, width_pct: 15, opacity: 0.8,
+            };
+            const set = (partial) => (wmImages.length ? patchWm(0, partial) : patchWmAny(partial));
+            return (
+              <div style={{ fontSize: 12, marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <img src={`./${String(cur.src || '').replace(/^\.?\//, '')}`} alt="watermark" style={{ width: 64, background: '#000', border: '1px solid #333', borderRadius: 4 }} />
+                  <span style={{ opacity: 0.7 }}>{wmImages.length ? cur.src : 'pas encore posé'}</span>
+                </div>
+                <label style={field}>taille {cur.width_pct || 15}%</label>
+                <input style={slider} type="range" min="6" max="40" value={cur.width_pct || 15} onChange={(e) => set({ width_pct: Number(e.target.value) })} />
+                <label style={field}>position horizontale (gauche / droite) {Math.round(cur.x_pct ?? 50)}%</label>
+                <input style={slider} type="range" min="0" max="100" value={Math.round(cur.x_pct ?? 50)} onChange={(e) => set({ x_pct: Number(e.target.value), position: 'custom' })} />
+                <label style={field}>position verticale (hauteur) {Math.round(cur.y_pct ?? 50)}%</label>
+                <input style={slider} type="range" min="0" max="100" value={Math.round(cur.y_pct ?? 50)} onChange={(e) => set({ y_pct: Number(e.target.value), position: 'custom' })} />
+                <label style={field}>opacité {cur.opacity ?? 0.8}</label>
+                <input style={slider} type="range" min="0.1" max="1" step="0.05" value={cur.opacity ?? 0.8} onChange={(e) => set({ opacity: Number(e.target.value) })} />
+              </div>
+            );
+          })()}
           {wmImages.map((img, i) => (
             <div key={i} style={{ fontSize: 12, marginBottom: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>

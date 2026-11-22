@@ -383,6 +383,9 @@ def test_t21_watermark_png_et_panneau_titre():
     assert "narrative.overlay = { ...(narrative.overlay || {}), lines: [] }" in src,         "l'overlay du moteur n'est pas masque : deux textes se superposent (dont un illisible)"
     # aucun watermark pose d'office (un logo colle au milieu passe pour un doublon)
     assert "const seededImages = (wmp.images && wmp.images.length) ? wmp.images : [];" in src,         "un watermark est encore pose d'office au chargement"
+    # les curseurs W1 doivent marcher AVANT que le logo soit pose (sinon panneau mort)
+    assert "patchWmAny" in src, "les curseurs watermark exigent un logo deja pose (panneau mort)"
+    assert "Poser le logo de campagne" in src, "aucun bouton pour poser le PNG de campagne"
     # un seul titre a l'ecran, celui du clip affiche
     assert "[review.titles?.[entryIndex]]" in src, "tous les titres sont dessines sur la meme image"
     # le defilement est dans les panneaux, la scene reste en haut
