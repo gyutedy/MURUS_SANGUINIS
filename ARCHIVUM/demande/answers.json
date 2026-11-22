@@ -7,12 +7,12 @@
     "nb_clips": {
       "declared_by": "operateur",
       "source": "workflow_dispatch",
-      "enregistree_le": "2026-11-22T06:04:52Z"
+      "enregistree_le": "2026-11-22T06:37:53Z"
     },
     "selection_approved": {
       "declared_by": "operateur",
       "source": "workflow_dispatch",
-      "enregistree_le": "2026-11-22T06:04:52Z"
+      "enregistree_le": "2026-11-22T06:37:53Z"
     }
   }
 }
