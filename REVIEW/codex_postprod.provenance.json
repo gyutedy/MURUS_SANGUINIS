@@ -1,0 +1,22 @@
+{
+  "declared_by": "operateur",
+  "source": "workflow_dispatch:murus_preview_2",
+  "params": {
+    "glow": {
+      "mode": "scene",
+      "sigma": 12.0,
+      "opacity": 0.35
+    },
+    "lut": "hdr_imperator",
+    "fade": {
+      "mode": "darken",
+      "duration_sec": "0.8"
+    },
+    "caption": {
+      "size": "72",
+      "y_pct": "78",
+      "font": "Montserrat-ExtraBold.ttf"
+    }
+  },
+  "note": "BROUILLON - rien n'est rendu avant validated_by_magos"
+}
