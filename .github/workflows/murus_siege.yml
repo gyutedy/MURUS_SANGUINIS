@@ -346,6 +346,24 @@ jobs:
                              "TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md condition 4.")
           Path("FR_A_CERVEAU/ORACLE/answers.json").write_text(
               json.dumps(titres, indent=2, ensure_ascii=False), encoding="utf-8")
+
+          # Le pack EXPORTE est EXACTEMENT la selection validee : on ne laisse pas
+          # mark1.py reconstruire ses fenetres depuis le transcript, sinon les clips
+          # ecartes reviennent (ids A10..A15 sans reponse => attente ORACLE infinie).
+          pack["source"] = {"vod_url": os.environ["VOD_URL"], "transcript_path": path}
+          pack["nb_demande"] = nb_demande if "nb_demande" in dir() else int(os.environ["NB"])
+          pack["nb_retenu"] = len(pack["assets"])
+          pack["manque"] = max(0, int(os.environ["NB"]) - len(pack["assets"]))
+          pack["remplissage_refuse"] = bool(pack["manque"])
+          base = json.loads(Path("/tmp/pack_siege.json").read_text(encoding="utf-8"))
+          base["assets"] = pack["assets"]
+          base["source"] = pack["source"]
+          for k in ("nb_demande", "nb_retenu", "manque", "remplissage_refuse"):
+              base[k] = pack[k]
+          Path("/tmp/pack_siege.json").write_text(
+              json.dumps(base, indent=1, ensure_ascii=False), encoding="utf-8")
+          print("pack exporte = selection validee : %d assets (demande %d, manque %d)"
+                % (base["nb_retenu"], base["nb_demande"], base["manque"]))
           segs = selector.select(pack, directive, cfg, str(root))
           ok, code, msg = gates.m1_selection(segs, directive, cfg)
           print("transcript :", Path(path).name, "|", len(windows), "fenetres")
