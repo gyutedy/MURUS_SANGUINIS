@@ -1,0 +1,49 @@
+{
+  "pack_token": "70f120a8",
+  "nb_demande": 9,
+  "nb_livrable": 9,
+  "livrables": [
+    {
+      "clip": "A01",
+      "octets": 19955223
+    },
+    {
+      "clip": "A02",
+      "octets": 20456948
+    },
+    {
+      "clip": "A03",
+      "octets": 20390994
+    },
+    {
+      "clip": "A04",
+      "octets": 20882333
+    },
+    {
+      "clip": "A05",
+      "octets": 21799613
+    },
+    {
+      "clip": "A06",
+      "octets": 22286131
+    },
+    {
+      "clip": "A07",
+      "octets": 16261770
+    },
+    {
+      "clip": "A08",
+      "octets": 16141974
+    },
+    {
+      "clip": "A09",
+      "octets": 18458900
+    }
+  ],
+  "etages": [
+    "postprod",
+    "camouflage",
+    "luther"
+  ],
+  "note": "un clip absent est annonce absent, jamais compense"
+}
