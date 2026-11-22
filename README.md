@@ -16,6 +16,15 @@ Cahier des charges : `MURUS_SANGUINIS_CDC_V1.html` (auto-suffisant, fait foi).
 - **Le run s'arrête à la première porte en échec** — aucune erreur amont ne peut
   déclencher un run A→Z.
 - **Le moteur décide, l'opérateur valide, le ledger juge.**
+- **Deux previews, deux rôles** — la preview 1 (`SF_10_SPECULUM`) règle le LOOK
+  (style, titre place/hauteur/taille/**couleur**, watermark taille/horizontal/vertical/opacité)
+  et écrit `codex_render.json` ; la preview 2 (`SF_11_LUMEN`) règle le postprod
+  (`glow → caption → lut → fade`) et écrit `codex_postprod.json`. Voir
+  `TRACKING/PREVIEWS_ROLES.md`.
+- **Un codex ne contient pas sa provenance** — les schémas sont stricts ; la
+  provenance vit en sidecar (`*.provenance.json`), validée en CI (EXC-M10, `ERRATA.md` E-5).
+- **Un job par clip** — la récupération et le traitement des clips tournent en
+  matrice GitHub Actions (`fail-fast: false`), jamais en série dans un seul job.
 - **Aucun remplissage** : si 15 clips sont demandés et que la VOD n'en offre que 6 qui
   remplissent les conditions, le projet rend **6** et l'écrit (`nb_demande` / `nb_retenu` /
   `manque` / `remplissage_refuse` dans le pack). Jamais de doublon, jamais de moment faible

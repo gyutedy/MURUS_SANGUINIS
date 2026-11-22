@@ -332,41 +332,36 @@ export default function App() {
       packToken,
       validated,
     });
-    const codexPostprod = buildCodexPostprod({
-      caption: postprod.caption,
-      glow: postprod.glow,
-      lut: postprod.lut,
-      fadeOut: postprod.fadeOut,
-      canvas,
-      packToken,
-      validated,
-    });
+    // La preview 1 ne produit QUE le codex LOOK. Le codex postprod nait dans la
+    // preview 2 (SF_11_LUMEN) : deux previews, deux codex, deux signatures.
     const renderText = stringifyCodex(codexRender);
-    const postprodText = stringifyCodex(codexPostprod);
     download('codex_render.json', renderText);
-    download('codex_postprod.json', postprodText);
     try {
       const res = await fetch('/api/save-codex', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ render: renderText, postprod: postprodText }),
+        body: JSON.stringify({ render: renderText }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok || !body.ok) setError(`Export: refus - ${body.error || res.status}`);
       else {
         setError(null);
-        setSaveMsg(`codex ecrits : ${(body.paths || []).join(' + ')}`);
+        setSaveMsg(`codex ecrit : ${(body.paths || []).join(' + ')}`);
       }
     } catch {
-      setError('Export: serveur dev absent - les 2 JSON sont telecharges');
+      setError('Export: pas de serveur dev ici (Pages) - codex_render.json est telecharge, commit-le pour signer');
     }
   };
 
   const durationInFrames = Math.max(1, Number(manifest?.entries?.[entryIndex]?.duration_seconds || manifest?.duration_seconds || 30) * 30);
 
-  const composition = useMemo(() => (props) => (
-    <PurPackComposition {...props} purManifest={manifest} entryIndex={entryIndex} />
-  ), [manifest, entryIndex]);
+  // IDENTITE STABLE DU LECTEUR — c'est le correctif de l'ecran noir.
+  // Avant : useMemo(..., [manifest, entryIndex]) => chaque curseur changeait
+  // l'identite du composant => le <Player> remontait tout l'arbre => le <Video>
+  // re-telechargeait un mp4 de 20-33 Mo => noir jusqu'a la fin du buffer.
+  // Maintenant le composant ne change JAMAIS d'identite : les donnees passent
+  // par inputProps. Un curseur ne fait plus que repeindre.
+  const composition = useMemo(() => (props) => <PurPackComposition {...props} />, []);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#0b0b0f', color: '#eee', fontFamily: 'sans-serif' }}>
@@ -381,6 +376,7 @@ export default function App() {
             <Player
               ref={playerRef}
               component={composition}
+              inputProps={{ purManifest: manifest, entryIndex }}
               durationInFrames={durationInFrames}
               fps={30}
               compositionWidth={size.width}
@@ -571,6 +567,8 @@ export default function App() {
               <input style={slider} type="range" min="4" max="90" value={t.y_pct} onChange={(e) => patchTitle(i, { y_pct: Number(e.target.value) })} />
               <label style={field}>taille {t.size}px</label>
               <input style={slider} type="range" min="24" max="160" value={t.size} onChange={(e) => patchTitle(i, { size: Number(e.target.value) })} />
+              <label style={field}>couleur du titre {t.color || '#FFFFFF'}</label>
+              <input style={{ ...input, padding: 2, height: 28 }} type="color" value={t.color || '#FFFFFF'} onChange={(e) => patchTitle(i, { color: e.target.value })} />
               <label style={field}>in / out</label>
               <input style={input} type="number" value={t.in} onChange={(e) => patchTitle(i, { in: Number(e.target.value) })} />
               <input style={input} type="number" value={t.out} onChange={(e) => patchTitle(i, { out: Number(e.target.value) })} />
@@ -589,6 +587,10 @@ export default function App() {
               <div>{img.src} {img.x_pct},{img.y_pct}</div>
               <label style={field}>taille {img.width_pct || 18}%</label>
               <input style={slider} type="range" min="6" max="40" value={img.width_pct || 18} onChange={(e) => patchWm(i, { width_pct: Number(e.target.value) })} />
+              <label style={field}>position horizontale (gauche / droite) {Math.round(img.x_pct ?? 50)}%</label>
+              <input style={slider} type="range" min="0" max="100" value={Math.round(img.x_pct ?? 50)} onChange={(e) => patchWm(i, { x_pct: Number(e.target.value), position: 'custom' })} />
+              <label style={field}>position verticale (hauteur) {Math.round(img.y_pct ?? 50)}%</label>
+              <input style={slider} type="range" min="0" max="100" value={Math.round(img.y_pct ?? 50)} onChange={(e) => patchWm(i, { y_pct: Number(e.target.value), position: 'custom' })} />
               <label style={field}>opacite {img.opacity ?? 0.7}</label>
               <input style={slider} type="range" min="0.1" max="1" step="0.05" value={img.opacity ?? 0.7} onChange={(e) => patchWm(i, { opacity: Number(e.target.value) })} />
               <button type="button" style={btn} onClick={() => removeWm(i)}>retirer</button>
@@ -597,43 +599,12 @@ export default function App() {
         </fieldset>
 
         <fieldset>
-          <legend>PP codex postprod (ordre grave : {PP2_ORDER.join(' -> ')})</legend>
-          <p style={{ fontSize: 12, opacity: 0.7 }}>
-            Le glow passe avant les sous-titres : jamais l'inverse.
+          <legend>POSTPROD — hors de cette preview</legend>
+          <p style={{ fontSize: 12, opacity: 0.75 }}>
+            Glow, LUT, fade et sous-titres appartiennent a la PREVIEW 2 (SF_11_LUMEN).
+            Cette preview 1 ne regle QUE le LOOK (style, titre, watermark) et n'ecrit
+            que codex_render.json. Le codex_postprod.json se signe dans la preview 2.
           </p>
-          <label style={field}>glow</label>
-          <select style={input} value={postprod.glow.mode} onChange={(e) => patchPostprod('glow', { mode: e.target.value, enabled: true })}>
-            <option value="scene">scene (image entiere, hors bande sous-titres)</option>
-            <option value="subject">subject</option>
-          </select>
-          <label style={field}>sigma {postprod.glow.sigma}</label>
-          <input style={slider} type="range" min="4" max="30" value={postprod.glow.sigma} onChange={(e) => patchPostprod('glow', { sigma: Number(e.target.value), enabled: true })} />
-          <label style={field}>opacite {postprod.glow.opacity}</label>
-          <input style={slider} type="range" min="0" max="0.6" step="0.05" value={postprod.glow.opacity} onChange={(e) => patchPostprod('glow', { opacity: Number(e.target.value), enabled: true })} />
-
-          <label style={field}>lut</label>
-          <select style={input} value={postprod.lut.profile} onChange={(e) => patchPostprod('lut', { profile: e.target.value, enabled: true })}>
-            {LUT_PROFILES.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
-
-          <label style={field}>fade (fin de clip)</label>
-          <select style={input} value={postprod.fadeOut.mode} onChange={(e) => patchPostprod('fadeOut', { mode: e.target.value })}>
-            <option value="darken">darken</option>
-            <option value="black">black</option>
-          </select>
-          <label style={field}>duree {postprod.fadeOut.duration_sec}s</label>
-          <input style={slider} type="range" min="0.2" max="4" step="0.1" value={postprod.fadeOut.duration_sec} onChange={(e) => patchPostprod('fadeOut', { duration_sec: Number(e.target.value) })} />
-
-          <label style={field}>sous-titres : taille {postprod.caption.size}px</label>
-          <input style={slider} type="range" min="24" max="160" value={postprod.caption.size} onChange={(e) => patchCaption({ size: Number(e.target.value) })} />
-          <label style={field}>y_pct {postprod.caption.position.y_pct}</label>
-          <input style={slider} type="range" min="50" max="95" value={postprod.caption.position.y_pct} onChange={(e) => patchCaption({ position: { ...postprod.caption.position, y_pct: Number(e.target.value) } })} />
-          <label style={field}>police</label>
-          <select style={input} value={postprod.caption.font} onChange={(e) => patchCaption({ font: e.target.value })}>
-            <option value="Montserrat-ExtraBold.ttf">Montserrat-ExtraBold</option>
-            <option value="Montserrat-Bold.ttf">Montserrat-Bold</option>
-            <option value="Arial-Black.ttf">Arial Black</option>
-          </select>
         </fieldset>
 
         <label style={{ ...field, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -641,10 +612,10 @@ export default function App() {
           Je valide (validated_by_magos) - sans ca, PP1 refuse
         </label>
         <button type="button" style={{ ...btn, marginTop: 8, borderColor: '#00ff88', color: '#00ff88' }} onClick={exportCodex}>
-          Export codex_render.json + codex_postprod.json
+          Export codex_render.json (LOOK)
         </button>
         <p style={{ fontSize: 11, opacity: 0.6 }}>
-          Le codex porte le STYLE. Les textes des titres viennent du pack, jamais d'ici.
+          Le codex porte le LOOK (style, titres, watermark). Les textes viennent du pack, jamais d'ici. Le codex postprod se signe dans la preview 2.
         </p>
       </aside>
     </div>

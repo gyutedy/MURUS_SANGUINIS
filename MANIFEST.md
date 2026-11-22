@@ -66,5 +66,7 @@ numérotation, SF_01/SF_08/SF_16 (composites) et le nom.
 | `TRACKING/DOCTRINE_BILINGUE.md` | Tout document opérateur existe en EN et en FR. | `tests/test_murus.py::test_t17_docs_operateur_bilingues` |
 | `ARCHIVUM/demande/README.md` | Le projet demande (`nb_clips` 1..15, `selection_approved`), l'opérateur répond au lancement, le projet trace la provenance. | `FR_A_CERVEAU/GATES/demande.py` (`exiger` refuse toute valeur absente ou > 15) |
 | `TRACKING/LES_EXCEPTIONS.md` | Toute dérogation est nommée avec son grep (EXC-M1 → EXC-M8). | Revue à chaque gate |
+| `TRACKING/PREVIEWS_ROLES.md` | Preview 1 = LOOK (`codex_render.json`), preview 2 = postprod (`codex_postprod.json`). Aucun panneau de postprod dans la preview 1. | `tests/test_murus.py::test_t19_previews_separees` |
+| `TRACKING/ERRATA.md` | Les erreurs déjà payées (nommage `pur_<id>.mp4`, `$GITHUB_OUTPUT`, `: ` interdit dans un nom d'étape, identité du Player, provenance en sidecar, Pages unique, pack commité, un job par clip). | `tests/test_murus.py::test_t20_errata` |
 | `FR_B_CREATION/tools/recuperer_clip.py` | Après X1, le clip (preview 1) et une frame (preview 2) sont récupérés **avant** tout codex. | `murus.py` refuse (`rc=6`) s'il n'y a pas de clip |
 

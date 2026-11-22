@@ -355,3 +355,37 @@ python tests/test_murus.py | grep test_t17_docs_operateur_bilingues
 grep -c "^## EN" TRACKING/SELECTION_15_PREME.md TRACKING/SIEGE_PREME.md
 grep -c "^## FR" TRACKING/SELECTION_15_PREME.md TRACKING/SIEGE_PREME.md
 ```
+
+---
+
+## EXC-M10 — les deux previews partagent un seul site Pages (sous-dossier `/preview2/`)
+
+### Ce que la doctrine exige
+Deux previews, deux rôles : la preview 1 (`SF_10_SPECULUM`) règle le LOOK et
+écrit `codex_render.json` ; la preview 2 (`SF_11_LUMEN`) règle le postprod
+(glow → caption → lut → fade) et écrit `codex_postprod.json`. Voir
+`TRACKING/PREVIEWS_ROLES.md`.
+
+### Ce que la plateforme permet
+GitHub Pages sert **un seul site par dépôt**. Deux previews automatiques sur le
+même dépôt ne peuvent donc pas avoir chacune leur URL racine.
+
+### La dérogation exacte
+La preview 1 est publiée à la racine du site
+(`https://gyutedy.github.io/MURUS_SANGUINIS/`), la preview 2 dans
+`https://gyutedy.github.io/MURUS_SANGUINIS/preview2/`. Les deux étapes de
+publication utilisent `keep_files: true` ; `force_orphan: true` est interdit car
+il efface l'autre preview. Si l'opérateur préfère une séparation nette, la
+preview 2 déménage dans un second dépôt : la dérogation disparaît.
+
+### Le rayon exact
+Hébergement uniquement. Les rôles, les panneaux et les codex restent séparés :
+la preview 1 n'affiche plus glow / LUT / fade / sous-titres.
+
+### Les grep qui le vérifient
+```
+grep -n "destination_dir: preview2" .github/workflows/murus_preview_2.yml
+grep -n "keep_files: true" .github/workflows/murus_preview_1.yml .github/workflows/murus_preview_2.yml
+grep -c "force_orphan" .github/workflows/murus_preview_1.yml .github/workflows/murus_preview_2.yml
+python tests/test_murus.py | grep test_t19
+```

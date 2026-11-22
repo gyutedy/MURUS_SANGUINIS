@@ -290,6 +290,67 @@ def test_t18_anti_remplissage():
     assert "## EN" in t and "## FR" in t, "la doctrine doit etre bilingue"
 
 
+
+def test_t19_previews_separees():
+    """Preview 1 = LOOK seul. Le postprod (glow/lut/fade/sous-titres) est en preview 2.
+
+    Faute payee : la preview 1 portait les curseurs de glow, lut, fade et
+    sous-titres, et exportait codex_postprod.json. Deux previews, deux roles.
+    """
+    app = ROOT / "FR_B_CREATION/SF_10_SPECULUM/CODEBASE/src/App.jsx"
+    src = app.read_text(encoding="utf-8")
+
+    # 1. le panneau postprod n'est plus rendu dans la preview 1
+    for interdit in ("patchCaption({", "patchPostprod('glow'", "patchPostprod('lut'",
+                     "patchPostprod('fadeOut'"):
+        assert interdit not in src, "postprod encore pilote par la preview 1 : %s" % interdit
+
+    # 2. la preview 1 n'ecrit plus le codex postprod
+    assert "buildCodexPostprod({" not in src, "la preview 1 ecrit encore codex_postprod.json"
+    assert "codex_render.json" in src, "la preview 1 doit ecrire codex_render.json"
+
+    # 3. les reglages qui appartiennent au LOOK existent bien
+    assert 'type="color"' in src, "couleur du titre absente : le codex la lit (t.color) sans UI"
+    assert "position horizontale" in src, "curseur W1 gauche/droite absent"
+    assert "position verticale" in src, "curseur W1 hauteur absent"
+
+    # 4. l'identite du lecteur est stable (correctif ecran noir)
+    assert "const composition = useMemo(() => (props) => <PurPackComposition {...props} />, []);" in src,         "l'identite du lecteur depend encore de manifest : la video rechargera (ecran noir)"
+    assert "inputProps={{ purManifest: manifest, entryIndex }}" in src,         "les donnees du lecteur doivent passer par inputProps"
+
+    # 5. la doctrine est ecrite et bilingue
+    doc = ROOT / "TRACKING/PREVIEWS_ROLES.md"
+    assert doc.exists(), "TRACKING/PREVIEWS_ROLES.md absent"
+    t = doc.read_text(encoding="utf-8")
+    assert "## EN" in t and "## FR" in t, "PREVIEWS_ROLES.md doit etre bilingue"
+
+
+def test_t20_errata():
+    """Les erreurs payees sont ecrites, et le nommage des clips est aligne partout."""
+    doc = ROOT / "TRACKING/ERRATA.md"
+    assert doc.exists(), "TRACKING/ERRATA.md absent"
+    t = doc.read_text(encoding="utf-8")
+    assert "## EN" in t and "## FR" in t, "ERRATA.md doit etre bilingue"
+    for cle in ("pur_<id>.mp4", "$GITHUB_OUTPUT", "useMemo", "additionalProperties", "keep_files"):
+        assert cle in t, "erreur payee non documentee : %s" % cle
+
+    # le producteur de clips ecrit le nom que la review cherche (E-1)
+    tool = (ROOT / "FR_B_CREATION/tools/recuperer_clip.py").read_text(encoding="utf-8")
+    assert '"pur_%s.mp4"' in tool, "recuperer_clip.py doit ecrire pur_<id>.mp4 (sinon lecteur noir)"
+    bridge = (ROOT / "FR_B_CREATION/SF_10_SPECULUM/CODEBASE/src/preview/bridgeClipper.js").read_text(encoding="utf-8")
+    assert "clips/pur_${id}.mp4" in bridge, "clipFileCandidates a change : realigner le producteur"
+
+    # la preview 2 publie en sous-dossier sans effacer la preview 1 (E-6 / EXC-M10)
+    p2 = (ROOT / ".github/workflows/murus_preview_2.yml").read_text(encoding="utf-8")
+    p1 = (ROOT / ".github/workflows/murus_preview_1.yml").read_text(encoding="utf-8")
+    assert "destination_dir: preview2" in p2, "preview 2 doit publier dans /preview2/"
+    assert "keep_files: true" in p1 and "keep_files: true" in p2, "les deux previews doivent garder l'autre"
+    assert "force_orphan" not in p1 and "force_orphan" not in p2, "force_orphan efface l'autre preview"
+
+    # les schemas de codex sont stricts : la provenance vit en sidecar (E-5)
+    p2draft = p2
+    assert "codex_postprod.provenance.json" in p2draft, "la provenance doit etre en sidecar"
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):

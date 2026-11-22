@@ -39,6 +39,36 @@ on:
         required: false
         default: '0.35'
         type: string
+      lut_profile:
+        description: 'LUT (hdr_imperator|hdr_aurum|neutre...) — ton choix'
+        required: false
+        default: 'hdr_imperator'
+        type: string
+      fade_mode:
+        description: 'fade fin de clip (darken|black)'
+        required: false
+        default: 'darken'
+        type: string
+      fade_sec:
+        description: 'duree du fade (0.2..4)'
+        required: false
+        default: '0.8'
+        type: string
+      caption_size:
+        description: 'sous-titres : taille (24..160)'
+        required: false
+        default: '72'
+        type: string
+      caption_y_pct:
+        description: 'sous-titres : hauteur y_pct (50..95)'
+        required: false
+        default: '78'
+        type: string
+      caption_font:
+        description: 'sous-titres : police'
+        required: false
+        default: 'Montserrat-ExtraBold.ttf'
+        type: string
       publish_pages:
         description: 'Publier la comparaison sur Pages (oui/non)'
         required: false
@@ -158,6 +188,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Installer jsonschema (le brouillon est valide contre le schema)
+        run: python -m pip install --quiet jsonschema
       - name: Réunir les images
         uses: actions/download-artifact@v4
         with:
@@ -170,6 +202,12 @@ jobs:
           GMODE: ${{ inputs.glow_mode }}
           SIGMA: ${{ inputs.glow_sigma }}
           OPACITY: ${{ inputs.glow_opacity }}
+          LUT: ${{ inputs.lut_profile }}
+          FADE_MODE: ${{ inputs.fade_mode }}
+          FADE_SEC: ${{ inputs.fade_sec }}
+          CAP_SIZE: ${{ inputs.caption_size }}
+          CAP_Y: ${{ inputs.caption_y_pct }}
+          CAP_FONT: ${{ inputs.caption_font }}
         run: |
           python - << 'PYEOF'
           import json, os
@@ -201,21 +239,56 @@ jobs:
 
           # BROUILLON de codex : les chiffres de l'OPERATEUR, pas ceux du projet.
           codex = {
-              "codex": "postprod",
+              "schema_version": "sanguinala.postprod.codex.v1",
+              "pack_token": (json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8")).get("pack_token") or ""),
               "order": ["glow", "caption", "lut", "fade"],
-              "glow": {"mode": os.environ["GMODE"],
-                       "sigma": float(os.environ["SIGMA"]),
-                       "opacity": float(os.environ["OPACITY"]),
-                       "caption_zone_excluded": True},
-              "validated_by_magos": False,
-              "_provenance": {
-                  "declared_by": "operateur",
-                  "source": "workflow_dispatch:murus_preview_2",
-                  "note": "BROUILLON - rien n'est rendu avant la signature",
+              "caption": {
+                  "schema_version": "dev11.caption.style.v1",
+                  "id": "s1",
+                  "font": os.environ.get("CAP_FONT") or "Montserrat-ExtraBold.ttf",
+                  "position": {"x_pct": 50, "y_pct": float(os.environ.get("CAP_Y") or 78)},
+                  "size": int(float(os.environ.get("CAP_SIZE") or 72)),
+                  "color": "#FFFFFF",
+                  "outline": {"width": 4, "color": "#000000"},
+                  "glow": {"intensity": 1.2, "color": "#FFFFFF"},
+                  "motion": "pop-in",
+                  "motion_speed": 1,
+                  "canvas": "9:16",
               },
+              "glow": {"enabled": True,
+                       "mode": os.environ["GMODE"],
+                       "sigma": float(os.environ["SIGMA"]),
+                       "opacity": float(os.environ["OPACITY"])},
+              "lut": {"enabled": True, "profile": os.environ.get("LUT") or "hdr_imperator"},
+              "fade_out": {"enabled": True,
+                           "mode": os.environ.get("FADE_MODE") or "darken",
+                           "duration_sec": float(os.environ.get("FADE_SEC") or 0.8)},
+              "validated_by_magos": False,
           }
+          # La provenance ne peut pas vivre DANS le codex : les schemas sont stricts
+          # (additionalProperties: false). Elle vit en sidecar, et c'est elle qui dit
+          # d'ou viennent les chiffres.
+          Path("REVIEW/codex_postprod.provenance.json").write_text(json.dumps({
+              "declared_by": "operateur",
+              "source": "workflow_dispatch:murus_preview_2",
+              "params": {"glow": {"mode": os.environ["GMODE"],
+                                  "sigma": float(os.environ["SIGMA"]),
+                                  "opacity": float(os.environ["OPACITY"])},
+                         "lut": os.environ.get("LUT"),
+                         "fade": {"mode": os.environ.get("FADE_MODE"),
+                                  "duration_sec": os.environ.get("FADE_SEC")},
+                         "caption": {"size": os.environ.get("CAP_SIZE"),
+                                     "y_pct": os.environ.get("CAP_Y"),
+                                     "font": os.environ.get("CAP_FONT")}},
+              "note": "BROUILLON - rien n'est rendu avant validated_by_magos",
+          }, indent=2, ensure_ascii=False), encoding="utf-8")
           Path("REVIEW/codex_postprod.draft.json").write_text(
               json.dumps(codex, indent=2, ensure_ascii=False), encoding="utf-8")
+          # PORTE : le brouillon doit passer le schema du repo, sinon le job echoue.
+          import jsonschema
+          schema = json.loads(Path("REVIEW/SCHEMAS/codex_postprod.schema.json").read_text(encoding="utf-8"))
+          jsonschema.validate(codex, schema)
+          print("brouillon VALIDE contre REVIEW/SCHEMAS/codex_postprod.schema.json")
           print("brouillon écrit : REVIEW/codex_postprod.draft.json (signature requise)")
           PYEOF
 
@@ -223,7 +296,7 @@ jobs:
         run: |
           git config user.name "MurusPreview"
           git config user.email "preview@murus.sanguinis"
-          git add REVIEW/preview2 REVIEW/codex_postprod.draft.json
+          git add REVIEW/preview2 REVIEW/codex_postprod.draft.json REVIEW/codex_postprod.provenance.json
           if git diff --cached --quiet; then echo "rien de neuf"; exit 0; fi
           git commit -m "[PREVIEW 2] comparison avant/apres glow + brouillon codex_postprod (non signe)"
           git pull --rebase --autostash origin main
