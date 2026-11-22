@@ -11,7 +11,8 @@
         "everything given away",
         "money given away tonight",
         "nothing held back tonight"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A02",
@@ -19,7 +20,8 @@
         "100,000 dollars given back",
         "he gave back 100,000",
         "second year giving back"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A03",
@@ -27,7 +29,8 @@
         "the truth about denial",
         "nothing left to prove",
         "everyone heads out"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A04",
@@ -35,7 +38,8 @@
         "harlem and brooklyn meet",
         "where you from today",
         "deep in brooklyn"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A05",
@@ -43,7 +47,8 @@
         "500 million in art",
         "phone off at the door",
         "biggest art collector"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A06",
@@ -51,7 +56,8 @@
         "everyone saw that screen",
         "nothing normal on screen",
         "the screen truth"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A07",
@@ -59,7 +65,8 @@
         "everyone got a truckload",
         "the truth about trucks",
         "16-year-olds never waited"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A08",
@@ -67,7 +74,8 @@
         "everyone gets a shoutout",
         "never forget pathfinder",
         "the truth about subs"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A09",
@@ -75,7 +83,8 @@
         "everyone gets kindness",
         "kindness really is different",
         "nothing usual tonight"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A10",
@@ -83,7 +92,8 @@
         "never forget that night",
         "the truth about tristan",
         "nobody thought nba"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A11",
@@ -91,7 +101,8 @@
         "little things matter",
         "how's your day going",
         "small things change days"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A12",
@@ -99,7 +110,8 @@
         "he lost his mom",
         "the barber was right",
         "make tristan happy first"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A13",
@@ -107,7 +119,8 @@
         "the truth about manners",
         "nothing beats manners",
         "manners never leave you"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A14",
@@ -115,7 +128,8 @@
         "working together every day",
         "she said yes instantly",
         "thank you for sharing"
-      ]
+      ],
+      "pack_token": "siege_preme"
     },
     {
       "asset_id": "A15",
@@ -123,7 +137,9 @@
         "everyone on the screens",
         "nothing but screens here",
         "screens everywhere tonight"
-      ]
+      ],
+      "pack_token": "siege_preme"
     }
-  ]
+  ],
+  "_scope": "Ces reponses ne s'appliquent QU'AU pack 'siege_preme' (champ pack_token). Tout autre pack (e2e synthetique, campagne future) doit repasser par l'ORACLE : sinon un test pourrait heriter de titres qu'il n'a jamais demandes."
 }

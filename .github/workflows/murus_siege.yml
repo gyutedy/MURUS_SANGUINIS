@@ -250,6 +250,9 @@ jobs:
           decl = json.loads(Path("ARCHIVUM/campaign/operator_declarations.json").read_text(encoding="utf-8"))
           pack = {
               "mode": "mark1",
+              # Token EXPLICITE : les reponses ORACLE sont scopees a ce pack. Sans lui,
+              # les titres du siege s'appliqueraient a tout autre pack (e2e, campagne future).
+              "pack_token": "siege_preme",
               "source": {"vod_url": os.environ["VOD_URL"]},
               "asset_mode": "blur",
               "nb_segments": int(os.environ["NB"]),
