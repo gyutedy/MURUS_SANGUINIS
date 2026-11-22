@@ -329,6 +329,24 @@ jobs:
               {"id": "A%02d" % (i + 1), "start_sec": w["start_sec"],
                "end_sec": w["end_sec"], "source_text": w["source_text"]}
               for i, w in enumerate(windows)]}
+
+          # Les titres d'overlay des clips GARDES : ce sont des SUITES DE MOTS DU TEXTE
+          # trouvees par faisabilite_overlay (title_forge + S1 + anti-bait). Ce n'est pas
+          # une invention : c'est le texte. Ils sont ecrits avec leur provenance et
+          # soumis a l'operateur avec la selection (il voit le clip ET son titre).
+          titres = {"pack_token": "siege_preme", "answers": []}
+          for i, w in enumerate(windows):
+              titres["answers"].append({
+                  "asset_id": "A%02d" % (i + 1),
+                  "pack_token": "siege_preme",
+                  "candidates": [w["_overlay_propose"]]})
+          titres["_author"] = "derive mecaniquement du texte (FR_A_CERVEAU/GATES/faisabilite_overlay.py)"
+          titres["_note"] = ("Aucun titre invente : chaque titre est une suite de mots du "
+                             "transcript, acceptee par les juges du moteur. Verifie par "
+                             "TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md condition 4.")
+          Path("FR_A_CERVEAU/ORACLE/answers.json").write_text(
+              json.dumps(titres, indent=2, ensure_ascii=False) + "
+", encoding="utf-8")
           segs = selector.select(pack, directive, cfg, str(root))
           ok, code, msg = gates.m1_selection(segs, directive, cfg)
           print("transcript :", Path(path).name, "|", len(windows), "fenetres")
@@ -346,7 +364,9 @@ jobs:
               print("  %s  force=%-3d %7.1fs -> %7.1fs  (%4.1fs)  %s"
                     % (s_.get("id"), force, a, b, b - a, txt[:100]))
               rows.append({"id": s_.get("id"), "start": a, "end": b,
-                           "force": force, "text": txt[:400]})
+                           "force": force, "text": txt[:400],
+                           "overlay_propose": (windows[i].get("_overlay_propose")
+                                               if i < len(windows) else None)})
           # REGLE ANTI-REMPLISSAGE : on annonce le compte reel, jamais un compte gonfle.
           nb_demande = int(os.environ["NB"])
           nb_retenu = len(rows)
