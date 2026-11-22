@@ -189,6 +189,7 @@ jobs:
                   "file": "./clips/pur_%s.mp4" % cid,
                   "frame": "./frames/frame_%s.png" % cid,
                   "text": a.get("overlay_title") or a.get("caption") or "",
+                  "caption_start": 0.6,
                   "exact_frame": ("./exact/frame_%s.png" % cid) if Path("REVIEW/preview2/exact/frame_%s.png" % cid).exists() else "",
               })
 

@@ -458,6 +458,32 @@ def test_t24_preview2_glow_et_motion():
     assert "videosCount > 1" in ui, "la porte navigateur n'attrape pas le doublon de lecteur"
     assert "captionAnimation" in ui, "la porte navigateur ne verifie pas l'animation du sous-titre"
 
+
+def test_t25_lut_reelle_et_soustitre_temporel():
+    """La LUT doit lire le bloc que le RENDU applique, et le sous-titre doit entrer en scene."""
+    app = ROOT / "FR_B_CREATION/SF_13_POLITURA/PREVIEW2/src"
+    a = (app / "App.jsx").read_text(encoding="utf-8")
+    panels = (app / "Panels.jsx").read_text(encoding="utf-8")
+    codex = (app / "codex.js").read_text(encoding="utf-8")
+
+    # E-11 : plus de table CSS tapee a la main ; on lit atom_ic_profiles.json
+    assert "atom_ic_profiles.json" in a, "la LUT de l'apercu ne lit pas les profils reels"
+    assert "const LUT_CSS" not in a, "table CSS inventee encore presente (mauvais bloc : textura)"
+    assert "prof.chroma" in a, "l'apercu ne lit pas le bloc chroma, celui du rendu"
+    for champ in ("contrast", "saturation", "gamma", "brightness"):
+        assert champ in a, "la LUT de l'apercu ignore %s (present dans le rendu)" % champ
+    assert "lut-intensity" in panels, "aucun curseur d'intensite : la LUT reste invisible"
+    # honnetete : ce que CSS ne sait pas faire est declare, et l'intensite n'entre PAS dans le codex
+    assert "denoise" in panels and "unsharp" in panels, "les filtres non representables ne sont pas declares"
+    assert "intensity: lut.intensity" not in codex.replace(" ", ""),         "l'intensite d'apercu entre dans le codex (schema strict : additionalProperties false)"
+
+    # le sous-titre est temporel : visible a partir de son segment, anime a l'entree
+    assert "onTimeUpdate" in a, "le sous-titre n'est pas pilote par le temps du clip"
+    assert "captionStart" in a, "aucun debut de segment de sous-titre"
+    assert "caption_start" in (ROOT / ".github/workflows/murus_preview_2.yml").read_text(encoding="utf-8"),         "le manifeste ne fournit pas caption_start"
+    # pop-in doit claquer (depassement), sinon indiscernable d'un texte fixe
+    assert "scale(1.08)" in a, "pop-in n'a pas de depassement : elle reste invisible"
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):

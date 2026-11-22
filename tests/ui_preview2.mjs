@@ -35,6 +35,12 @@ try {
     process.exit(1)
   }
 
+  // le sous-titre n'apparait qu'a l'entree de son segment : on l'attend
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('div')].some((d) => getComputedStyle(d).animationName.startsWith('murus-')),
+    { timeout: 20000 },
+  ).catch(() => {})
+
   const audit = await page.evaluate(() => {
     const legends = [...document.querySelectorAll('legend')].map((l) => l.textContent.trim())
     const videos = [...document.querySelectorAll('video')].filter((v) => v.readyState >= 2).map((v) => v.duration || 0)

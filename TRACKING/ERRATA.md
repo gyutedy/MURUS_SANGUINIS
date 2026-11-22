@@ -60,6 +60,14 @@ the file name. Same rule for titles: they come from the pack
 never reached GitHub, and G1 kept answering "codex absent". Only drafts
 (`*.draft.json`) may be ignored.
 
+### E-11 — The preview lied about the LUT
+The browser preview hard-coded its LUT as `contrast(1.10) saturate(1.10)` copied from the
+`textura` block, while the render (`lut/lut_apply.py`) applies the **`chroma`** block via
+`eq=` (contrast, saturation, brightness, gamma) plus `hqdn3d` and `unsharp`. The preview
+therefore showed a tenth of the effect, in the wrong block: invisible on screen. It now
+reads `atom_ic_profiles.json` at runtime, exposes an intensity slider (preview only — not
+in the codex, whose schema is strict) and declares that denoise/unsharp cannot be shown.
+
 ## FR
 
 ### E-9 — Le watermark est le PNG de campagne du pack, jamais un nom inventé
@@ -118,4 +126,12 @@ clip, chacun publiant son artefact, puis un job `assemble`.
 `.gitignore`. Les portes les lisent **dans le dépôt** : un codex signé n'arrivait donc
 jamais sur GitHub et G1 répondait « codex absent ». Seuls les brouillons
 (`*.draft.json`) peuvent être ignorés.
+
+### E-11 — L'aperçu mentait sur la LUT
+L'aperçu navigateur codait sa LUT en dur (`contrast(1.10) saturate(1.10)`) recopiée du bloc
+`textura`, alors que le rendu (`lut/lut_apply.py`) applique le bloc **`chroma`** via `eq=`
+(contraste, saturation, luminosité, gamma) plus `hqdn3d` et `unsharp`. L'aperçu montrait donc
+un dixième de l'effet, dans le mauvais bloc : invisible à l'écran. Il lit maintenant
+`atom_ic_profiles.json` au runtime, offre un curseur d'intensité (aperçu seulement — pas
+dans le codex, dont le schéma est strict) et déclare que denoise/unsharp ne sont pas montrables.
 

@@ -100,9 +100,15 @@ export default function Panels({ state, setState, signed, setSigned, meta, onExp
             {(profiles.length ? profiles : [lut.profile]).map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
         </div>
+        <Slider id="lut-intensity" text="intensité (aperçu seulement)" min={0} max={2} step={0.05} value={lut.intensity ?? 1} onChange={(v) => patch('lut', { intensity: v })} suffix=" ×" />
         <label style={{ fontSize: 12 }}>
           <input type="checkbox" checked={lut.enabled} onChange={(e) => patch('lut', { enabled: e.target.checked })} /> lut activée
         </label>
+        <p style={{ fontSize: 10, color: '#6f6f80', marginTop: 8 }}>
+          le rendu applique le profil à 100 % (bloc <code>chroma</code> : contraste, saturation,
+          gamma, luminosité). Le <b>denoise</b> et le <b>unsharp</b> de <code>lut_apply.py</code>
+          ne sont pas représentables en CSS : ils n'apparaissent donc pas ici.
+        </p>
       </fieldset>
 
       <fieldset style={fs}>

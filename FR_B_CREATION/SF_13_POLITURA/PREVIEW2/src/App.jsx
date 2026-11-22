@@ -1,15 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Panels from './Panels.jsx'
 import { buildCodexPostprod } from './codex.js'
+import ATOM from '../../CODEBASE/lut/profiles/atom_ic_profiles.json'
 
 // Approximation navigateur (option A) : CSS pour le regard, ffmpeg pour la verite.
 // Le job exact_frame publie le PNG REELLEMENT rendu avec la meme chaine.
-const LUT_CSS = {
-  cinematic_hyper_detail: 'contrast(1.12) saturate(1.12)',
-  hdr_imperator: 'contrast(1.10) saturate(1.10) brightness(1.02)',
-  realistic_aurea: 'contrast(1.06) saturate(1.04)',
-  old_main_noctis: 'contrast(1.10) saturate(1.02)',
-  balanced: 'contrast(1.08) saturate(1.06)',
+//
+// ERREUR PAYEE (ERRATA E-11) : la LUT de l'apercu avait ete tapee a la main depuis le
+// bloc `textura` (1.10 / 1.10), alors que le rendu (lut/lut_apply.py) applique le bloc
+// `chroma` via eq (contrast/saturation/brightness/gamma). L'apercu montrait donc un
+// dixieme de l'effet, dans le mauvais bloc — invisible a l'ecran.
+export function lutFilter(profileName, intensity = 1) {
+  const prof = (ATOM.profiles || {})[profileName] || {}
+  const ch = prof.chroma || prof.textura || {}
+  const k = Math.max(0, Math.min(2, Number(intensity) || 0))
+  const contrast = 1 + ((Number(ch.contrast) || 1) - 1) * k
+  const saturation = 1 + ((Number(ch.saturation) || 1) - 1) * k
+  const gamma = 1 + ((Number(ch.gamma) || 1) - 1) * k
+  // CSS n'a pas de gamma : on l'approche par la luminance (gamma > 1 = plus clair).
+  const brightness = 1 + ((Number(ch.brightness) || 0) * 2 + (gamma - 1) * 0.35) * k
+  return `contrast(${contrast.toFixed(3)}) saturate(${saturation.toFixed(3)}) brightness(${brightness.toFixed(3)})`
 }
 
 export const DEFAULT_STATE = {
@@ -27,7 +37,7 @@ export const DEFAULT_STATE = {
     motion: 'pop-in',
     motion_speed: 1,
   },
-  lut: { enabled: true, profile: 'hdr_imperator' },
+  lut: { enabled: true, profile: 'hdr_imperator', intensity: 1 },
   fade: { mode: 'black', duration_sec: 0.8 },
 }
 
@@ -61,13 +71,11 @@ function Caption({ caption, text, replayKey }) {
   )
 }
 
-function Screen({ src, frameSrc, isVideo, state, text, mediaRef, replayKey }) {
+function Screen({ src, frameSrc, isVideo, state, text, mediaRef, replayKey, captionStart }) {
   const g = state.glow
-  const lutCss = state.lut.enabled ? (LUT_CSS[state.lut.profile] || '') : ''
+  const lutCss = state.lut.enabled ? lutFilter(state.lut.profile, state.lut.intensity) : ''
   const mediaStyle = { width: '100%', height: '100%', objectFit: 'contain', display: 'block' }
-  // Approximation du glow : on floute CE QUI EST DERRIERE (backdrop-filter) au lieu
-  // de superposer une 2e video desynchronisee — c'etait le doublon visible.
-  // GL2 : la bande des sous-titres (>= 78 %) n'est jamais floutee, avec un fondu
+  // GL2 : la bande des sous-titres (>= 70 %) n'est jamais floutee, avec un fondu
   // progressif pour ne pas couper l'image en deux.
   const glowLayer = {
     position: 'absolute', inset: 0,
@@ -79,15 +87,35 @@ function Screen({ src, frameSrc, isVideo, state, text, mediaRef, replayKey }) {
     WebkitMaskImage: 'linear-gradient(to bottom, #000 0 70%, transparent 80%)',
     pointerEvents: 'none',
   }
+
+  // Le sous-titre a un SEGMENT : il apparait a `captionStart` et l'animation joue a
+  // ce moment-la, a chaque passage (le clip tourne en boucle).
+  const [visible, setVisible] = useState(!isVideo)
+  const [epoch, setEpoch] = useState(0)
+  const wasIn = useRef(false)
+  const start = Number(captionStart) || 0
+
+  function onTimeUpdate(e) {
+    const t = e.target.currentTime
+    const inSeg = t >= start
+    if (inSeg !== wasIn.current) {
+      wasIn.current = inSeg
+      setVisible(inSeg)
+      if (inSeg) setEpoch((x) => x + 1)
+    }
+  }
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000', overflow: 'hidden', filter: lutCss }}>
       {isVideo ? (
-        <video ref={mediaRef} src={src} style={mediaStyle} muted loop autoPlay playsInline />
+        <video ref={mediaRef} src={src} style={mediaStyle} muted loop autoPlay playsInline onTimeUpdate={onTimeUpdate} />
       ) : (
         <img src={frameSrc} alt="" style={mediaStyle} />
       )}
       {g.enabled ? <div style={glowLayer} aria-hidden="true" /> : null}
-      <Caption caption={state.caption} text={text || ''} replayKey={replayKey} />
+      {visible ? (
+        <Caption caption={state.caption} text={text || ''} replayKey={`${epoch}-${replayKey}`} />
+      ) : null}
     </div>
   )
 }
@@ -146,8 +174,9 @@ export default function App() {
     <>
       <style>{`
         @keyframes murus-pop-in {
-          from { transform: translate(-50%, -50%) scale(0.55); opacity: 0; }
-          to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          0%   { transform: translate(-50%, -50%) scale(0.55); opacity: 0; }
+          65%  { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
         @keyframes murus-bounce {
           0%   { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
@@ -180,7 +209,7 @@ export default function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
               <span style={{ fontSize: 11, color: '#8a8a99', textTransform: 'uppercase', letterSpacing: 1 }}>lecteur — vidéo entière (aperçu)</span>
               <div style={{ height: 420, border: '1px solid #232330', borderRadius: 8, overflow: 'hidden' }}>
-                {clip ? <Screen src={clip.file} frameSrc={clip.frame} isVideo state={state} text={clip.text} mediaRef={mediaRef} replayKey={replayKey} /> : null}
+                {clip ? <Screen src={clip.file} frameSrc={clip.frame} isVideo state={state} text={clip.text} mediaRef={mediaRef} replayKey={replayKey} captionStart={clip.caption_start} /> : null}
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
@@ -191,7 +220,7 @@ export default function App() {
                 {showExact && clip?.exact_frame ? (
                   <img src={clip.exact_frame} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000' }} />
                 ) : clip ? (
-                  <Screen src={clip.file} frameSrc={clip.frame} isVideo={false} state={state} text={clip.text} replayKey={replayKey} />
+                  <Screen src={clip.file} frameSrc={clip.frame} isVideo={false} state={state} text={clip.text} replayKey={replayKey} captionStart={clip.caption_start} />
                 ) : null}
               </div>
               {showExact && !clip?.exact_frame ? (

@@ -38,6 +38,8 @@ export function buildCodexPostprod(state, meta) {
       canvas: '9:16',
     },
     glow: { enabled: glow.enabled, mode: glow.mode, sigma: glow.sigma, opacity: glow.opacity },
+    // `intensity` est un reglage d'APERCU : le schema du codex ne l'accepte pas
+    // (additionalProperties: false) et le rendu applique le profil a 100 %.
     lut: { enabled: lut.enabled, profile: lut.profile },
     fade_out: { mode: fade.mode, duration_sec: fade.duration_sec },
     validated_by_magos: signed === true,
