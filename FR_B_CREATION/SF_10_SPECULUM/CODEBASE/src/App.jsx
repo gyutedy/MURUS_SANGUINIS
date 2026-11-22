@@ -218,16 +218,10 @@ export default function App() {
     setStyle(st);
     const wmp = first.watermark || sp.watermark || {};
     const wmSrc = wmp.file || '';
-    const seededImages = (wmp.images && wmp.images.length)
-      ? wmp.images
-      : (wmSrc ? [{
-          src: wmSrc,
-          position: 'custom',
-          x_pct: 50,
-          y_pct: 50,
-          width_pct: Number(wmp.size_pct ?? 15),
-          opacity: Number(wmp.opacity ?? 0.8),
-        }] : []);
+    // Aucun watermark pose d'office : un logo colle au milieu au chargement
+    // passait pour un doublon statique. L'operateur le pose (double-clic => le PNG
+    // de campagne), puis l'ajuste ; le pack garde ses valeurs comme valeurs de depart.
+    const seededImages = (wmp.images && wmp.images.length) ? wmp.images : [];
     const packTitles = (sp.titles && sp.titles.length)
       ? sp.titles
       : expanded.map((pk) => (pk.copywriting || {}).overlay_title).filter(Boolean)
@@ -390,17 +384,26 @@ export default function App() {
   // ANTI-DOUBLON : le pack porte deja un logo (narrative.logo) que le moteur dessine
   // au centre. La review en pose un, deplacable. Deux logos = un doublon. On masque
   // celui du moteur pour l'AFFICHAGE seulement — le pack et le codex restent intacts.
+  // ANTI-DOUBLON (logo ET texte) : le moteur dessine le logo du pack et son overlay.
+  // La review dessine les siens par-dessus (deplacables, editables). Les laisser tous
+  // les deux = un logo en double et deux textes superposes, dont un illisible.
+  // On les masque pour l'AFFICHAGE seulement : pack et codex restent intacts.
   const viewManifest = useMemo(() => {
     if (!manifest) return manifest;
     const narrative = { ...(manifest.narrative || {}) };
-    const logo = { ...(narrative.logo || {}), enabled: false };
-    narrative.logo = logo;
-    return { ...manifest, narrative };
+    narrative.logo = { ...(narrative.logo || {}), enabled: false };
+    narrative.overlay = { ...(narrative.overlay || {}), lines: [] };
+    const entries = (manifest.entries || []).map((e) => ({
+      ...e,
+      overlay: { ...(e.overlay || {}), lines: [] },
+    }));
+    return { ...manifest, narrative, entries };
   }, [manifest]);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#0b0b0f', color: '#eee', fontFamily: 'sans-serif' }}>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 380px', height: '100vh', overflow: 'hidden', background: '#0b0b0f', color: '#eee', fontFamily: 'sans-serif' }}>
+      {/* La scene ne descend plus au milieu de la page : elle est collee en haut. */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '16px 24px', overflow: 'hidden', minHeight: 0 }}>
         {manifest ? (
           <div
             ref={stageRef}
@@ -428,9 +431,9 @@ export default function App() {
               autoPlay
               loop
             />
-            {(review.titles || []).map((t, i) => (
+            {[review.titles?.[entryIndex]].filter(Boolean).map((t, i) => (
               <div
-                key={`title_${i}`}
+                key={`title_${entryIndex}_${i}`}
                 style={{
                   position: 'absolute',
                   left: '50%',
@@ -526,7 +529,8 @@ export default function App() {
           <div style={{ opacity: 0.7 }}>Depose un production_pack_pur_*.json</div>
         )}
       </div>
-      <aside style={{ width: 380, padding: 16, borderLeft: '1px solid #222', overflow: 'auto' }}>
+      {/* Le defilement est ICI, dans les panneaux — jamais sur la page. */}
+      <aside style={{ width: 380, padding: 16, borderLeft: '1px solid #222', overflowY: 'auto', overflowX: 'hidden', height: '100vh' }}>
         <h1 style={{ fontSize: 18 }}>F03 PREVIEW — LOOK + review W1/T1</h1>
         <p style={{ fontSize: 12, opacity: 0.7 }}>
           Titres editables. Blur fg_scale. Curseur watermark (double-clic puis glisser). Zero zoom. Pas de ranking/reveal/hybrid.
@@ -589,7 +593,18 @@ export default function App() {
         <fieldset>
           <legend>T1 titres (editables)</legend>
           {(review.titles || []).length === 0 && <p style={{ fontSize: 12, opacity: 0.6 }}>Aucun titre. Ajoute-en un.</p>}
-          {(review.titles || []).map((t, i) => (
+          {(review.titles || []).length > 0 && (
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+              <button type="button" style={btn} onClick={() => setEntryIndex((k) => Math.max(0, k - 1))}>prev</button>
+              <span style={{ fontSize: 12, opacity: 0.85 }}>
+                titre du clip {entryIndex + 1}/{review.titles.length}
+              </span>
+              <button type="button" style={btn} onClick={() => setEntryIndex((k) => Math.min(review.titles.length - 1, k + 1))}>next</button>
+            </div>
+          )}
+          {[review.titles?.[entryIndex]].filter(Boolean).map((t, _unused) => {
+            const i = entryIndex;
+            return (
             <div key={i} style={{ borderBottom: '1px solid #222', paddingBottom: 8, marginBottom: 8 }}>
               <input style={input} type="text" value={t.text} onChange={(e) => patchTitle(i, { text: e.target.value })} />
               <label style={field}>place {t.position} / y {t.y_pct}%</label>
@@ -616,7 +631,8 @@ export default function App() {
               <input style={input} type="number" value={t.out} onChange={(e) => patchTitle(i, { out: Number(e.target.value) })} />
               <button type="button" style={{ ...btn, marginTop: 6 }} onClick={() => removeTitle(i)}>retirer</button>
             </div>
-          ))}
+            );
+          })}
           <button type="button" style={btn} onClick={addTitle}>ajouter titre</button>
         </fieldset>
 

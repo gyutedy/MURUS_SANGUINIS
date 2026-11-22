@@ -379,6 +379,14 @@ def test_t21_watermark_png_et_panneau_titre():
 
     # ANTI-DOUBLON : le logo du moteur est masque a l'affichage, la review seule le place
     assert "viewManifest" in src, "le logo du pack n'est pas masque : il y aura deux watermarks"
+    # doublon TEXTE : l'overlay du moteur est masque, sinon deux textes se superposent
+    assert "narrative.overlay = { ...(narrative.overlay || {}), lines: [] }" in src,         "l'overlay du moteur n'est pas masque : deux textes se superposent (dont un illisible)"
+    # aucun watermark pose d'office (un logo colle au milieu passe pour un doublon)
+    assert "const seededImages = (wmp.images && wmp.images.length) ? wmp.images : [];" in src,         "un watermark est encore pose d'office au chargement"
+    # un seul titre a l'ecran, celui du clip affiche
+    assert "[review.titles?.[entryIndex]]" in src, "tous les titres sont dessines sur la meme image"
+    # le defilement est dans les panneaux, la scene reste en haut
+    assert "gridTemplateColumns" in src and "overflowY: 'auto'" in src,         "la page defile au lieu des panneaux : la scene doit rester en haut"
     assert "enabled: false" in src, "le logo du moteur doit etre desactive a l'affichage"
     assert "purManifest: viewManifest" in src, "le lecteur doit recevoir le manifest sans logo moteur"
 

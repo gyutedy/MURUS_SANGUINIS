@@ -79,7 +79,15 @@ if (!checks['curseur taille du titre']) fails.push('panneau titre : taille absen
 if (!checks['titre du pack present']) fails.push('aucun titre du pack dans le panneau');
 if (!checks['position horizontale']) fails.push('watermark : curseur horizontale absent');
 if (!checks['position verticale']) fails.push('watermark : curseur verticale absent');
-if (checks['images chargees'].length === 0) fails.push('aucune image de watermark chargee');
+// Le watermark n'est PLUS pose d'office (l'operateur le pose). Donc on ne l'exige
+// pas ; on verifie seulement que le PNG de campagne est joignable.
+const wmOk = await page.evaluate(async () => {
+  try {
+    const r = await fetch('./watermarks/preme.png', { method: 'HEAD' });
+    return r.ok;
+  } catch { return false; }
+});
+if (!wmOk) fails.push('le PNG de campagne watermarks/preme.png est injoignable');
 if (checks['videos'].length === 0) fails.push('aucune video de clip chargee');
 
 if (fails.length) {
