@@ -34,9 +34,14 @@ const audit = await page.evaluate(() => {
     w: i.naturalWidth,
     h: i.naturalHeight,
   }));
+  const stage = document.querySelector('video') ? document.querySelector('video').getBoundingClientRect() : null;
+  const aside = document.querySelector('aside');
   return {
     labels,
     imgs,
+    stageTop: stage ? Math.round(stage.top) : null,
+    stageHeight: stage ? Math.round(stage.height) : null,
+    asideScroll: aside ? aside.scrollHeight > aside.clientHeight : false,
     ranges: document.querySelectorAll('input[type="range"]').length,
     colors: document.querySelectorAll('input[type="color"]').length,
     videos: [...document.querySelectorAll('video')].map((v) => ({
@@ -58,6 +63,8 @@ const checks = {
   'titre du pack present': audit.labels.some((l) => l.startsWith('place ')),
   'input couleur': audit.colors,
   'curseurs': audit.ranges,
+  'lecteur colle en haut (px depuis le haut)': audit.stageTop,
+  'colonne qui defile': audit.asideScroll,
   'images chargees': audit.imgs.filter((i) => i.w > 0).map((i) => tail(i.src)),
   'videos': audit.videos.filter((v) => v.w > 0).map((v) => `${tail(v.src)} ${v.w}x${v.h}`),
 };
@@ -93,6 +100,9 @@ if (!checks['position horizontale']) fails.push('watermark : curseur horizontale
 if (!checks['position verticale']) fails.push('watermark : curseur verticale absent');
 
 if (checks['videos'].length === 0) fails.push('aucune video de clip chargee');
+if (audit.stageTop === null) fails.push('aucune video trouvee pour mesurer la position');
+else if (audit.stageTop > 140) fails.push(`le lecteur n'est pas en haut : ${audit.stageTop}px du haut`);
+if (audit.asideScroll !== true) fails.push('la colonne de reglages ne defile pas');
 
 if (fails.length) {
   console.log('::error::' + fails.join(' | '));
