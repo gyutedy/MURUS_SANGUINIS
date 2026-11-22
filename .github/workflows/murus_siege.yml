@@ -333,7 +333,8 @@ jobs:
               attendu='{"selection_approved": true} (ou false + "selection_note")',
               payload={"vod": os.environ["VOD_URL"], "clips": rows}, root=".")
           print("SELECTION SOUMISE A VALIDATION :", pend)
-          print('repondre : ARCHIVUM/demande/answers.json -> {"answers": {"selection_approved": true}}')
+          print("pour valider : relancer ce workflow avec selection_approved = oui")
+          print("pour refuser : selection_approved = non")
           PYEOF
 
       - name: Refus si la sélection n'est pas validée par l'opérateur
@@ -345,9 +346,14 @@ jobs:
           import demande
           ok, val, motif = demande.exiger("selection_approved", root=".")
           if not ok or val is not True:
-              print("::error::sélection non validée — aucun clip ne sort. %s" % motif)
-              print("question : ARCHIVUM/demande/pending/selection.json")
-              print('réponse  : ARCHIVUM/demande/answers.json -> {"answers": {"selection_approved": true}}')
+              print("::error::sélection non validée par l'opérateur — aucun clip ne sort")
+              print("=" * 72)
+              print("LE PROJET ATTEND TA RÉPONSE (tu n'écris rien dans le repo)")
+              print("  la sélection est ici : ARCHIVUM/demande/pending/selection.json")
+              print("  pour l'accepter : relancer ce workflow avec selection_approved = oui")
+              print("  pour la refuser  : relancer avec selection_approved = non")
+              print("  refus moteur     : %s" % motif)
+              print("=" * 72)
               sys.exit(1)
           print("sélection validée par l'opérateur")
           PYEOF

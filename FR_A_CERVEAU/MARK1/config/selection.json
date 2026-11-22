@@ -191,5 +191,10 @@
       "desperate"
     ]
   },
-  "_comment_murus_paths": "Chemins adaptes a la layout MURUS SANGUINIS (MARK1 dans FR_A_CERVEAU/). Rien d'autre n'a change."
+  "_comment_murus_paths": "Chemins adaptes a la layout MURUS SANGUINIS (MARK1 dans FR_A_CERVEAU/). Rien d'autre n'a change.",
+  "selection": {
+    "intro_skip_sec": 280,
+    "min_force": 1,
+    "_pourquoi": "Regle permanente, mesuree sur la VOD 2909800627 : l'intro musicale finit a 277 s (derniere ligne chantee) et la premiere replique reelle est a 280.8 s. Aucune fenetre avant 280 s n'est jamais proposee. min_force=1 : on n'invente aucun seuil au-dela de 'il y a un enjeu'. Consigne operateur : ecarter TOUJOURS l'intro."
+  }
 }

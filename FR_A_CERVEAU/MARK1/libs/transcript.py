@@ -242,17 +242,28 @@ def candidate_windows(doc, cfg, limit=None):
     hi = float(cfg.get("max_segment_sec", 90))
     target = min(max(float(cfg.get("target_segment_sec", 30)), lo), hi)
 
+    # ZONES INTERDITES ET PLANCHER DE FORCE (regles permanentes, cf. selection.json).
+    # intro_skip_sec : l'intro musicale d'un stream n'est pas du contenu. On ne la
+    # clipifie JAMAIS, sinon MARK1 ressort les paroles de la musique (force=1).
+    # min_force : en dessous, la fenetre n'a pas d'enjeu mesurable -> on ne propose pas.
+    sel = cfg.get("selection") or {}
+    intro_skip_sec = float(sel.get("intro_skip_sec", 0) or 0)
+    min_force = int(sel.get("min_force", 0) or 0)
+
     num = re.compile(r"\d")
 
     scored = []
     for i, s in enumerate(segs):
         txt = (s.get("text") or "")
         low = txt.lower()
+        start_s = float(s.get("start") or 0)
+        if intro_skip_sec and start_s < intro_skip_sec:
+            continue
         score = 0
         score += sum(1 for m in markers if m in low)
         score += 2 * len(num.findall(txt))
-        if score:
-            scored.append((score, float(s.get("start") or 0), i))
+        if score and score >= min_force:
+            scored.append((score, start_s, i))
 
     scored.sort(key=lambda x: (-x[0], x[1]))
 
