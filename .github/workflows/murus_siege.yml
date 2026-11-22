@@ -554,12 +554,32 @@ jobs:
           print("\n".join(out))
           PYEOF
 
+      - name: Stager le pack exporte pour la review (REVIEW/pack_stage.json)
+        if: always()
+        run: |
+          python - << 'PYEOF'
+          import glob, json, shutil
+          from pathlib import Path
+          packs = sorted(glob.glob("EXPORT/production_pack_mark1_*.json"))
+          if not packs:
+              print("aucun pack exporte : la review n'a rien a stager")
+              raise SystemExit(0)
+          src = Path(packs[-1])
+          d = json.loads(src.read_text(encoding="utf-8"))
+          Path("REVIEW").mkdir(exist_ok=True)
+          Path("REVIEW/pack_stage.json").write_text(
+              json.dumps(d, indent=2, ensure_ascii=False), encoding="utf-8")
+          print("pack stagé pour la review : %s -> REVIEW/pack_stage.json (%d clips, token %s)"
+                % (src.name, len(d.get("assets") or []), d.get("pack_token")))
+          PYEOF
+
       - name: Committer le rapport de siège
         if: always()
         run: |
           git config user.name "MurusSiege"
           git config user.email "siege@murus.sanguinis"
           git add TRACKING/SIEGE_PREME.md
+          git add REVIEW/pack_stage.json || true
           if git diff --cached --quiet; then echo "rapport inchangé"; exit 0; fi
           git commit -m "[SIÈGE] rapport réel sur la VOD opérateur"
           git pull --rebase --autostash origin main
