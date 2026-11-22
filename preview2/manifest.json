@@ -6,6 +6,7 @@
       "file": "./clips/pur_A01.mp4",
       "frame": "./frames/frame_A01.png",
       "text": "us today too",
+      "caption_start": 0.6,
       "exact_frame": ""
     },
     {
@@ -13,6 +14,7 @@
       "file": "./clips/pur_A02.mp4",
       "frame": "./frames/frame_A02.png",
       "text": "500 million art piece",
+      "caption_start": 0.6,
       "exact_frame": ""
     },
     {
@@ -20,6 +22,7 @@
       "file": "./clips/pur_A03.mp4",
       "frame": "./frames/frame_A03.png",
       "text": "16 year olds before",
+      "caption_start": 0.6,
       "exact_frame": ""
     },
     {
@@ -27,6 +30,7 @@
       "file": "./clips/pur_A04.mp4",
       "frame": "./frames/frame_A04.png",
       "text": "give back today",
+      "caption_start": 0.6,
       "exact_frame": ""
     },
     {
@@ -34,6 +38,7 @@
       "file": "./clips/pur_A05.mp4",
       "frame": "./frames/frame_A05.png",
       "text": "day long show some",
+      "caption_start": 0.6,
       "exact_frame": ""
     },
     {
@@ -41,6 +46,7 @@
       "file": "./clips/pur_A06.mp4",
       "frame": "./frames/frame_A06.png",
       "text": "nba i'm never forget",
+      "caption_start": 0.6,
       "exact_frame": ""
     },
     {
@@ -48,6 +54,7 @@
       "file": "./clips/pur_A07.mp4",
       "frame": "./frames/frame_A07.png",
       "text": "change someone's day life",
+      "caption_start": 0.6,
       "exact_frame": ""
     },
     {
@@ -55,6 +62,7 @@
       "file": "./clips/pur_A08.mp4",
       "frame": "./frames/frame_A08.png",
       "text": "nothing else matters hard",
+      "caption_start": 0.6,
       "exact_frame": ""
     },
     {
@@ -62,6 +70,7 @@
       "file": "./clips/pur_A09.mp4",
       "frame": "./frames/frame_A09.png",
       "text": "day yes that's beautiful",
+      "caption_start": 0.6,
       "exact_frame": ""
     }
   ],
