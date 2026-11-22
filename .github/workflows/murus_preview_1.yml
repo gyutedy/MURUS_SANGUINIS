@@ -140,7 +140,7 @@ jobs:
           merge-multiple: true
           path: FR_B_CREATION/SF_10_SPECULUM/CODEBASE/public/clips
 
-      - name: Vérifier le compte (anti-remplissage : on annonce ce qui est là)
+      - name: Vérifier le compte (anti-remplissage - on annonce ce qui est la)
         run: |
           python - << 'PYEOF'
           import json, os
