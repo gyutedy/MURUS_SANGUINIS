@@ -227,6 +227,15 @@ def main() -> int:
     report = ROOT / "TRACKING" / "MURUS_LOG.md"
     chain = CHAIN if args.profile == "vod" else [sf for sf in CHAIN if sf[0] not in DIRECT_SKIPPED]
     for sf, gname, artefact in chain:
+        # Apres X1 et AVANT la preview 1 : le projet recupere LE clip du pack.
+        # Sans ce maillon, SF_10 n'a pas de source et le rendu n'a pas de preuve.
+        if sf == "SF_10_SPECULUM" and not (ROOT / "FR_B_CREATION/SF_10_SPECULUM/IN/clip.mp4").exists():
+            print("[RECUP] aucun clip recupere -> recuperation depuis le pack signe")
+            rc = subprocess.run([sys.executable,
+                                 str(ROOT / "FR_B_CREATION/tools/recuperer_clip.py")]).returncode
+            if rc != 0:
+                print("[RECUP] ECHEC — pas de clip, donc pas de preview, donc pas de codex.")
+                return 6
         art = ROOT / artefact
         if gname is not None and not gate(gname, art, report):
             return 2                              # porte rejetee : stop net, rien n'a touche une video

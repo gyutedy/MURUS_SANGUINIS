@@ -92,3 +92,29 @@ def exiger(cle, plafond=None, root=None):
             return False, None, "%s=%d depasse le plafond %d" % (cle, n, plafond)
         return True, n, "ok"
     return True, val, "ok"
+
+
+def enregistrer(cle, valeur, source="", declared_by="operateur", root=None):
+    """Ecrit la reponse de l'operateur dans answers.json, avec sa provenance.
+
+    L'OPERATEUR N'EDITE JAMAIS DE FICHIER : il repond (au lancement du workflow,
+    ou a l'oral). C'est le projet qui ecrit la trace — datee et attribuee.
+    """
+    path = chemin_answers(root)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    doc = {"answers": {}}
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                doc = json.load(fh) or {"answers": {}}
+        except ValueError:
+            doc = {"answers": {}}
+    doc.setdefault("answers", {})[cle] = valeur
+    doc.setdefault("provenance", {})[cle] = {
+        "declared_by": declared_by,
+        "source": source or "inconnu",
+        "enregistree_le": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(doc, fh, ensure_ascii=False, indent=2)
+    return path

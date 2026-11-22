@@ -1,39 +1,37 @@
 # DEMANDE À L'OPÉRATEUR
 
-Le projet **demande**, il ne décide pas. Ici vivent les questions que seul
-l'opérateur (Warsmith) peut répondre, et les réponses qu'il écrit.
+Le projet **demande**, il ne décide pas. Et **l'opérateur n'édite jamais un fichier
+du repo en plein siège** : il répond au lancement du workflow, ou à l'oral. C'est le
+projet qui écrit la trace, datée et attribuée.
 
 ```
 ARCHIVUM/demande/
   pending/<cle>.json    <- la question, écrite par le projet (lisible, avec le pourquoi)
-  answers.json          <- la réponse, écrite PAR L'OPÉRATEUR
+  answers.json          <- la réponse, ÉCRITE PAR LE PROJET (provenance : dispatch / oral)
 ```
 
-Une réponse absente = arrêt net. Le code ne fabrique aucune valeur par défaut.
+## Comment l'opérateur répond
 
-## Questions connues
+Au lancement de `MURUS — SIÈGE RÉEL` :
 
-| clé | question | plafond |
+| input du workflow | question | valeurs |
 |---|---|---|
-| `nb_clips` | Combien de clips pour ce siège ? | 15 (CDC) |
-| `selection_approved` | Valides-tu la sélection M1 soumise (clips + force) ? | `true` |
+| `nb_clips` | Combien de clips pour ce siège ? | entier 1..15 (plafond CDC) |
+| `selection_approved` | Valides-tu la sélection M1 soumise ? | `oui` / `non` |
 
-## Forme du fichier de réponses
+Le projet valide la valeur (refus au-delà de 15, refus si non entier), puis l'écrit
+dans `answers.json` avec `declared_by` et `source`. Une réponse absente = arrêt net :
+aucune valeur par défaut n'est inventée.
 
-```json
-{
-  "answers": {
-    "nb_clips": 15,
-    "selection_approved": true
-  }
-}
-```
+## Cycle en deux lancements
 
-`selection_approved: false` est accepté et **bloque** : le projet redemandera une
-sélection après correction, il ne forcera pas.
+1. **lancement 1** — `nb_clips = 15`. M1 produit les 15 fenêtres **avec leur force**
+   et les soumet (`pending/selection.json`). Le run s'arrête là, rien n'est exporté.
+2. **lancement 2** — `selection_approved = oui`. M1 rejoue la même sélection
+   (déterministe), la validation passe, `mark1 export` enchaîne D0 → X1.
 
-## Pourquoi
+## Ce que veut dire la « force »
 
-- `nb_clips` : le nombre de clips conditionne M1. Ce n'est pas un défaut de workflow.
-- `selection_approved` : M1 *propose* des fenêtres avec une **force** (score : marqueurs
-  d'enjeu + 2 × chiffres). L'opérateur voit les moments réels et leur force, et décide.
+`candidate_windows` note chaque fenêtre : `score = marqueurs d'enjeu + 2 × chiffres`.
+Tri décroissant, puis espacement minimal pour ne pas prendre deux fois le même moment.
+La force est affichée clip par clip : la sélection est discutable, pas subie.

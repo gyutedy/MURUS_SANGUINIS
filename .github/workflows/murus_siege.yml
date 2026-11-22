@@ -22,8 +22,18 @@ on:
         required: true
         default: 'https://www.twitch.tv/videos/2909800627'
         type: string
-      # PAS d'input "nombre de clips" : le nombre est DEMANDE a l'operateur
-      # (ARCHIVUM/demande/answers.json) et plafonne a 15 par le CDC.
+      # L'OPERATEUR REPOND ICI, AU LANCEMENT. Il n'edite jamais un fichier du repo
+      # en plein siege : le projet enregistre sa reponse avec sa provenance.
+      nb_clips:
+        description: 'Nombre de clips (1 a 15) — reponse de l operateur a la question du projet'
+        required: false
+        default: ''
+        type: string
+      selection_approved:
+        description: 'Valides-tu la selection M1 ? (oui/non) — reponse de l operateur'
+        required: false
+        default: ''
+        type: string
       platform:
         description: 'Plateforme de destination'
         required: false
@@ -181,37 +191,49 @@ jobs:
           git merge --ff-only origin/main
           ls -la ARCHIVUM/montage/transcripts/ | tail -5
 
-      - name: DEMANDE À L'OPÉRATEUR — nombre de clips (le projet demande, il ne décide pas)
-        id: demande
+      - name: DEMANDE À L'OPÉRATEUR — le projet demande, l'opérateur répond, le projet trace
+        env:
+          NB_IN: ${{ inputs.nb_clips }}
+          SEL_IN: ${{ inputs.selection_approved }}
         run: |
           python - << 'PYEOF'
-          import sys
+          import os, sys
           from pathlib import Path
 
           sys.path.insert(0, str(Path("FR_A_CERVEAU/GATES").resolve()))
           import demande
 
-          CAP = 15   # plafond du CDC
+          CAP = 15
+          nb_in = (os.environ.get("NB_IN") or "").strip()
+          sel_in = (os.environ.get("SEL_IN") or "").strip().lower()
+
+          # La reponse de l'operateur, si elle a ete donnee au lancement, est
+          # ENREGISTREE par le projet (provenance : dispatch). Sinon on redemande.
+          if nb_in:
+              demande.enregistrer("nb_clips", nb_in, source="workflow_dispatch", root=".")
+          if sel_in in ("oui", "yes", "true", "1"):
+              demande.enregistrer("selection_approved", True, source="workflow_dispatch", root=".")
+          elif sel_in in ("non", "no", "false", "0"):
+              demande.enregistrer("selection_approved", False, source="workflow_dispatch", root=".")
+
           ok, nb, motif = demande.exiger("nb_clips", plafond=CAP, root=".")
           if not ok:
               pend = demande.demander(
                   "nb_clips",
                   "Combien de clips pour ce siège ?",
-                  pourquoi="Le nombre de clips conditionne la sélection M1 : "
-                            "c'est une décision d'opérateur, pas un défaut de workflow.",
-                  attendu="entier entre 1 et %d" % CAP,
-                  plafond=CAP, root=".")
+                  pourquoi="Le nombre de clips conditionne la sélection M1 : c'est une "
+                            "décision d'opérateur, pas un défaut de workflow.",
+                  attendu="entier entre 1 et %d" % CAP, plafond=CAP, root=".")
               print("=" * 72)
               print("LE PROJET DEMANDE À L'OPÉRATEUR")
-              print("  question posée : %s" % pend)
-              print("  répondre dans  : ARCHIVUM/demande/answers.json")
-              print('  forme          : {"answers": {"nb_clips": 15}}')
-              print("  plafond CDC    : %d clips" % CAP)
-              print("  refus          : %s" % motif)
+              print("  question : %s" % pend)
+              print("  réponse  : relancer ce workflow avec nb_clips = <1..%d>" % CAP)
+              print("  refus    : %s" % motif)
               print("=" * 72)
               Path("/tmp/nb_clips.txt").write_text("", encoding="utf-8")
               sys.exit(1)
-          print("nb_clips déclaré par l'opérateur : %d (cap %d)" % (nb, CAP))
+          print("nb_clips = %d (déclaré par l'opérateur, cap %d, tracé dans ARCHIVUM/demande/answers.json)"
+                % (nb, CAP))
           Path("/tmp/nb_clips.txt").write_text(str(nb), encoding="utf-8")
           PYEOF
           echo "NB=$(cat /tmp/nb_clips.txt)" >> "$GITHUB_ENV"
