@@ -242,8 +242,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: REVIEW/preview2
-          publish_branch: gh-pages-preview2
-          force_orphan: true
+          publish_branch: gh-pages
+          destination_dir: preview2
+          keep_files: true
 
       - name: Résumé opérateur
         if: always()

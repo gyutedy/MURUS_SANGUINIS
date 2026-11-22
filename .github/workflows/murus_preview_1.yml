@@ -241,4 +241,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: FR_B_CREATION/SF_10_SPECULUM/CODEBASE/dist
           publish_branch: gh-pages
-          force_orphan: true
+          keep_files: true
