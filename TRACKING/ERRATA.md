@@ -54,6 +54,12 @@ displayed as a real `<img>` on the stage, and the panel must show the PNG — no
 the file name. Same rule for titles: they come from the pack
 (`assets[].overlay_title`) and are seeded at load, otherwise the panel looks empty.
 
+### E-10 — Never gitignore a signed codex
+`REVIEW/codex_render.json` and `REVIEW/codex_postprod.json` were listed in
+`.gitignore`. The gates read them **from the repository**: a signed codex therefore
+never reached GitHub, and G1 kept answering "codex absent". Only drafts
+(`*.draft.json`) may be ignored.
+
 ## FR
 
 ### E-9 — Le watermark est le PNG de campagne du pack, jamais un nom inventé
@@ -106,3 +112,10 @@ preview lisent **ce** fichier — jamais une re-dérivation.
 Télécharger neuf fenêtres dans un seul job signifie qu'un échec tue neuf clips et
 qu'un timeout tue le siège. `strategy.matrix` + `fail-fast: false` : un job par
 clip, chacun publiant son artefact, puis un job `assemble`.
+
+### E-10 — Ne jamais ignorer un codex signé
+`REVIEW/codex_render.json` et `REVIEW/codex_postprod.json` figuraient dans
+`.gitignore`. Les portes les lisent **dans le dépôt** : un codex signé n'arrivait donc
+jamais sur GitHub et G1 répondait « codex absent ». Seuls les brouillons
+(`*.draft.json`) peuvent être ignorés.
+
