@@ -64,7 +64,7 @@ jobs:
                    "id": (a.get("id") or ("clip%02d" % (i + 1))),
                    "start": float(a.get("start_sec") or 0),
                    "end": float(a.get("end_sec") or 0),
-                   "text": (a.get("caption") or a.get("overlay_title") or "")}
+                   "text": (a.get("overlay_title") or a.get("caption") or "")}
                   for i, a in enumerate(assets)]
 
           out = Path(os.environ["GITHUB_OUTPUT"])
@@ -188,7 +188,7 @@ jobs:
                   "id": cid,
                   "file": "./clips/pur_%s.mp4" % cid,
                   "frame": "./frames/frame_%s.png" % cid,
-                  "text": a.get("caption") or a.get("overlay_title") or "",
+                  "text": a.get("overlay_title") or a.get("caption") or "",
                   "exact_frame": ("./exact/frame_%s.png" % cid) if Path("REVIEW/preview2/exact/frame_%s.png" % cid).exists() else "",
               })
 

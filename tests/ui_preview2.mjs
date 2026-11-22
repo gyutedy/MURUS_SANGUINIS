@@ -14,10 +14,26 @@ try {
   page.on('pageerror', (e) => errors.push(String(e.message || e)))
   await page.goto(URL, { waitUntil: 'networkidle2', timeout: 60000 })
 
-  await page.waitForFunction(
-    () => document.querySelectorAll('input[type="range"]').length > 10,
-    { timeout: 30000 },
-  )
+  try {
+    await page.waitForFunction(
+      () => document.querySelectorAll('input[type="range"]').length > 10,
+      { timeout: 30000 },
+    )
+  } catch (e) {
+    const diag = await page.evaluate(() => ({
+      rootHtml: (document.getElementById('root')?.innerHTML || '').slice(0, 700),
+      text: (document.body?.innerText || '').slice(0, 400),
+      ranges: document.querySelectorAll('input[type="range"]').length,
+    }))
+    writeFileSync('preview-2.json', JSON.stringify({ fatal: 'interface non rendue', errors, diag }, null, 2))
+    await page.screenshot({ path: 'preview-2.png', fullPage: false })
+    console.log('::error::interface non rendue (aucun curseur apres 30s)')
+    console.log('erreurs JS :', JSON.stringify(errors.slice(0, 3)))
+    console.log('root :', diag.rootHtml)
+    console.log('texte :', diag.text)
+    await browser.close()
+    process.exit(1)
+  }
 
   const audit = await page.evaluate(() => {
     const legends = [...document.querySelectorAll('legend')].map((l) => l.textContent.trim())
