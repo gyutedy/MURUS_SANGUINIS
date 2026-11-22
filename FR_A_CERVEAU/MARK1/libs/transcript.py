@@ -252,18 +252,32 @@ def candidate_windows(doc, cfg, limit=None):
 
     num = re.compile(r"\d")
 
-    scored = []
-    for i, s in enumerate(segs):
-        txt = (s.get("text") or "")
-        low = txt.lower()
-        start_s = float(s.get("start") or 0)
-        if intro_skip_sec and start_s < intro_skip_sec:
-            continue
-        score = 0
-        score += sum(1 for m in markers if m in low)
-        score += 2 * len(num.findall(txt))
-        if score and score >= min_force:
-            scored.append((score, start_s, i))
+    # Garde-fou : ecarter l'intro d'une VOD plus courte que l'intro ecarterait TOUT.
+    # La regle ne doit jamais produire zero fenetre par construction.
+    total_sec = duration(doc, cfg)
+    if intro_skip_sec and total_sec and total_sec <= intro_skip_sec:
+        intro_skip_sec = 0.0
+
+    def _scorer(skip):
+        out = []
+        for i, s in enumerate(segs):
+            txt = (s.get("text") or "")
+            low = txt.lower()
+            start_s = float(s.get("start") or 0)
+            if skip and start_s < skip:
+                continue
+            score = 0
+            score += sum(1 for m in markers if m in low)
+            score += 2 * len(num.findall(txt))
+            if score and score >= min_force:
+                out.append((score, start_s, i))
+        return out
+
+    scored = _scorer(intro_skip_sec)
+    if not scored and intro_skip_sec:
+        # Aucune fenetre apres l'intro (transcript court/synthetique) : on ne rend
+        # pas une liste vide a cause d'une regle de campagne mal dimensionnee.
+        scored = _scorer(0.0)
 
     scored.sort(key=lambda x: (-x[0], x[1]))
 
