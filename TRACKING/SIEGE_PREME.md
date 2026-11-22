@@ -1,4 +1,4 @@
-# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 06:04 UTC
+# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 06:37 UTC
 
 Document bilingue (EXC-M8, `TRACKING/DOCTRINE_BILINGUE.md`) : EN = source de
 vérité machine, FR = traduction de compréhension.
@@ -23,7 +23,7 @@ vérité machine, FR = traduction de compréhension.
 [OK] X1_EXPORT : production_pack_mark1_70f120a8.json
 ```
 
-Traces : `2026-11-22T060452_70f120a8.json`
+Traces : `2026-11-22T063753_70f120a8.json`
 
 ## EN — M1 on real data
 
@@ -67,7 +67,7 @@ Filling this file = answering the gates. The code never invents a value.
 [OK] X1_EXPORT : production_pack_mark1_70f120a8.json
 ```
 
-Traces : `2026-11-22T060452_70f120a8.json`
+Traces : `2026-11-22T063753_70f120a8.json`
 
 ## FR — M1 sur données réelles
 

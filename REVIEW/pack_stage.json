@@ -1,0 +1,326 @@
+{
+  "mode": "mark1",
+  "overlay_mode": "oracle",
+  "directive_source": "PREME_CLIPIFY_OPEN",
+  "language": "en",
+  "source": {
+    "campaign_id": "PREME_CLIPIFY_OPEN",
+    "directive_path": "/home/runner/work/MURUS_SANGUINIS/MURUS_SANGUINIS/ARCHIVUM/campaign/campaign_directive.json",
+    "platforms": [
+      "tiktok",
+      "twitter_x",
+      "instagram_reels",
+      "youtube_shorts"
+    ],
+    "payouts_usd_per_1k": {
+      "youtube_shorts": 0.6
+    }
+  },
+  "asset_mode": "blur",
+  "subject": "Preme",
+  "internal_terms": [],
+  "campaign": {
+    "campaign_id": "PREME_CLIPIFY_OPEN",
+    "language": "en",
+    "platforms": [
+      "tiktok",
+      "twitter_x",
+      "instagram_reels",
+      "youtube_shorts"
+    ],
+    "anti_spam": true
+  },
+  "account": {
+    "warmup_days": 42,
+    "banned": false
+  },
+  "focus_declared": true,
+  "watermark": {
+    "file": "production_pack_mark1_70f120a8.png",
+    "format": "png",
+    "ext": ".png",
+    "opacity": 0.8,
+    "position": "center",
+    "size_pct": 15,
+    "required": true,
+    "exists": true,
+    "available_watermarks": [
+      "aishahsofey_1.png",
+      "preme.png",
+      "aishahsofey.jpeg",
+      "aishahsofey_1.jpeg"
+    ],
+    "bundled": true,
+    "bundled_ext": "png"
+  },
+  "assets": [
+    {
+      "id": "A01",
+      "start_sec": 1376.2,
+      "end_sec": 1406.2,
+      "overlay_title": "us today too",
+      "metadata_title": "Preme Probably, like, I don't know, 30, 45 minutes",
+      "description": "Probably, like, I don't know, 30, 45 minutes. #preme #ad @Preme",
+      "tags": [
+        "probably",
+        "anybody",
+        "newyork",
+        "yeah",
+        "don't",
+        "hard",
+        "harlem",
+        "it's",
+        "know",
+        "like"
+      ],
+      "hashtags": [
+        "#preme",
+        "#ad",
+        "#probably",
+        "#anybody",
+        "#newyork"
+      ],
+      "caption": "us today too @Preme #preme #ad #ad",
+      "clip_token": "A01-20261122-70f120a8",
+      "exported_at": "2026-11-22T06:37:53"
+    },
+    {
+      "id": "A02",
+      "start_sec": 709.1,
+      "end_sec": 739.1,
+      "overlay_title": "500 million art piece",
+      "metadata_title": "Preme his family is the biggest art collector in the world",
+      "description": "his family is the biggest art collector in the world. #preme #ad @Preme",
+      "tags": [
+        "right",
+        "ha",
+        "yeah",
+        "like",
+        "art",
+        "bro",
+        "all",
+        "biggest",
+        "collector",
+        "family"
+      ],
+      "hashtags": [
+        "#preme",
+        "#ad",
+        "#right",
+        "#ha"
+      ],
+      "caption": "500 million art piece @Preme #preme #ad #ad",
+      "clip_token": "A02-20261122-70f120a8",
+      "exported_at": "2026-11-22T06:37:53"
+    },
+    {
+      "id": "A03",
+      "start_sec": 1727.5,
+      "end_sec": 1757.5,
+      "overlay_title": "16 year olds before",
+      "metadata_title": "Preme and we gave a truck load in 16-year-olds before you do that",
+      "description": "and we gave a truck load in 16-year-olds before you do that. #preme #ad @Preme",
+      "tags": [
+        "hey",
+        "yeah",
+        "truck",
+        "out",
+        "pop",
+        "-year-olds",
+        "about",
+        "before",
+        "big",
+        "crystallism"
+      ],
+      "hashtags": [
+        "#preme",
+        "#ad",
+        "#hey",
+        "#yeah"
+      ],
+      "caption": "16 year olds before @Preme #preme #ad #ad",
+      "clip_token": "A03-20261122-70f120a8",
+      "exported_at": "2026-11-22T06:37:53"
+    },
+    {
+      "id": "A04",
+      "start_sec": 1296.0,
+      "end_sec": 1326.0,
+      "overlay_title": "give back today",
+      "metadata_title": "Preme You said that was my great 7-8",
+      "description": "You said that was my great 7-8. #preme #ad @Preme",
+      "tags": [
+        "love",
+        "what's",
+        "y'all",
+        "man",
+        "yeah",
+        "great",
+        "out",
+        "pathfinder",
+        "said",
+        "shout"
+      ],
+      "hashtags": [
+        "#preme",
+        "#ad",
+        "#love"
+      ],
+      "caption": "give back today @Preme #preme #ad #ad",
+      "clip_token": "A04-20261122-70f120a8",
+      "exported_at": "2026-11-22T06:37:53"
+    },
+    {
+      "id": "A05",
+      "start_sec": 1587.5,
+      "end_sec": 1617.5,
+      "overlay_title": "day long show some",
+      "metadata_title": "Preme Next 24 hours we challenge everybody to one random act of kindness",
+      "description": "Next 24 hours we challenge everybody to one random act of kindness. #preme #ad @Preme",
+      "tags": [
+        "next",
+        "let",
+        "dr",
+        "man",
+        "all",
+        "one",
+        "act",
+        "challenge",
+        "day",
+        "different"
+      ],
+      "hashtags": [
+        "#preme",
+        "#ad",
+        "#next",
+        "#let",
+        "#dr"
+      ],
+      "caption": "day long show some @Preme #preme #ad #ad",
+      "clip_token": "A05-20261122-70f120a8",
+      "exported_at": "2026-11-22T06:37:53"
+    },
+    {
+      "id": "A06",
+      "start_sec": 1623.7,
+      "end_sec": 1653.7,
+      "overlay_title": "nba i'm never forget",
+      "metadata_title": "Preme Marcus Brown 23",
+      "description": "Marcus Brown 23. #preme #ad @Preme",
+      "tags": [
+        "marcusbrown",
+        "twizzytezo",
+        "cup",
+        "i'm",
+        "like",
+        "brown",
+        "club",
+        "going",
+        "made",
+        "man"
+      ],
+      "hashtags": [
+        "#preme",
+        "#ad",
+        "#marcusbrown",
+        "#twizzytezo",
+        "#cup"
+      ],
+      "caption": "nba i'm never forget @Preme #preme #ad #ad",
+      "clip_token": "A06-20261122-70f120a8",
+      "exported_at": "2026-11-22T06:37:53"
+    },
+    {
+      "id": "A07",
+      "start_sec": 294.0,
+      "end_sec": 324.0,
+      "overlay_title": "change someone's day life",
+      "metadata_title": "Preme How's your day going",
+      "description": "How's your day going. #preme #ad @Preme",
+      "tags": [
+        "hey",
+        "like",
+        "going",
+        "right",
+        "day",
+        "how's",
+        "know",
+        "change",
+        "could",
+        "don't"
+      ],
+      "hashtags": [
+        "#preme",
+        "#ad",
+        "#hey",
+        "#like"
+      ],
+      "caption": "change someone's day life @Preme #preme #ad #ad",
+      "clip_token": "A07-20261122-70f120a8",
+      "exported_at": "2026-11-22T06:37:53"
+    },
+    {
+      "id": "A08",
+      "start_sec": 381.0,
+      "end_sec": 411.0,
+      "overlay_title": "nothing else matters hard",
+      "metadata_title": "Preme Nothing else matters Hard What's your mom's name",
+      "description": "Nothing else matters Hard What's your mom's name. #preme #ad @Preme",
+      "tags": [
+        "hardwhat",
+        "andreabrooksandreaandreaandreawhat",
+        "andrea",
+        "like",
+        "right",
+        "what's",
+        "always",
+        "else",
+        "hard",
+        "matters"
+      ],
+      "hashtags": [
+        "#preme",
+        "#ad",
+        "#hardwhat",
+        "#andreabrooksandreaandreaandreawhat",
+        "#andrea"
+      ],
+      "caption": "nothing else matters hard @Preme #preme #ad #ad",
+      "clip_token": "A08-20261122-70f120a8",
+      "exported_at": "2026-11-22T06:37:53"
+    },
+    {
+      "id": "A09",
+      "start_sec": 422.1,
+      "end_sec": 452.1,
+      "overlay_title": "day yes that's beautiful",
+      "metadata_title": "Preme Do you like going to work with this person every day",
+      "description": "Do you like going to work with this person every day. #preme #ad @Preme",
+      "tags": [
+        "yesthat",
+        "thank",
+        "yeahi",
+        "what's",
+        "day",
+        "every",
+        "going",
+        "like",
+        "person",
+        "too"
+      ],
+      "hashtags": [
+        "#preme",
+        "#ad",
+        "#yesthat",
+        "#thank",
+        "#yeahi"
+      ],
+      "caption": "day yes that's beautiful @Preme #preme #ad #ad",
+      "clip_token": "A09-20261122-70f120a8",
+      "exported_at": "2026-11-22T06:37:53"
+    }
+  ],
+  "pack_token": "70f120a8",
+  "exported_at": "2026-11-22T06:37:53",
+  "generated_at": "2026-11-22T06:37:53Z"
+}
