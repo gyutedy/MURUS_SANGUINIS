@@ -1,4 +1,4 @@
-# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 05:27 UTC
+# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 05:32 UTC
 
 Document bilingue (EXC-M8, `TRACKING/DOCTRINE_BILINGUE.md`) : EN = source de
 vérité machine, FR = traduction de compréhension.
@@ -16,10 +16,11 @@ vérité machine, FR = traduction de compréhension.
 [OK] M0B_CYCLE : cycle 2026-11-20 -> 2099-12-31, ouvert
 [OK] M1_SELECTION : 15 segments, langue en
 [OK] M5_VOX : 15 segments, 0 transcrits
-[FAIL] M2_METADATA : A01: overlay empty; A03: overlay empty; A06: overlay empty; A07: overlay empty; A08: overlay empty; A09: overlay empty; A10: overlay empty; A13: overlay empty; A15: overlay empty
+[OK] M2_METADATA : 15 assets valides (via ORACLE) (overlay=oracle, 1 round(s))
+[FAIL] M2B_COMPLIANCE : A01: bait : overlay non soutenu par le texte (33% < 50%); A02: bait : overlay non soutenu par le texte (33% < 50%); A07: bait : overlay non soutenu par le texte (0% < 50%); A08: bait : overlay non soutenu par le texte (0% < 50%); A09: bait : overlay non soutenu par le texte (33% < 50%); A12: bait : overlay non soutenu par le texte (0% < 50%); A13: bait : overlay non soutenu par le texte (33% < 50%); A14: bait : overlay non soutenu par le texte (33% < 50%)
 ```
 
-Traces : `2026-11-22T052752_nopack.json`
+Traces : `2026-11-22T053220_nopack.json`
 
 ## EN — M1 on real data
 
@@ -62,10 +63,11 @@ Filling this file = answering the gates. The code never invents a value.
 [OK] M0B_CYCLE : cycle 2026-11-20 -> 2099-12-31, ouvert
 [OK] M1_SELECTION : 15 segments, langue en
 [OK] M5_VOX : 15 segments, 0 transcrits
-[FAIL] M2_METADATA : A01: overlay empty; A03: overlay empty; A06: overlay empty; A07: overlay empty; A08: overlay empty; A09: overlay empty; A10: overlay empty; A13: overlay empty; A15: overlay empty
+[OK] M2_METADATA : 15 assets valides (via ORACLE) (overlay=oracle, 1 round(s))
+[FAIL] M2B_COMPLIANCE : A01: bait : overlay non soutenu par le texte (33% < 50%); A02: bait : overlay non soutenu par le texte (33% < 50%); A07: bait : overlay non soutenu par le texte (0% < 50%); A08: bait : overlay non soutenu par le texte (0% < 50%); A09: bait : overlay non soutenu par le texte (33% < 50%); A12: bait : overlay non soutenu par le texte (0% < 50%); A13: bait : overlay non soutenu par le texte (33% < 50%); A14: bait : overlay non soutenu par le texte (33% < 50%)
 ```
 
-Traces : `2026-11-22T052752_nopack.json`
+Traces : `2026-11-22T053220_nopack.json`
 
 ## FR — M1 sur données réelles
 
