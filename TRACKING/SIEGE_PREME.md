@@ -1,4 +1,4 @@
-# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 05:54 UTC
+# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 06:01 UTC
 
 Document bilingue (EXC-M8, `TRACKING/DOCTRINE_BILINGUE.md`) : EN = source de
 vérité machine, FR = traduction de compréhension.
