@@ -535,8 +535,24 @@ def test_t27_rendu_un_job_par_clip():
     assert "default: '9'" in w, "le rendu ne prend pas tous les clips par defaut"
 
     # les CLIs pillees sont appelees, pas reecrites
-    for cli in ("recuperer_clip.py", "convert_pur_pack.mjs", "render_pictor.mjs", "postprod.py"):
+    for cli in ("recuperer_clip.py", "convert_pur_pack.mjs", "render_pictor.mjs", "postprod.py",
+                "lac_f05_camouflage.py", "lac_f06_luther.py"):
         assert cli in w, "etape du rendu absente : %s" % cli
+
+    # l'ordre grave : postprod PUIS camouflage PUIS luther (luther = stream copy, rien apres)
+    i_pp = w.index("postprod.py")
+    i_cam = w.index("lac_f05_camouflage.py")
+    i_lut = w.index("lac_f06_luther.py")
+    assert i_pp < i_cam < i_lut, "ordre des etages casse : postprod -> camouflage -> luther"
+
+    # V7 : la porte qa_pass est appelee avant toute livraison
+    assert "gate_v7_refuses_sale_livrable" in w, "la porte V7 n'est jamais appelee"
+
+    # double recuperation exigee par l'operateur : clip seul + zip des 9
+    assert "livrable-${{ matrix.clip.id }}" in w, "chaque clip n'est pas telechargeable seul"
+    assert "preme-pack-9-livrables" in w, "aucun zip unique des livrables"
+    assert "render_report.json" in w and "git push" in w, "le rapport de rendu n'est pas commite"
+
 
     # EXC-M11 : plus aucun chemin F03_PREVIEW/... mort dans les CLIs utilisees
     for f in ("FR_B_CREATION/tools/convert_pur_pack.mjs",

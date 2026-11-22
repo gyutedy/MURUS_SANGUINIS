@@ -221,7 +221,24 @@ jobs:
             --report "/tmp/work/final/postprod_${ID}.json"
           ls -la /tmp/work/final || true
 
-      - name: Publier le clip rendu (un artefact par clip)
+      - name: 6. CAMOUFLAGE (SF_14) — reencodage H.264 yuv420p, faststart, loudnorm
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          mkdir -p "/tmp/work/cam/${ID}" "/tmp/work/livre/${ID}"
+          python FR_B_CREATION/SF_14_CAMOUFLAGE/CODEBASE/lac_f05_camouflage.py             --input "/tmp/work/final/pur_${ID}.mp4"             --output "/tmp/work/cam/${ID}"
+          mv "/tmp/work/cam/${ID}/short_camouflaged.mp4" "/tmp/work/cam/${ID}/pur_${ID}_cam.mp4"
+          ls -la "/tmp/work/cam/${ID}"
+
+      - name: 7. LUTHER (SF_15) — metadonnees retirees, stream copy, livrable
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          python FR_B_CREATION/SF_15_LUTHER/CODEBASE/lac_f06_luther.py             --input "/tmp/work/cam/${ID}/pur_${ID}_cam.mp4"             --output "/tmp/work/livre/${ID}"
+          mv "/tmp/work/livre/${ID}/short_master.mp4" "/tmp/work/livre/${ID}/pur_${ID}_LIVRABLE.mp4"
+          ls -la "/tmp/work/livre/${ID}"
+
+      - name: Publier les etapes intermediaires (diagnostic)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -229,6 +246,15 @@ jobs:
           path: /tmp/work
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Publier LE LIVRABLE de ce clip (telechargeable seul)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: livrable-${{ matrix.clip.id }}
+          path: /tmp/work/livre/${{ matrix.clip.id }}
+          if-no-files-found: error
+          retention-days: 30
 
   assemble:
     needs: [porte, clip]
@@ -281,3 +307,97 @@ jobs:
             REVIEW/render/render_report.json
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Rassembler les rapports CAMOUFLAGE et LUTHER des 9 clips
+        run: |
+          python - << 'PYEOF'
+          import json
+          from pathlib import Path
+
+          def merge(demande, dossiers, mono, batch, out):
+              videos, failed = [], []
+              for rep in sorted(Path("/tmp/all").glob(dossiers)):
+                  for f in sorted(rep.glob(mono)):
+                      d = json.loads(f.read_text(encoding="utf-8"))
+                      ok = bool(d.get("qa_pass"))
+                      videos.append({"input": Path(d.get("input", "")).name,
+                                     "output": Path(d.get("output", "")).name,
+                                     "qa_pass": ok,
+                                     "suspicious_tags_after": d.get("suspicious_tags_after") or []})
+                      if not ok:
+                          failed.append(Path(d.get("input", "")).name)
+              Path(out).parent.mkdir(parents=True, exist_ok=True)
+              Path(out).write_text(json.dumps({
+                  "schema_version": "dev10-v2.%s.v1" % batch.replace("_batch_report.json", ""),
+                  "mode": "batch_multi_videos",
+                  "video_count": len(videos),
+                  "processed": len(videos),
+                  "failed": failed,
+                  "all_qa_pass": len(failed) == 0 and len(videos) == demande,
+                  "videos": videos,
+              }, indent=2, ensure_ascii=False) + chr(10), encoding="utf-8")
+              print("%s : %d video(s), all_qa_pass=%s" % (batch, len(videos), len(failed) == 0 and len(videos) == demande))
+
+          pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
+          demande = len(pack.get("assets") or [])
+          merge(demande, "cam/*", "camouflage_report.json", "camouflage_batch_report.json",
+                "FR_B_CREATION/SF_14_CAMOUFLAGE/OUT/camouflage_batch_report.json")
+          merge(demande, "livre/*", "luther_report.json", "luther_batch_report.json",
+                "FR_B_CREATION/SF_15_LUTHER/OUT/luther_batch_report.json")
+          PYEOF
+
+      - name: PORTE V7 — aucun livrable sale ne sort
+        run: |
+          python - << 'PYEOF'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path("FR_B_CREATION").resolve()))
+          from GATES.gates_b import gate_v7_refuses_sale_livrable
+          ok, motif = gate_v7_refuses_sale_livrable()
+          print("PORTE V7 :", ok, "|", motif)
+          if not ok:
+              print("::error::V7 REFUSE : " + motif)
+              raise SystemExit(1)
+          PYEOF
+
+      - name: Rapport final + commit (la trace existe sur GitHub, pas seulement en artefact)
+        run: |
+          python - << 'PYEOF'
+          import json
+          from pathlib import Path
+
+          livres = sorted(Path("/tmp/all").glob("livre/*/pur_*_LIVRABLE.mp4"))
+          pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
+          rapport = {
+              "pack_token": pack.get("pack_token"),
+              "nb_demande": len(pack.get("assets") or []),
+              "nb_livrable": len(livres),
+              "livrables": [{"clip": p.name.split("_")[1], "octets": p.stat().st_size} for p in livres],
+              "etages": ["postprod", "camouflage", "luther"],
+              "note": "un clip absent est annonce absent, jamais compense",
+          }
+          Path("REVIEW/render").mkdir(parents=True, exist_ok=True)
+          Path("REVIEW/render/render_report.json").write_text(
+              json.dumps(rapport, indent=2, ensure_ascii=False) + chr(10), encoding="utf-8")
+          print(json.dumps(rapport, indent=2, ensure_ascii=False))
+          if len(livres) != rapport["nb_demande"]:
+              print("::error::livrables incomplets : %d/%d" % (len(livres), rapport["nb_demande"]))
+              raise SystemExit(1)
+          PYEOF
+          git config user.name "murus-bot"
+          git config user.email "murus-bot@users.noreply.github.com"
+          git add REVIEW/render/render_report.json FR_B_CREATION/SF_14_CAMOUFLAGE/OUT FR_B_CREATION/SF_15_LUTHER/OUT 2>/dev/null || true
+          if git diff --cached --quiet; then echo "rapport inchange"; else
+            git commit -m "[CI] rapport de rendu + preuves qa_pass (camouflage, luther)"
+            git push
+          fi
+
+      - name: Publier LE ZIP DES 9 LIVRABLES (un seul telechargement)
+        uses: actions/upload-artifact@v4
+        with:
+          name: preme-pack-9-livrables
+          path: |
+            /tmp/all/livre/*/pur_*_LIVRABLE.mp4
+            REVIEW/render/render_report.json
+          if-no-files-found: error
+          retention-days: 30
