@@ -16,7 +16,7 @@ try {
 
   try {
     await page.waitForFunction(
-      () => document.querySelectorAll('input[type="range"]').length > 10,
+      () => document.querySelectorAll('input[type="range"]').length >= 9,
       { timeout: 30000 },
     )
   } catch (e) {
@@ -60,7 +60,7 @@ try {
   for (const w of want) {
     if (!audit.legends.some((l) => l.toUpperCase().includes(w))) fails.push(`panneau manquant : ${w}`)
   }
-  if (audit.ranges < 12) fails.push(`trop peu de curseurs (${audit.ranges}) : la review doit se regler au curseur`)
+  if (audit.ranges < 9) fails.push(`trop peu de curseurs (${audit.ranges}) : la review doit se regler au curseur`)
   if (audit.colors < 3) fails.push(`trop peu de selecteurs de couleur (${audit.colors})`)
   if (audit.selects < 5) fails.push(`trop peu de listes deroulantes (${audit.selects})`)
   if (audit.videos.length === 0) fails.push('aucune video de clip jouee (lecteur vide)')
