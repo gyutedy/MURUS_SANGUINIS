@@ -42,7 +42,14 @@ try {
     const stageEl = document.querySelector('main');
     const rect = stageEl ? stageEl.getBoundingClientRect() : null
     const aside = document.querySelector('aside')
+    const capEl = [...document.querySelectorAll('div')].find((d) => {
+      const cs = getComputedStyle(d)
+      return cs.animationName && cs.animationName.startsWith('murus-')
+    })
     return {
+      videosCount: document.querySelectorAll('video').length,
+      captionAnimation: capEl ? getComputedStyle(capEl).animationName : null,
+      glowLayers: document.querySelectorAll('div[aria-hidden="true"]').length,
       legends,
       videos,
       imgs,
@@ -64,6 +71,9 @@ try {
   if (audit.colors < 3) fails.push(`trop peu de selecteurs de couleur (${audit.colors})`)
   if (audit.selects < 5) fails.push(`trop peu de listes deroulantes (${audit.selects})`)
   if (audit.videos.length === 0) fails.push('aucune video de clip jouee (lecteur vide)')
+  if (audit.videosCount > 1) fails.push(`doublon de lecteur : ${audit.videosCount} videos (une video floue superposee ne doit plus exister)`)
+  if (!audit.captionAnimation) fails.push('aucune animation de sous-titre : la motion ne se voit pas')
+  if (audit.glowLayers === 0) fails.push('aucun calque de glow (backdrop-filter) : le glow ne s applique pas')
   if (!audit.imgs.some((s) => s && s.includes('frame_'))) fails.push('aucune frame de reference affichee')
   if (audit.asideScroll !== true) fails.push('la colonne de reglages ne defile pas')
   if (audit.bodyScroll === true) fails.push('la page defile : les panneaux doivent defiler, pas la page')
@@ -80,6 +90,9 @@ try {
     videos_jouees: audit.videos.length,
     frames_affichees: audit.imgs.filter((s) => s && s.includes('frame_')),
     colonne_qui_defile: audit.asideScroll,
+    videos_dans_la_page: audit.videosCount,
+    animation_sous_titre: audit.captionAnimation,
+    calques_de_glow: audit.glowLayers,
   }, null, 2))
 
   if (fails.length) {

@@ -433,6 +433,31 @@ def test_t22_codex_render_signe():
         assert (b / nom).exists(), "schema absent a l'endroit ou SF_11 le cherche : %s" % nom
         assert (a / nom).read_text(encoding="utf-8") == (b / nom).read_text(encoding="utf-8"),             "copie de schema divergente : %s" % nom
 
+
+def test_t24_preview2_glow_et_motion():
+    """Le glow ne doit ni doubler la video ni couper la scene, et la motion doit se voir."""
+    app = ROOT / "FR_B_CREATION/SF_13_POLITURA/PREVIEW2/src"
+    a = (app / "App.jsx").read_text(encoding="utf-8")
+    panels = (app / "Panels.jsx").read_text(encoding="utf-8")
+
+    # une seule <video> : le glow passe par backdrop-filter, pas par une 2e video desync
+    screen = a[a.index("function Screen("):a.index("export default function App()")]
+    assert screen.count("<video") == 1, "le glow superpose une 2e video : doublon visible"
+    assert "backdropFilter" in screen, "le glow n'utilise pas le flou du fond reel"
+    # le masque GL2 est adouci : plus de coupure nette de la scene
+    assert "70%" in screen and "80%" in screen, "masque GL2 non adouci : la scene est coupee en deux"
+    assert "linear-gradient(to bottom, #000 0 78%" not in screen, "masque GL2 encore en coupure seche"
+
+    # la motion des sous-titres est une vraie animation, rejouable
+    assert "@keyframes murus-pop-in" in a and "@keyframes murus-slide" in a and "@keyframes murus-bounce" in a,         "les trois motions ne sont pas implementees"
+    assert "animation: `murus-" in a or "animation: `murus-" in a.replace("\\", ""), "le sous-titre n'est jamais anime"
+    assert "rejouer la motion" in panels, "aucun moyen de voir la motion a la demande"
+
+    # porte navigateur : doublon et animation verifies dans Chromium
+    ui = (ROOT / "tests/ui_preview2.mjs").read_text(encoding="utf-8")
+    assert "videosCount > 1" in ui, "la porte navigateur n'attrape pas le doublon de lecteur"
+    assert "captionAnimation" in ui, "la porte navigateur ne verifie pas l'animation du sous-titre"
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):

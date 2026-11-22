@@ -17,7 +17,7 @@ function Slider({ id, text, min, max, step, value, onChange, suffix }) {
   )
 }
 
-export default function Panels({ state, setState, signed, setSigned, meta, onExport, codex, codexOut }) {
+export default function Panels({ state, setState, signed, setSigned, meta, onExport, codex, codexOut, onReplay }) {
   const patch = (key, partial) => setState((s) => ({ ...s, [key]: { ...s[key], ...partial } }))
   const { glow, caption, lut, fade } = state
   const profiles = meta?.lut_profiles || []
@@ -86,6 +86,10 @@ export default function Panels({ state, setState, signed, setSigned, meta, onExp
           </select>
         </div>
         <Slider id="cap-motion-speed" text="vitesse de la motion" min={0.25} max={3} step={0.05} value={caption.motion_speed} onChange={(v) => patch('caption', { motion_speed: v })} />
+        <button id="cap-replay" style={btn} onClick={() => onReplay && onReplay()}>rejouer la motion</button>
+        <p style={{ fontSize: 10, color: '#6f6f80', marginTop: 6 }}>
+          l'animation se joue a chaque changement de texte ou de motion ; ce bouton la rejoue.
+        </p>
       </fieldset>
 
       <fieldset style={fs}>

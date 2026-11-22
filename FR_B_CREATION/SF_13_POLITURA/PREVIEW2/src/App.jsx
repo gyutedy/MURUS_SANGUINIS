@@ -36,54 +36,58 @@ const btn = {
   borderRadius: 6, padding: '6px 10px', cursor: 'pointer', fontSize: 13,
 }
 
-function Caption({ caption, text }) {
+function Caption({ caption, text, replayKey }) {
   const glow = caption.glow_intensity
   const shadows = [
     `0 0 ${4 + glow * 6}px ${caption.glow_color}`,
     `0 0 ${8 + glow * 14}px ${caption.glow_color}`,
     `0 0 ${14 + glow * 22}px ${caption.glow_color}`,
   ].join(', ')
+  const dur = Math.max(0.15, 0.7 / Math.max(0.25, caption.motion_speed))
   return (
-    <div style={{
-      position: 'absolute', left: `${caption.x_pct}%`, top: `${caption.y_pct}%`,
-      transform: 'translate(-50%, -50%)', width: '92%', textAlign: 'center',
-      fontFamily: `'${caption.font}', Montserrat, Arial Black, sans-serif`,
-      fontSize: `${caption.size / 3}px`, lineHeight: 1.15,
-      color: caption.color, textShadow: shadows, pointerEvents: 'none',
-      WebkitTextStroke: `${caption.outline_width / 3}px ${caption.outline_color}`,
-      fontWeight: 900, letterSpacing: 0.5,
-    }}>{text}</div>
+    <div
+      key={`${replayKey}-${caption.motion}-${caption.motion_speed}`}
+      style={{
+        position: 'absolute', left: `${caption.x_pct}%`, top: `${caption.y_pct}%`,
+        width: '92%', textAlign: 'center',
+        fontFamily: `'${caption.font}', Montserrat, Arial Black, sans-serif`,
+        fontSize: `${caption.size / 3}px`, lineHeight: 1.15,
+        color: caption.color, textShadow: shadows, pointerEvents: 'none',
+        WebkitTextStroke: `${caption.outline_width / 3}px ${caption.outline_color}`,
+        fontWeight: 900, letterSpacing: 0.5,
+        animation: `murus-${caption.motion} ${dur}s ease-out both`,
+      }}
+    >{text}</div>
   )
 }
 
-function Screen({ src, frameSrc, isVideo, state, text, mediaRef }) {
+function Screen({ src, frameSrc, isVideo, state, text, mediaRef, replayKey }) {
   const g = state.glow
   const lutCss = state.lut.enabled ? (LUT_CSS[state.lut.profile] || '') : ''
   const mediaStyle = { width: '100%', height: '100%', objectFit: 'contain', display: 'block' }
-  const blurLayer = {
-    ...mediaStyle, position: 'absolute', inset: 0,
-    filter: `blur(${Math.max(1, g.sigma / 2.2)}px)`,
+  // Approximation du glow : on floute CE QUI EST DERRIERE (backdrop-filter) au lieu
+  // de superposer une 2e video desynchronisee — c'etait le doublon visible.
+  // GL2 : la bande des sous-titres (>= 78 %) n'est jamais floutee, avec un fondu
+  // progressif pour ne pas couper l'image en deux.
+  const glowLayer = {
+    position: 'absolute', inset: 0,
+    backdropFilter: `blur(${Math.max(1, g.sigma / 2.2)}px)`,
+    WebkitBackdropFilter: `blur(${Math.max(1, g.sigma / 2.2)}px)`,
     opacity: g.enabled ? g.opacity : 0,
     mixBlendMode: 'screen',
-    maskImage: 'linear-gradient(to bottom, #000 0 78%, transparent 78%)',
-    WebkitMaskImage: 'linear-gradient(to bottom, #000 0 78%, transparent 78%)',
+    maskImage: 'linear-gradient(to bottom, #000 0 70%, transparent 80%)',
+    WebkitMaskImage: 'linear-gradient(to bottom, #000 0 70%, transparent 80%)',
+    pointerEvents: 'none',
   }
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000', overflow: 'hidden', filter: lutCss }}>
       {isVideo ? (
-        <>
-          <video ref={mediaRef} src={src} style={mediaStyle} muted loop autoPlay playsInline />
-          {g.enabled ? (
-            <video src={src} style={blurLayer} muted loop autoPlay playsInline aria-hidden="true" />
-          ) : null}
-        </>
+        <video ref={mediaRef} src={src} style={mediaStyle} muted loop autoPlay playsInline />
       ) : (
-        <>
-          <img src={frameSrc} alt="" style={mediaStyle} />
-          {g.enabled ? <img src={frameSrc} alt="" style={blurLayer} /> : null}
-        </>
+        <img src={frameSrc} alt="" style={mediaStyle} />
       )}
-      <Caption caption={state.caption} text={text || ''} />
+      {g.enabled ? <div style={glowLayer} aria-hidden="true" /> : null}
+      <Caption caption={state.caption} text={text || ''} replayKey={replayKey} />
     </div>
   )
 }
@@ -96,6 +100,7 @@ export default function App() {
   const [signed, setSigned] = useState(false)
   const [showExact, setShowExact] = useState(false)
   const [codexOut, setCodexOut] = useState('')
+  const [replayKey, setReplayKey] = useState(0)
   const mediaRef = useRef(null)
 
   useEffect(() => {
@@ -140,6 +145,19 @@ export default function App() {
   return (
     <>
       <style>{`
+        @keyframes murus-pop-in {
+          from { transform: translate(-50%, -50%) scale(0.55); opacity: 0; }
+          to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes murus-bounce {
+          0%   { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
+          60%  { transform: translate(-50%, -50%) scale(1.14); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes murus-slide {
+          from { transform: translate(-50%, -20%) translateY(40px); opacity: 0; }
+          to   { transform: translate(-50%, -50%); opacity: 1; }
+        }
         aside::-webkit-scrollbar { width: 12px; }
         aside::-webkit-scrollbar-track { background: #0b0b0f; }
         aside::-webkit-scrollbar-thumb { background: #2e2e3a; border-radius: 6px; }
@@ -162,7 +180,7 @@ export default function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
               <span style={{ fontSize: 11, color: '#8a8a99', textTransform: 'uppercase', letterSpacing: 1 }}>lecteur — vidéo entière (aperçu)</span>
               <div style={{ height: 420, border: '1px solid #232330', borderRadius: 8, overflow: 'hidden' }}>
-                {clip ? <Screen src={clip.file} frameSrc={clip.frame} isVideo state={state} text={clip.text} mediaRef={mediaRef} /> : null}
+                {clip ? <Screen src={clip.file} frameSrc={clip.frame} isVideo state={state} text={clip.text} mediaRef={mediaRef} replayKey={replayKey} /> : null}
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
@@ -173,7 +191,7 @@ export default function App() {
                 {showExact && clip?.exact_frame ? (
                   <img src={clip.exact_frame} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000' }} />
                 ) : clip ? (
-                  <Screen src={clip.file} frameSrc={clip.frame} isVideo={false} state={state} text={clip.text} />
+                  <Screen src={clip.file} frameSrc={clip.frame} isVideo={false} state={state} text={clip.text} replayKey={replayKey} />
                 ) : null}
               </div>
               {showExact && !clip?.exact_frame ? (
@@ -190,7 +208,7 @@ export default function App() {
         </main>
 
         <aside style={{ padding: 16, borderLeft: '1px solid #222', overflowY: 'scroll', overflowX: 'hidden', height: '100vh', scrollbarGutter: 'stable' }}>
-          <Panels state={state} setState={setState} signed={signed} setSigned={setSigned} meta={meta} onExport={exportCodex} codex={codex} codexOut={codexOut} />
+          <Panels state={state} setState={setState} signed={signed} setSigned={setSigned} meta={meta} onExport={exportCodex} codex={codex} codexOut={codexOut} onReplay={() => setReplayKey((k) => k + 1)} />
         </aside>
       </div>
     </>
