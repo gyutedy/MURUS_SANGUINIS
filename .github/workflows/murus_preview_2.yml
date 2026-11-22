@@ -260,8 +260,7 @@ jobs:
                        "sigma": float(os.environ["SIGMA"]),
                        "opacity": float(os.environ["OPACITY"])},
               "lut": {"enabled": True, "profile": os.environ.get("LUT") or "hdr_imperator"},
-              "fade_out": {"enabled": True,
-                           "mode": os.environ.get("FADE_MODE") or "darken",
+              "fade_out": {"mode": os.environ.get("FADE_MODE") or "darken",
                            "duration_sec": float(os.environ.get("FADE_SEC") or 0.8)},
               "validated_by_magos": False,
           }
