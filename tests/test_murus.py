@@ -316,7 +316,7 @@ def test_t19_previews_separees():
 
     # 4. l'identite du lecteur est stable (correctif ecran noir)
     assert "const composition = useMemo(() => (props) => <PurPackComposition {...props} />, []);" in src,         "l'identite du lecteur depend encore de manifest : la video rechargera (ecran noir)"
-    assert "inputProps={{ purManifest: manifest, entryIndex }}" in src,         "les donnees du lecteur doivent passer par inputProps"
+    assert 'inputProps={{ purManifest: viewManifest, entryIndex }}' in src,         "les donnees du lecteur doivent passer par inputProps (manifest sans logo moteur)"
 
     # 5. la doctrine est ecrite et bilingue
     doc = ROOT / "TRACKING/PREVIEWS_ROLES.md"
@@ -373,7 +373,14 @@ def test_t21_watermark_png_et_panneau_titre():
 
     # 3. le logo et les titres du pack sont la des le chargement
     assert "seededImages" in src, "le logo n'est pas present d'emblee"
-    assert "overlay_title" in src, "les titres du pack ne sont pas charges (panneau vide)"
+    # les titres viennent de copywriting.overlay_title (un par clip), pas de .assets
+    assert "(pk.copywriting || {}).overlay_title" in src,         "les titres doivent etre lus dans copywriting.overlay_title (expandSanguinalaPack)"
+    assert "first.watermark" in src, "le watermark doit etre lu a plat sur le pack expanse"
+
+    # ANTI-DOUBLON : le logo du moteur est masque a l'affichage, la review seule le place
+    assert "viewManifest" in src, "le logo du pack n'est pas masque : il y aura deux watermarks"
+    assert "enabled: false" in src, "le logo du moteur doit etre desactive a l'affichage"
+    assert "purManifest: viewManifest" in src, "le lecteur doit recevoir le manifest sans logo moteur"
 
     # 4. le panneau titre est complet : hauteur, taille, couleur, police
     for champ in ("taille {t.size}px", "couleur du titre", "police du titre"):

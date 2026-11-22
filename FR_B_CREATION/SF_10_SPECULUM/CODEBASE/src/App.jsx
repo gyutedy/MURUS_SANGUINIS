@@ -216,7 +216,7 @@ export default function App() {
     const sp = first.style_pack || {};
     const st = sp.style || nextStyle || style;
     setStyle(st);
-    const wmp = sp.watermark || {};
+    const wmp = first.watermark || sp.watermark || {};
     const wmSrc = wmp.file || '';
     const seededImages = (wmp.images && wmp.images.length)
       ? wmp.images
@@ -230,7 +230,7 @@ export default function App() {
         }] : []);
     const packTitles = (sp.titles && sp.titles.length)
       ? sp.titles
-      : expanded.flatMap((pk) => (pk.assets || []).map((a) => a.overlay_title)).filter(Boolean)
+      : expanded.map((pk) => (pk.copywriting || {}).overlay_title).filter(Boolean)
           .map((txt) => ({ text: txt, in: 0, out: 3, position: 'bottom', y_pct: 82, size: 64, color: '#FFFFFF' }));
     setReview((s) => ({
       ...s,
@@ -387,6 +387,17 @@ export default function App() {
   // par inputProps. Un curseur ne fait plus que repeindre.
   const composition = useMemo(() => (props) => <PurPackComposition {...props} />, []);
 
+  // ANTI-DOUBLON : le pack porte deja un logo (narrative.logo) que le moteur dessine
+  // au centre. La review en pose un, deplacable. Deux logos = un doublon. On masque
+  // celui du moteur pour l'AFFICHAGE seulement — le pack et le codex restent intacts.
+  const viewManifest = useMemo(() => {
+    if (!manifest) return manifest;
+    const narrative = { ...(manifest.narrative || {}) };
+    const logo = { ...(narrative.logo || {}), enabled: false };
+    narrative.logo = logo;
+    return { ...manifest, narrative };
+  }, [manifest]);
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#0b0b0f', color: '#eee', fontFamily: 'sans-serif' }}>
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -400,7 +411,7 @@ export default function App() {
             <Player
               ref={playerRef}
               component={composition}
-              inputProps={{ purManifest: manifest, entryIndex }}
+              inputProps={{ purManifest: viewManifest, entryIndex }}
               durationInFrames={durationInFrames}
               fps={30}
               compositionWidth={size.width}
