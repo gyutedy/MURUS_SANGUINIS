@@ -1,4 +1,4 @@
-# SIÈGE RÉEL — 2026-11-22 04:37 UTC
+# SIÈGE RÉEL — 2026-11-22 04:41 UTC
 
 - VOD : `https://www.twitch.tv/videos/2909800627`
 - plateforme : `youtube_shorts`
