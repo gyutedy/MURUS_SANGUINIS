@@ -1,4 +1,4 @@
-# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 05:32 UTC
+# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 05:38 UTC
 
 Document bilingue (EXC-M8, `TRACKING/DOCTRINE_BILINGUE.md`) : EN = source de
 vérité machine, FR = traduction de compréhension.
@@ -20,7 +20,7 @@ vérité machine, FR = traduction de compréhension.
 [FAIL] M2B_COMPLIANCE : A01: bait : overlay non soutenu par le texte (33% < 50%); A02: bait : overlay non soutenu par le texte (33% < 50%); A07: bait : overlay non soutenu par le texte (0% < 50%); A08: bait : overlay non soutenu par le texte (0% < 50%); A09: bait : overlay non soutenu par le texte (33% < 50%); A12: bait : overlay non soutenu par le texte (0% < 50%); A13: bait : overlay non soutenu par le texte (33% < 50%); A14: bait : overlay non soutenu par le texte (33% < 50%)
 ```
 
-Traces : `2026-11-22T053220_nopack.json`
+Traces : `2026-11-22T053839_nopack.json`
 
 ## EN — M1 on real data
 
@@ -67,7 +67,7 @@ Filling this file = answering the gates. The code never invents a value.
 [FAIL] M2B_COMPLIANCE : A01: bait : overlay non soutenu par le texte (33% < 50%); A02: bait : overlay non soutenu par le texte (33% < 50%); A07: bait : overlay non soutenu par le texte (0% < 50%); A08: bait : overlay non soutenu par le texte (0% < 50%); A09: bait : overlay non soutenu par le texte (33% < 50%); A12: bait : overlay non soutenu par le texte (0% < 50%); A13: bait : overlay non soutenu par le texte (33% < 50%); A14: bait : overlay non soutenu par le texte (33% < 50%)
 ```
 
-Traces : `2026-11-22T053220_nopack.json`
+Traces : `2026-11-22T053839_nopack.json`
 
 ## FR — M1 sur données réelles
 
