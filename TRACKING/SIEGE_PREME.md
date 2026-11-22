@@ -1,4 +1,4 @@
-# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 05:20 UTC
+# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 05:23 UTC
 
 Document bilingue (EXC-M8, `TRACKING/DOCTRINE_BILINGUE.md`) : EN = source de
 vérité machine, FR = traduction de compréhension.
@@ -6,16 +6,18 @@ vérité machine, FR = traduction de compréhension.
 - VOD : `https://www.twitch.tv/videos/2909800627`
 - plateforme / platform : `youtube_shorts`
 - directive : `ARCHIVUM/campaign/campaign_directive.json`
-- code retour moteur / engine rc : `2` (0 = siège complet, 2 = porte fermée, 3 = ORACLE attendu)
+- code retour moteur / engine rc : `3` (0 = siège complet, 2 = porte fermée, 3 = ORACLE attendu)
 
 ## EN — Gate chain (real engine output)
 
 ```
 [OK] TRANSCRIPT : v2909800627_transcript.json -> 15 segments choisis
-[FAIL] D0_DIRECTIVE : champs manquants: payout; aucun payout exploitable
+[OK] D0_DIRECTIVE : PREME_CLIPIFY_OPEN | en | 0.60 $/1k | 4 plates | 4 captions
+[OK] M0B_CYCLE : cycle 2026-11-20 -> 2099-12-31, ouvert
+[OK] M1_SELECTION : 15 segments, langue en
+[OK] M5_VOX : 15 segments, 0 transcrits
+[WAIT] waiting_oracle : /home/runner/work/MURUS_SANGUINIS/MURUS_SANGUINIS/FR_A_CERVEAU/ORACLE/pending/overlay_probe.json
 ```
-
-Traces : `2026-11-22T052019_nopack.json`
 
 ## EN — M1 on real data
 
@@ -54,10 +56,12 @@ Filling this file = answering the gates. The code never invents a value.
 
 ```
 [OK] TRANSCRIPT : v2909800627_transcript.json -> 15 segments choisis
-[FAIL] D0_DIRECTIVE : champs manquants: payout; aucun payout exploitable
+[OK] D0_DIRECTIVE : PREME_CLIPIFY_OPEN | en | 0.60 $/1k | 4 plates | 4 captions
+[OK] M0B_CYCLE : cycle 2026-11-20 -> 2099-12-31, ouvert
+[OK] M1_SELECTION : 15 segments, langue en
+[OK] M5_VOX : 15 segments, 0 transcrits
+[WAIT] waiting_oracle : /home/runner/work/MURUS_SANGUINIS/MURUS_SANGUINIS/FR_A_CERVEAU/ORACLE/pending/overlay_probe.json
 ```
-
-Traces : `2026-11-22T052019_nopack.json`
 
 ## FR — M1 sur données réelles
 
