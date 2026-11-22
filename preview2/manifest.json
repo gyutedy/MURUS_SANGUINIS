@@ -1,0 +1,77 @@
+{
+  "pack_token": "70f120a8",
+  "clips": [
+    {
+      "id": "A01",
+      "file": "./clips/pur_A01.mp4",
+      "frame": "./frames/frame_A01.png",
+      "text": "us today too @Preme #preme #ad #ad",
+      "exact_frame": ""
+    },
+    {
+      "id": "A02",
+      "file": "./clips/pur_A02.mp4",
+      "frame": "./frames/frame_A02.png",
+      "text": "500 million art piece @Preme #preme #ad #ad",
+      "exact_frame": ""
+    },
+    {
+      "id": "A03",
+      "file": "./clips/pur_A03.mp4",
+      "frame": "./frames/frame_A03.png",
+      "text": "16 year olds before @Preme #preme #ad #ad",
+      "exact_frame": ""
+    },
+    {
+      "id": "A04",
+      "file": "./clips/pur_A04.mp4",
+      "frame": "./frames/frame_A04.png",
+      "text": "give back today @Preme #preme #ad #ad",
+      "exact_frame": ""
+    },
+    {
+      "id": "A05",
+      "file": "./clips/pur_A05.mp4",
+      "frame": "./frames/frame_A05.png",
+      "text": "day long show some @Preme #preme #ad #ad",
+      "exact_frame": ""
+    },
+    {
+      "id": "A06",
+      "file": "./clips/pur_A06.mp4",
+      "frame": "./frames/frame_A06.png",
+      "text": "nba i'm never forget @Preme #preme #ad #ad",
+      "exact_frame": ""
+    },
+    {
+      "id": "A07",
+      "file": "./clips/pur_A07.mp4",
+      "frame": "./frames/frame_A07.png",
+      "text": "change someone's day life @Preme #preme #ad #ad",
+      "exact_frame": ""
+    },
+    {
+      "id": "A08",
+      "file": "./clips/pur_A08.mp4",
+      "frame": "./frames/frame_A08.png",
+      "text": "nothing else matters hard @Preme #preme #ad #ad",
+      "exact_frame": ""
+    },
+    {
+      "id": "A09",
+      "file": "./clips/pur_A09.mp4",
+      "frame": "./frames/frame_A09.png",
+      "text": "day yes that's beautiful @Preme #preme #ad #ad",
+      "exact_frame": ""
+    }
+  ],
+  "lut_profiles": [
+    "cinematic_hyper_detail",
+    "hdr_imperator",
+    "realistic_aurea",
+    "old_main_noctis",
+    "balanced"
+  ],
+  "lut_default": "hdr_imperator",
+  "note": "manifeste ecrit par murus_preview_2.yml (assemble)"
+}
