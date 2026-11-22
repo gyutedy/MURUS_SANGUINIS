@@ -554,7 +554,13 @@ export default function App() {
         )}
       </div>
       {/* Le defilement est ICI, dans les panneaux — jamais sur la page. */}
-      <aside style={{ width: 380, padding: 16, borderLeft: '1px solid #222', overflowY: 'auto', overflowX: 'hidden', height: '100vh' }}>
+      <style>{`
+        aside::-webkit-scrollbar { width: 12px; }
+        aside::-webkit-scrollbar-track { background: #0b0b0f; }
+        aside::-webkit-scrollbar-thumb { background: #2e2e3a; border-radius: 6px; }
+        aside::-webkit-scrollbar-thumb:hover { background: #3d3d4d; }
+      `}</style>
+      <aside style={{ width: 380, padding: 16, borderLeft: '1px solid #222', overflowY: 'scroll', overflowX: 'hidden', height: '100vh', scrollbarGutter: 'stable' }}>
         <h1 style={{ fontSize: 18 }}>F03 PREVIEW — LOOK + review W1/T1</h1>
         <p style={{ fontSize: 12, opacity: 0.7 }}>
           Titres editables. Blur fg_scale. Curseur watermark (double-clic puis glisser). Zero zoom. Pas de ranking/reveal/hybrid.
@@ -615,52 +621,6 @@ export default function App() {
         </fieldset>
 
         <fieldset>
-          <legend>T1 titres (editables)</legend>
-          {(review.titles || []).length === 0 && <p style={{ fontSize: 12, opacity: 0.6 }}>Aucun titre. Ajoute-en un.</p>}
-          {(review.titles || []).length > 0 && (
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
-              <button type="button" style={btn} onClick={() => setEntryIndex((k) => Math.max(0, k - 1))}>prev</button>
-              <span style={{ fontSize: 12, opacity: 0.85 }}>
-                titre du clip {entryIndex + 1}/{review.titles.length}
-              </span>
-              <button type="button" style={btn} onClick={() => setEntryIndex((k) => Math.min(review.titles.length - 1, k + 1))}>next</button>
-            </div>
-          )}
-          {[review.titles?.[entryIndex]].filter(Boolean).map((t, _unused) => {
-            const i = entryIndex;
-            return (
-            <div key={i} style={{ borderBottom: '1px solid #222', paddingBottom: 8, marginBottom: 8 }}>
-              <input style={input} type="text" value={t.text} onChange={(e) => patchTitle(i, { text: e.target.value })} />
-              <label style={field}>place {t.position} / y {t.y_pct}%</label>
-              <select style={input} value={t.position} onChange={(e) => patchTitle(i, { position: e.target.value, y_pct: e.target.value === 'bottom' ? 82 : e.target.value === 'center' ? 50 : 8 })}>
-                <option value="top">top</option>
-                <option value="center">center</option>
-                <option value="bottom">bottom</option>
-              </select>
-              <input style={slider} type="range" min="4" max="90" value={t.y_pct} onChange={(e) => patchTitle(i, { y_pct: Number(e.target.value) })} />
-              <label style={field}>taille {t.size}px</label>
-              <input style={slider} type="range" min="24" max="160" value={t.size} onChange={(e) => patchTitle(i, { size: Number(e.target.value) })} />
-              <label style={field}>police du titre</label>
-              <select style={input} value={overlay.font_family || 'Montserrat'} onChange={(e) => patchOverlay({ font_family: e.target.value })}>
-                <option value="Montserrat">Montserrat ExtraBold (fournie, charges par le moteur)</option>
-                <option value="Arial Black, Impact">Arial Black</option>
-                <option value="Impact">Impact</option>
-                <option value="Verdana">Verdana</option>
-                <option value="Georgia">Georgia</option>
-              </select>
-              <label style={field}>couleur du titre {t.color || '#FFFFFF'}</label>
-              <input style={{ ...input, padding: 2, height: 28 }} type="color" value={t.color || '#FFFFFF'} onChange={(e) => patchTitle(i, { color: e.target.value })} />
-              <label style={field}>in / out</label>
-              <input style={input} type="number" value={t.in} onChange={(e) => patchTitle(i, { in: Number(e.target.value) })} />
-              <input style={input} type="number" value={t.out} onChange={(e) => patchTitle(i, { out: Number(e.target.value) })} />
-              <button type="button" style={{ ...btn, marginTop: 6 }} onClick={() => removeTitle(i)}>retirer</button>
-            </div>
-            );
-          })}
-          <button type="button" style={btn} onClick={addTitle}>ajouter titre</button>
-        </fieldset>
-
-        <fieldset>
           <legend>W1 watermark curseur</legend>
           <p style={{ fontSize: 12 }}>Double-clic sur la video, Oui, puis glisse le logo (le PNG de la campagne).</p>
           <p style={{ fontSize: 12 }}>enabled={String(!!review.watermark?.enabled)} images={wmImages.length}</p>
@@ -706,6 +666,52 @@ export default function App() {
               <button type="button" style={btn} onClick={() => removeWm(i)}>retirer</button>
             </div>
           ))}
+        </fieldset>
+
+        <fieldset>
+          <legend>T1 titres (editables)</legend>
+          {(review.titles || []).length === 0 && <p style={{ fontSize: 12, opacity: 0.6 }}>Aucun titre. Ajoute-en un.</p>}
+          {(review.titles || []).length > 0 && (
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+              <button type="button" style={btn} onClick={() => setEntryIndex((k) => Math.max(0, k - 1))}>prev</button>
+              <span style={{ fontSize: 12, opacity: 0.85 }}>
+                titre du clip {entryIndex + 1}/{review.titles.length}
+              </span>
+              <button type="button" style={btn} onClick={() => setEntryIndex((k) => Math.min(review.titles.length - 1, k + 1))}>next</button>
+            </div>
+          )}
+          {[review.titles?.[entryIndex]].filter(Boolean).map((t, _unused) => {
+            const i = entryIndex;
+            return (
+            <div key={i} style={{ borderBottom: '1px solid #222', paddingBottom: 8, marginBottom: 8 }}>
+              <input style={input} type="text" value={t.text} onChange={(e) => patchTitle(i, { text: e.target.value })} />
+              <label style={field}>place {t.position} / y {t.y_pct}%</label>
+              <select style={input} value={t.position} onChange={(e) => patchTitle(i, { position: e.target.value, y_pct: e.target.value === 'bottom' ? 82 : e.target.value === 'center' ? 50 : 8 })}>
+                <option value="top">top</option>
+                <option value="center">center</option>
+                <option value="bottom">bottom</option>
+              </select>
+              <input style={slider} type="range" min="4" max="90" value={t.y_pct} onChange={(e) => patchTitle(i, { y_pct: Number(e.target.value) })} />
+              <label style={field}>taille {t.size}px</label>
+              <input style={slider} type="range" min="24" max="160" value={t.size} onChange={(e) => patchTitle(i, { size: Number(e.target.value) })} />
+              <label style={field}>police du titre</label>
+              <select style={input} value={overlay.font_family || 'Montserrat'} onChange={(e) => patchOverlay({ font_family: e.target.value })}>
+                <option value="Montserrat">Montserrat ExtraBold (fournie, charges par le moteur)</option>
+                <option value="Arial Black, Impact">Arial Black</option>
+                <option value="Impact">Impact</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Georgia">Georgia</option>
+              </select>
+              <label style={field}>couleur du titre {t.color || '#FFFFFF'}</label>
+              <input style={{ ...input, padding: 2, height: 28 }} type="color" value={t.color || '#FFFFFF'} onChange={(e) => patchTitle(i, { color: e.target.value })} />
+              <label style={field}>in / out</label>
+              <input style={input} type="number" value={t.in} onChange={(e) => patchTitle(i, { in: Number(e.target.value) })} />
+              <input style={input} type="number" value={t.out} onChange={(e) => patchTitle(i, { out: Number(e.target.value) })} />
+              <button type="button" style={{ ...btn, marginTop: 6 }} onClick={() => removeTitle(i)}>retirer</button>
+            </div>
+            );
+          })}
+          <button type="button" style={btn} onClick={addTitle}>ajouter titre</button>
         </fieldset>
 
         <fieldset>

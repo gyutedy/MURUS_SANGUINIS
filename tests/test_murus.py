@@ -389,7 +389,9 @@ def test_t21_watermark_png_et_panneau_titre():
     # un seul titre a l'ecran, celui du clip affiche
     assert "[review.titles?.[entryIndex]]" in src, "tous les titres sont dessines sur la meme image"
     # le defilement est dans les panneaux, la scene reste en haut
-    assert "gridTemplateColumns" in src and "overflowY: 'auto'" in src,         "la page defile au lieu des panneaux : la scene doit rester en haut"
+    assert "gridTemplateColumns" in src and "overflowY: 'scroll'" in src,         "la page defile au lieu des panneaux : la scene doit rester en haut"
+    # W1 doit etre visible sans defiler : il passe avant T1
+    assert src.index("W1 watermark curseur") < src.index("T1 titres (editables)"),         "le panneau W1 est encore sous les titres (coupe en bas de l'ecran)"
     assert "enabled: false" in src, "le logo du moteur doit etre desactive a l'affichage"
     assert "purManifest: viewManifest" in src, "le lecteur doit recevoir le manifest sans logo moteur"
 
