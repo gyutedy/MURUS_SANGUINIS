@@ -1,0 +1,21 @@
+{
+  "codex": "postprod",
+  "order": [
+    "glow",
+    "caption",
+    "lut",
+    "fade"
+  ],
+  "glow": {
+    "mode": "scene",
+    "sigma": 12.0,
+    "opacity": 0.35,
+    "caption_zone_excluded": true
+  },
+  "validated_by_magos": false,
+  "_provenance": {
+    "declared_by": "operateur",
+    "source": "workflow_dispatch:murus_preview_2",
+    "note": "BROUILLON - rien n'est rendu avant la signature"
+  }
+}
