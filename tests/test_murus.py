@@ -552,6 +552,9 @@ def test_t27_rendu_un_job_par_clip():
     assert "livrable-${{ matrix.clip.id }}" in w, "chaque clip n'est pas telechargeable seul"
     assert "preme-pack-9-livrables" in w, "aucun zip unique des livrables"
     assert "render_report.json" in w and "git push" in w, "le rapport de rendu n'est pas commite"
+    # E-14 : un rapport ne doit jamais bloquer la livraison
+    assert "continue-on-error: true" in w, "le commit du rapport peut encore faire echouer la livraison"
+    assert "git pull --rebase" in w, "pas de reprise sur rejet de push (course git)"
 
 
     # EXC-M11 : plus aucun chemin F03_PREVIEW/... mort dans les CLIs utilisees
