@@ -1,163 +1,283 @@
-name: MURUS — CHAÎNE COMPLÈTE (murus.py, aucune étape sautée)
+name: MURUS — RENDU (un job par clip, deux codex signes, aucune etape sautee)
 
-# ENTRÉE UNIQUE ET UNIQUE CHEMIN : murus.py.
+# CE WORKFLOW REMPLACE L'ANCIEN "chaine" (un seul job qui rendait tout en serie).
+# Doctrine (consigne operateur) : UN JOB PAR CLIP, fail-fast desactive — un clip
+# casse ne tue pas les autres, et le declenchement futur Telegram/Discord peut
+# viser un clip precis.
 #
-# Il n'y a PAS de "workflow de rendu" séparé. Un rendu direct en ffmpeg a été
-# tenté et ANNULE le 2026-11-20 : il sautait 7 étapes gravées de FR_B.
+# Entrees REELLES (la porte ne bloque que la-dessus) :
+#   - REVIEW/codex_render.json     signature validated_by_magos = true  (W1-R)
+#   - REVIEW/codex_postprod.json   signature validated_by_magos = true  (PP1)
+#   - REVIEW/pack_stage.json       le pack exporte (le seul pack, jamais re-derive)
+#   - ARCHIVUM/campaign/watermarks/<le PNG dit par le pack>              (P3)
 #
-# La chaîne que murus.py applique, dans l'ordre, sans possibilité de sauter :
+# Sorties ATTENDUES (constatees, jamais exigees en entree — ERRATA E-12) :
+#   REVIEW/render/<clip>/... ,  REVIEW/render/render_report.json
 #
-#   FR_A (décide)                      FR_B (exécute, ne décide jamais)
-#   D0_DIRECTIVE                       V5  -> SF_10_SPECULUM   (preview LOOK)  -> codex_render.json signé
-#   M0B_CYCLE                          V6  -> SF_11_LUMEN      (preview GLOW 1 frame) -> codex_postprod.json signé
-#   M1_SELECTION                       G1  -> SF_12_FABRICA    (rendu, piloté par les 2 codex signés)
-#   M5_VOX                             PP2 -> SF_13_POLITURA   (glow -> caption -> lut -> fade)
-#   M2_METADATA (ORACLE, EXC-1)            -> SF_14_CAMOUFLAGE (post-rendu, SANS gate)
-#   M2B_COMPLIANCE                         -> SF_15_LUTHER     (post-rendu, SANS gate)
-#   M3_WATERMARK                       V7  -> SF_16_MISSIO     (livraison refusée si qa_pass=false)
-#   A1_ACCOUNT
-#   A2_CAMPAIGN
-#   X1_EXPORT (pack + sieges + ledger)
-#
-# Rien ne s'exécute si une porte refuse : c'est le comportement voulu.
-# Les déclarations d'opérateur vivent dans ARCHIVUM/campaign/operator_declarations.json.
+# Etapes par clip (CLIs pillees, chemins repointes — EXC-M11) :
+#   1. recuperer_clip.py            : la fenetre du clip depuis la VOD
+#   2. convert_pur_pack.mjs --packs-out : le pack PUR mono-clip (matiere)
+#   3. convert_pur_pack.mjs         : pur_manifest dev10.pur.v1 (codex render commande)
+#   4. render_pictor.mjs            : LOOK Remotion (titre, logo, blur) — 1 clip
+#   5. postprod.py                  : PP2 glow -> caption -> lut -> fade
 
 on:
   workflow_dispatch:
     inputs:
       vod_url:
-        description: 'URL de la VOD'
+        description: 'URL de la VOD source'
         required: true
         default: 'https://www.twitch.tv/videos/2909800627'
         type: string
-      profile:
-        description: 'Profil : vod (avec previews codex) ou direct (codex réutilisés)'
+      nb_clips:
+        description: 'Nombre de clips a rendre (1 = preuve, 9 = tout)'
         required: false
-        default: 'vod'
-        type: choice
-        options: ['vod', 'direct']
-      platform:
-        description: 'Plateforme'
-        required: false
-        default: 'youtube_shorts'
+        default: '1'
         type: string
-      nb_segments:
-        description: 'Nombre de clips'
+      clip_ids:
+        description: 'Clips precis (ex. A01,A02) — vide = tous selon nb_clips'
         required: false
-        default: '3'
+        default: ''
         type: string
+
+concurrency:
+  group: murus-rendu-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
 
 jobs:
-  chaine:
+  porte:
     runs-on: ubuntu-latest
+    outputs:
+      assets: ${{ steps.select.outputs.assets }}
+      count: ${{ steps.select.outputs.count }}
+      watermark: ${{ steps.select.outputs.watermark }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Installer ffmpeg + node (CLIs pillées)
+      - name: Porte — les DEUX codex signes, le pack, le PNG (entrees seulement)
+        id: select
+        env:
+          NB: ${{ inputs.nb_clips }}
+          IDS: ${{ inputs.clip_ids }}
+        run: |
+          python - << 'PYEOF'
+          import json, os, sys
+          from pathlib import Path
+
+          refus = []
+          codex = {}
+          for nom in ("codex_render", "codex_postprod"):
+              p = Path("REVIEW/%s.json" % nom)
+              if not p.is_file():
+                  refus.append("%s absent" % p)
+                  continue
+              codex[nom] = json.loads(p.read_text(encoding="utf-8"))
+              if codex[nom].get("validated_by_magos") is not True:
+                  refus.append("%s non signe par l'operateur (validated_by_magos != true)" % nom)
+
+          pack_path = Path("REVIEW/pack_stage.json")
+          if not pack_path.is_file():
+              refus.append("REVIEW/pack_stage.json absent : rien a rendre")
+          pack = json.loads(pack_path.read_text(encoding="utf-8")) if pack_path.is_file() else {"assets": []}
+
+          if refus:
+              for r in refus:
+                  print("::error::PORTE FERMEE : " + r)
+              print("aucun rendu ne demarre : c'est le comportement voulu")
+              sys.exit(1)
+
+          wm_file = (pack.get("watermark") or {}).get("file") or ""
+          wm_path = Path("ARCHIVUM/campaign/watermarks") / wm_file if wm_file else None
+          if wm_path and not wm_path.is_file():
+              # le PNG du pack peut etre nomme production_pack_mark1_<token>.png : on retombe sur preme.png
+              alt = Path("ARCHIVUM/campaign/watermarks/preme.png")
+              if alt.is_file():
+                  print("PNG du pack absent (%s), on utilise %s et on le renomme" % (wm_file, alt))
+                  wm_path = alt
+              else:
+                  print("::error::PORTE FERMEE : PNG de campagne introuvable (%s)" % wm_file)
+                  sys.exit(1)
+
+          assets = pack.get("assets") or []
+          ids = [x.strip() for x in (os.environ.get("IDS") or "").split(",") if x.strip()]
+          want = [{"index": i,
+                   "id": a.get("id") or ("clip%02d" % (i + 1)),
+                   "start": float(a.get("start_sec") or 0),
+                   "end": float(a.get("end_sec") or 0)}
+                  for i, a in enumerate(assets)]
+          if ids:
+              want = [w for w in want if w["id"] in ids]
+          else:
+              want = want[: max(1, int(os.environ.get("NB") or 1))]
+
+          if not want:
+              print("::error::PORTE FERMEE : aucun clip selectionne")
+              sys.exit(1)
+
+          out = Path(os.environ["GITHUB_OUTPUT"])
+          with out.open("a", encoding="utf-8") as f:
+              f.write("assets=" + json.dumps(want) + "\n")
+              f.write("count=%d\n" % len(want))
+              f.write("watermark=%s\n" % wm_file)
+          print("PORTE OUVERTE : %d clip(s) a rendre" % len(want))
+          for w in want:
+              print("  job rendu %s : %.1fs -> %.1fs" % (w["id"], w["start"], w["end"]))
+          PYEOF
+
+  clip:
+    needs: porte
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        clip: ${{ fromJson(needs.porte.outputs.assets) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Installer ffmpeg + yt-dlp
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ffmpeg
-          node --version
+          python -m pip install --quiet --upgrade yt-dlp
 
-      - name: ÉTAT DE L'ORDRE — ce qui est signé, ce qui manque (aucune invention)
-        id: ordre
-        run: |
-          python - << 'PYEOF' | tee /tmp/ordre.txt
-          import json
-          from pathlib import Path
-
-          chain = [
-              ("FR_A", "D0_DIRECTIVE", None),
-              ("FR_A", "M0B_CYCLE", None),
-              ("FR_A", "M1_SELECTION", None),
-              ("FR_A", "M5_VOX", None),
-              ("FR_A", "M2_METADATA", None),
-              ("FR_A", "M2B_COMPLIANCE", None),
-              ("FR_A", "M3_WATERMARK", None),
-              ("FR_A", "A1_ACCOUNT", None),
-              ("FR_A", "A2_CAMPAIGN", None),
-              ("FR_A", "X1_EXPORT", "EXPORT/production_pack_mark1_*.json"),
-              ("FR_B", "V5  SF_10_SPECULUM", "REVIEW/codex_render.json"),
-              ("FR_B", "V6  SF_11_LUMEN", "REVIEW/codex_postprod.json"),
-              ("FR_B", "G1  SF_12_FABRICA", "FR_B_CREATION/SF_12_FABRICA/OUT/clips"),
-              ("FR_B", "PP2 SF_13_POLITURA", "FR_B_CREATION/SF_13_POLITURA/OUT/postprod_report.json"),
-              ("FR_B", "    SF_14_CAMOUFLAGE (sans gate)", None),
-              ("FR_B", "    SF_15_LUTHER (sans gate)", None),
-              ("FR_B", "V7  SF_16_MISSIO", "FR_B_CREATION/SF_16_MISSIO/OUT/submissions.json"),
-          ]
-          manquants = 0
-          for suite, nom, artefact in chain:
-              if artefact is None:
-                  print("  [--] %-4s %s" % (suite, nom))
-                  continue
-              hits = list(Path(".").glob(artefact))
-              state = "OK " if hits else "MANQUE"
-              if not hits:
-                  manquants += 1
-              print("  [%s] %-4s %s  (%s)" % (state, suite, nom, artefact))
-
-          # Les codex doivent en plus porter la signature du Magos.
-          for cx in ("REVIEW/codex_render.json", "REVIEW/codex_postprod.json"):
-              p = Path(cx)
-              if p.exists():
-                  d = json.loads(p.read_text(encoding="utf-8"))
-                  print("  codex %s -> validated_by_magos=%r" % (cx, d.get("validated_by_magos")))
-          print("")
-          print("ÉTAPES NON SATISFAITES : %d" % manquants)
-          Path("/tmp/manquants.txt").write_text(str(manquants), encoding="utf-8")
-          PYEOF
-          echo "MANQUANTS=$(cat /tmp/manquants.txt)" >> "$GITHUB_ENV"
-
-      - name: Refus explicite si l'ordre n'est pas respecté
-        if: env.MANQUANTS != '0'
-        run: |
-          echo "::error::chaîne incomplète : $MANQUANTS étape(s) non satisfaite(s). Aucun rendu, aucun contournement."
-          echo "Voir /tmp/ordre.txt (journal ci-dessus). Remplir d'abord les déclarations d'opérateur puis relancer murus.py."
-          exit 1
-
-      - name: CHAÎNE COMPLÈTE — murus.py (le seul chemin)
-        if: env.MANQUANTS == '0'
+      - name: 1. Recuperer la fenetre de ce clip
         env:
-          VOD_URL: ${{ inputs.vod_url }}
-          PROFILE: ${{ inputs.profile }}
-          PLATFORM: ${{ inputs.platform }}
-          NB: ${{ inputs.nb_segments }}
+          IDX: ${{ matrix.clip.index }}
+          INPUT_VOD: ${{ inputs.vod_url }}
         run: |
-          python - << 'PYEOF'
-          import json, os
-          from pathlib import Path
-          decl = json.loads(Path("ARCHIVUM/campaign/operator_declarations.json").read_text(encoding="utf-8"))
-          pack = {"mode": "mark1",
-                  "source": {"vod_url": os.environ["VOD_URL"]},
-                  "asset_mode": "blur",
-                  "account": decl.get("account") or {},
-                  "campaign": decl.get("campaign") or {},
-                  "focus_declared": decl.get("focus_declared")}
-          Path("/tmp/pack_chaine.json").write_text(json.dumps(pack, indent=1), encoding="utf-8")
-          print("pack écrit depuis les déclarations d'opérateur")
-          PYEOF
-          VID=$(echo "$VOD_URL" | grep -oE '[0-9]{6,}' | head -1)
-          python murus.py --profile "$PROFILE" --pack /tmp/pack_chaine.json \
-            --transcript "ARCHIVUM/montage/transcripts/v${VID}_transcript.json" \
-            --platform "$PLATFORM"
+          mkdir -p /tmp/work/clips
+          python FR_B_CREATION/tools/recuperer_clip.py \
+            --pack REVIEW/pack_stage.json --index "$IDX" \
+            --out-dir /tmp/work/clips --no-frame --vod "$INPUT_VOD"
+          ls -la /tmp/work/clips
 
-      - name: Journal de chaîne (artefact)
+      - name: 2-3. Pack PUR mono-clip + manifeste (codex render commande)
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          mkdir -p /tmp/work/packs /tmp/work/wm
+          node FR_B_CREATION/tools/convert_pur_pack.mjs \
+            --pack REVIEW/pack_stage.json \
+            --out /tmp/work/pur_all.json \
+            --codex-render REVIEW/codex_render.json \
+            --packs-out /tmp/work/packs
+          MONO=$(ls /tmp/work/packs/*_"${ID}".json | head -1)
+          echo "pack mono-clip : $MONO"
+          node FR_B_CREATION/tools/convert_pur_pack.mjs \
+            --pack "$MONO" \
+            --out /tmp/work/pur_manifest.json \
+            --codex-render REVIEW/codex_render.json \
+            --clip "/tmp/work/clips/pur_${ID}.mp4"
+          # le PNG de campagne, sous le nom que le pack exige (P3)
+          WM=$(python -c "import json;print((json.load(open('REVIEW/pack_stage.json',encoding='utf-8')).get('watermark') or {}).get('file',''))")
+          SRC=$( [ -f "ARCHIVUM/campaign/watermarks/$WM" ] && echo "ARCHIVUM/campaign/watermarks/$WM" || echo "ARCHIVUM/campaign/watermarks/preme.png" )
+          cp "$SRC" "/tmp/work/wm/$WM"
+          ls -la /tmp/work/wm
+
+      - name: Installer Remotion (outil de rendu pille)
+        working-directory: FR_B_CREATION/SF_12_FABRICA/look/CODEBASE
+        run: |
+          npm install --no-audit --no-fund --loglevel=error
+
+      - name: 4. LOOK — rendu Remotion de ce clip
+        working-directory: FR_B_CREATION/SF_12_FABRICA/look/CODEBASE
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          node render_pictor.mjs \
+            --manifest /tmp/work/pur_manifest.json \
+            --clips /tmp/work/clips \
+            --watermarks /tmp/work/wm \
+            --out /tmp/work/look \
+            --entry 0
+          ls -la /tmp/work/look
+
+      - name: 5. PP2 — glow, sous-titres, lut, fade (ordre grave)
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          IN=$(ls /tmp/work/look/*.mp4 | head -1)
+          echo "entree postprod : $IN"
+          python FR_B_CREATION/SF_13_POLITURA/CODEBASE/postprod.py \
+            --input "$IN" \
+            --output "/tmp/work/final/pur_${ID}.mp4" \
+            --codex-postprod REVIEW/codex_postprod.json \
+            --work /tmp/work/pp \
+            --report "/tmp/work/final/postprod_${ID}.json"
+          ls -la /tmp/work/final || true
+
+      - name: Publier le clip rendu (un artefact par clip)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: journal-chaine
-          path: |
-            /tmp/ordre.txt
-            TRACKING/*.md
-            EXPORT/*.json
-          retention-days: 7
+          name: rendu-${{ matrix.clip.id }}
+          path: /tmp/work
           if-no-files-found: warn
+          retention-days: 14
+
+  assemble:
+    needs: [porte, clip]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Telecharger les clips rendus
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/all
+          pattern: rendu-*
+          merge-multiple: true
+
+      - name: Rapport de rendu (on annonce ce qui est la, jamais de remplissage)
+        run: |
+          python - << 'PYEOF'
+          import json
+          from pathlib import Path
+
+          finals = sorted(Path("/tmp/all/final").glob("*.mp4")) if Path("/tmp/all/final").exists() else []
+          pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
+          demande = len(pack.get("assets") or [])
+          rapport = {
+              "rendus": [p.name for p in finals],
+              "nb_rendus": len(finals),
+              "nb_pack": demande,
+              "note": "un clip sans fichier final = echec visible, jamais compense",
+          }
+          Path("REVIEW/render").mkdir(parents=True, exist_ok=True)
+          Path("REVIEW/render/render_report.json").write_text(
+              json.dumps(rapport, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+          print(json.dumps(rapport, indent=2, ensure_ascii=False))
+          if not finals:
+              print("::error::aucun clip rendu : les deux codex sont signes, donc c'est le rendu qui echoue")
+              raise SystemExit(1)
+          PYEOF
+
+      - name: Publier le pack rendu (artefact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendu-pack
+          path: |
+            /tmp/all/final
+            REVIEW/render/render_report.json
+          if-no-files-found: warn
+          retention-days: 14

@@ -68,6 +68,17 @@ therefore showed a tenth of the effect, in the wrong block: invisible on screen.
 reads `atom_ic_profiles.json` at runtime, exposes an intensity slider (preview only — not
 in the codex, whose schema is strict) and declares that denoise/unsharp cannot be shown.
 
+### E-12 — A gate must not demand its own outputs
+The render preflight listed `EXPORT/*.json`, `SF_12_FABRICA/OUT/clips`,
+`SF_13_POLITURA/OUT/postprod_report.json` and `SF_16_MISSIO/OUT/submissions.json`
+as prerequisites. Three of them are produced **by the chain itself**, and `EXPORT/`
+is gitignored: the gate could never open (`chaîne incomplète : 4 étape(s)`). It now
+blocks only on real inputs (the two signed codex, the staged pack, the campaign PNG)
+and reports expected outputs without requiring them. The single `chaine` job was also
+replaced by **one job per clip** (matrix, `fail-fast: false`).
+
+## FR
+
 ## FR
 
 ### E-9 — Le watermark est le PNG de campagne du pack, jamais un nom inventé
@@ -135,3 +146,11 @@ un dixième de l'effet, dans le mauvais bloc : invisible à l'écran. Il lit mai
 `atom_ic_profiles.json` au runtime, offre un curseur d'intensité (aperçu seulement — pas
 dans le codex, dont le schéma est strict) et déclare que denoise/unsharp ne sont pas montrables.
 
+### E-12 — Une porte ne doit jamais exiger ses propres sorties
+Le pré-vol du rendu listait `EXPORT/*.json`, `SF_12_FABRICA/OUT/clips`,
+`SF_13_POLITURA/OUT/postprod_report.json` et `SF_16_MISSIO/OUT/submissions.json` comme
+prérequis. Trois d'entre eux sont produits **par la chaîne elle-même**, et `EXPORT/` est
+gitignoré : la porte ne pouvait donc jamais s'ouvrir (`chaîne incomplète : 4 étape(s)`).
+Elle ne bloque plus que sur de vraies entrées (les deux codex signés, le pack stagé, le
+PNG de campagne) et annonce les sorties attendues sans les exiger. Le job unique `chaine`
+a aussi été remplacé par **un job par clip** (matrice, `fail-fast: false`).

@@ -72,7 +72,7 @@ if (styleArg && !ALLOWED_STYLES.has(String(styleArg).toLowerCase())) {
   process.exit(2);
 }
 
-const bridgeClipperUrl = new URL('../F03_PREVIEW/CODEBASE/src/preview/bridgeClipper.js', `file://${resolve(here)}/`);
+const bridgeClipperUrl = new URL('../SF_10_SPECULUM/CODEBASE/src/preview/bridgeClipper.js', `file://${resolve(here)}/`);
 const { parsePurPack, parsePurPackMulti, expandSanguinalaPack, buildPurLogo } = await import(bridgeClipperUrl.href);
 
 let refStyleParams;

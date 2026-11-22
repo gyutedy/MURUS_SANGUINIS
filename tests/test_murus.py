@@ -515,6 +515,34 @@ def test_t26_codex_postprod_signe():
     ok, msg = gate_g1_exige_codex_signes()
     assert ok is True, "G1 refuse encore : %s" % msg
 
+
+def test_t27_rendu_un_job_par_clip():
+    """Le rendu doit avoir un job par clip, et ne bloquer que sur ses vraies entrees."""
+    w = (ROOT / ".github/workflows/murus_rendu.yml").read_text(encoding="utf-8")
+    assert "matrix:" in w, "aucune matrice : le rendu n'a pas un job par clip"
+    assert "fail-fast: false" in w, "un clip casse tuerait les autres"
+    assert "fromJson(needs.porte.outputs.assets)" in w, "la matrice ne vient pas du pack"
+
+    # la porte ne doit PLUS exiger les sorties de la chaine (E-12)
+    for sortie in ("SF_12_FABRICA/OUT/clips", "SF_13_POLITURA/OUT/postprod_report.json",
+                   "SF_16_MISSIO/OUT/submissions.json", "EXPORT/production_pack_mark1"):
+        assert sortie not in w, "la porte exige encore une sortie de la chaine : %s" % sortie
+
+    # les deux codex signes sont la seule cle
+    assert "validated_by_magos" in w, "la porte ne verifie pas la signature des codex"
+    assert "REVIEW/pack_stage.json" in w, "le rendu ne lit pas le pack stage"
+
+    # les CLIs pillees sont appelees, pas reecrites
+    for cli in ("recuperer_clip.py", "convert_pur_pack.mjs", "render_pictor.mjs", "postprod.py"):
+        assert cli in w, "etape du rendu absente : %s" % cli
+
+    # EXC-M11 : plus aucun chemin F03_PREVIEW/... mort dans les CLIs utilisees
+    for f in ("FR_B_CREATION/tools/convert_pur_pack.mjs",
+              "FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/render_pictor.mjs"):
+        t = (ROOT / f).read_text(encoding="utf-8")
+        assert "'../F03_PREVIEW" not in t and "'F03_PREVIEW/CODEBASE/src/preview/_purPackComposition.jsx'" not in t,             "chemin mort F03_PREVIEW encore present dans %s" % f
+        assert "SF_10_SPECULUM/CODEBASE/src/preview" in t, "chemin non repointe dans %s" % f
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):

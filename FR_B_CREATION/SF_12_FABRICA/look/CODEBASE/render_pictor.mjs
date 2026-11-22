@@ -49,7 +49,7 @@ if (manifest.schema_version !== 'dev10.pur.v1') fail(`schema_version=${manifest.
 if (!ALLOWED.has(String(manifest.style || ''))) fail(`style « ${manifest.style} » hors blur/reframing (G0-S / P2, split_scene = V2+)`, 2);
 
 const compositionSrc = resolve(here, 'src/PurLook.jsx');
-const previewSrc = resolve(ROOT, 'F03_PREVIEW/CODEBASE/src/preview/_purPackComposition.jsx');
+const previewSrc = resolve(here, '../../../SF_10_SPECULUM/CODEBASE/src/preview/_purPackComposition.jsx');
 for (const src of [compositionSrc, previewSrc]) {
   if (!existsSync(src)) fail(`source LOOK absente : ${src}`);
   const text = readFileSync(src, 'utf-8');

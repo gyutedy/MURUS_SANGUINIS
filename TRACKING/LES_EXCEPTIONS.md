@@ -389,3 +389,17 @@ grep -n "keep_files: true" .github/workflows/murus_preview_1.yml .github/workflo
 grep -c "force_orphan" .github/workflows/murus_preview_1.yml .github/workflows/murus_preview_2.yml
 python tests/test_murus.py | grep test_t19
 ```
+
+### EXC-M11 — Chemins des CLIs pillées repointés vers la structure MURUS
+
+Les CLI pillées de LACRIMAE importent des chemins `F03_PREVIEW/...` qui n'existent pas
+dans notre arbre (`SF_10_SPECULUM`). Deux chemins ont été repointés :
+
+- `FR_B_CREATION/tools/convert_pur_pack.mjs` → `../SF_10_SPECULUM/CODEBASE/src/preview/bridgeClipper.js`
+- `FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/render_pictor.mjs` → `../../../SF_10_SPECULUM/CODEBASE/src/preview/_purPackComposition.jsx`
+
+Grep de vérification :
+
+```
+grep -rn "F03_PREVIEW/CODEBASE/src/preview" FR_B_CREATION/tools FR_B_CREATION/SF_12_FABRICA/look/CODEBASE
+```
