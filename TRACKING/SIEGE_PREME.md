@@ -1,4 +1,4 @@
-# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 06:01 UTC
+# SIÈGE RÉEL / REAL SIEGE — 2026-11-22 06:04 UTC
 
 Document bilingue (EXC-M8, `TRACKING/DOCTRINE_BILINGUE.md`) : EN = source de
 vérité machine, FR = traduction de compréhension.
@@ -6,19 +6,24 @@ vérité machine, FR = traduction de compréhension.
 - VOD : `https://www.twitch.tv/videos/2909800627`
 - plateforme / platform : `youtube_shorts`
 - directive : `ARCHIVUM/campaign/campaign_directive.json`
-- code retour moteur / engine rc : `3` (0 = siège complet, 2 = porte fermée, 3 = ORACLE attendu)
+- code retour moteur / engine rc : `0` (0 = siège complet, 2 = porte fermée, 3 = ORACLE attendu)
 
 ## EN — Gate chain (real engine output)
 
 ```
-[OK] ANTI_REMPLISSAGE : demande 15, retenu 15 — le compte est tenu sans remplissage.
-[OK] TRANSCRIPT : v2909800627_transcript.json -> 15 segments choisis
 [OK] D0_DIRECTIVE : PREME_CLIPIFY_OPEN | en | 0.60 $/1k | 4 plates | 4 captions
 [OK] M0B_CYCLE : cycle 2026-11-20 -> 2099-12-31, ouvert
-[OK] M1_SELECTION : 15 segments, langue en
-[OK] M5_VOX : 15 segments, 0 transcrits
-[WAIT] waiting_oracle : /home/runner/work/MURUS_SANGUINIS/MURUS_SANGUINIS/FR_A_CERVEAU/ORACLE/pending/overlay_siege_preme.json
+[OK] M1_SELECTION : 9 segments, langue en
+[OK] M5_VOX : 9 segments, 0 transcrits
+[OK] M2_METADATA : 9 assets valides (via ORACLE) (overlay=oracle, 1 round(s))
+[OK] M2B_COMPLIANCE : 9 assets conformes (focus declare par operator)
+[OK] M3_WATERMARK : preme.png [PNG] (requis)
+[OK] A1_ACCOUNT : warmup 42j
+[OK] A2_CAMPAIGN : CPM 0.30 $/1k, net 0.3000
+[OK] X1_EXPORT : production_pack_mark1_70f120a8.json
 ```
+
+Traces : `2026-11-22T060452_70f120a8.json`
 
 ## EN — M1 on real data
 
@@ -50,14 +55,19 @@ Filling this file = answering the gates. The code never invents a value.
 ## FR — Chaîne des portes (sortie réelle du moteur)
 
 ```
-[OK] ANTI_REMPLISSAGE : demande 15, retenu 15 — le compte est tenu sans remplissage.
-[OK] TRANSCRIPT : v2909800627_transcript.json -> 15 segments choisis
 [OK] D0_DIRECTIVE : PREME_CLIPIFY_OPEN | en | 0.60 $/1k | 4 plates | 4 captions
 [OK] M0B_CYCLE : cycle 2026-11-20 -> 2099-12-31, ouvert
-[OK] M1_SELECTION : 15 segments, langue en
-[OK] M5_VOX : 15 segments, 0 transcrits
-[WAIT] waiting_oracle : /home/runner/work/MURUS_SANGUINIS/MURUS_SANGUINIS/FR_A_CERVEAU/ORACLE/pending/overlay_siege_preme.json
+[OK] M1_SELECTION : 9 segments, langue en
+[OK] M5_VOX : 9 segments, 0 transcrits
+[OK] M2_METADATA : 9 assets valides (via ORACLE) (overlay=oracle, 1 round(s))
+[OK] M2B_COMPLIANCE : 9 assets conformes (focus declare par operator)
+[OK] M3_WATERMARK : preme.png [PNG] (requis)
+[OK] A1_ACCOUNT : warmup 42j
+[OK] A2_CAMPAIGN : CPM 0.30 $/1k, net 0.3000
+[OK] X1_EXPORT : production_pack_mark1_70f120a8.json
 ```
+
+Traces : `2026-11-22T060452_70f120a8.json`
 
 ## FR — M1 sur données réelles
 
