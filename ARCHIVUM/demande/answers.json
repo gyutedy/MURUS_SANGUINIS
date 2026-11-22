@@ -1,12 +1,18 @@
 {
   "answers": {
-    "nb_clips": "15"
+    "nb_clips": "15",
+    "selection_approved": true
   },
   "provenance": {
     "nb_clips": {
       "declared_by": "operateur",
       "source": "workflow_dispatch",
-      "enregistree_le": "2026-11-22T04:41:17Z"
+      "enregistree_le": "2026-11-22T04:55:19Z"
+    },
+    "selection_approved": {
+      "declared_by": "operateur",
+      "source": "workflow_dispatch",
+      "enregistree_le": "2026-11-22T04:55:19Z"
     }
   }
 }
