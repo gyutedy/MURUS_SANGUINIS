@@ -299,6 +299,32 @@ jobs:
           path = tr.find_transcript(cfg, str(root), vod)
           doc = tr.load(path)
           windows = tr.candidate_windows(doc, cfg, limit=int(os.environ["NB"]))
+
+          # ---- CONDITION 4 DE LA REGLE ANTI-REMPLISSAGE, VERIFIEE A M1 ----
+          # Un clip dont le texte ne peut porter AUCUN overlay valide (title_forge +
+          # S1 + soutien anti-bait) n'est pas un clip. Il est ecarte ICI, avec sa
+          # raison, au lieu de faire echouer M2B plus tard et de tout arreter.
+          sys.path.insert(0, str(Path("FR_A_CERVEAU/GATES").resolve()))
+          import faisabilite_overlay as fo
+          gardes, ecartes = [], []
+          for w in windows:
+              f_ok, titre, why = fo.faisable(w["source_text"], cfg, str(root))
+              if f_ok:
+                  w["_overlay_propose"] = titre
+                  gardes.append(w)
+              else:
+                  ecartes.append({"start_sec": w["start_sec"], "force": w["score"],
+                                  "text": (w["source_text"] or "")[:160], "raisons": why})
+          print("FAISABILITE OVERLAY : %d gardees, %d ecartees sur %d proposees"
+                % (len(gardes), len(ecartes), len(windows)))
+          for e in ecartes:
+              print("  ECARTEE %.1fs force=%s — %s | %s"
+                    % (e["start_sec"], e["force"], "; ".join(e["raisons"]), e["text"][:70]))
+          windows = gardes
+          if not windows:
+              print("::error::aucune fenetre ne peut porter d'overlay : le siege ne peut rien rendre")
+              sys.exit(1)
+
           pack = {"mode": "mark1", "assets": [
               {"id": "A%02d" % (i + 1), "start_sec": w["start_sec"],
                "end_sec": w["end_sec"], "source_text": w["source_text"]}
@@ -331,7 +357,8 @@ jobs:
           Path("/tmp/m1.json").write_text(json.dumps(
               {"gate": {"ok": ok, "code": code, "msg": msg},
                "nb_demande": nb_demande, "nb_retenu": nb_retenu, "manque": manque,
-               "remplissage_refuse": bool(manque), "segments": rows}, indent=1),
+               "remplissage_refuse": bool(manque), "ecartes": ecartes,
+               "segments": rows}, indent=1),
               encoding="utf-8")
 
           # La selection est SOUMISE a l'operateur, pas consommee d'office.
