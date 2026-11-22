@@ -57,3 +57,14 @@ numérotation, SF_01/SF_08/SF_16 (composites) et le nom.
 - `.github/workflows/murus_tests.yml` — pytest + tests de doctrine (T0) à chaque push.
 - `.github/workflows/murus_transcribe.yml` — transcription GPU Modal
   (pattern `perturabo_transcribe.yml`, secrets MODAL_TOKEN_ID/MODAL_TOKEN_SECRET).
+
+## Règles opposables (documents du projet, pas des conversations)
+
+| Fichier | Ce qu'il impose | Garde-fou |
+|---|---|---|
+| `TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md` | Si la VOD offre 6 clips sur 15 demandés, on rend 6 et on l'écrit. Aucun remplissage. | `tests/test_murus.py::test_t18_anti_remplissage` + champs `nb_demande/nb_retenu/manque/remplissage_refuse` dans le pack |
+| `TRACKING/DOCTRINE_BILINGUE.md` | Tout document opérateur existe en EN et en FR. | `tests/test_murus.py::test_t17_docs_operateur_bilingues` |
+| `ARCHIVUM/demande/README.md` | Le projet demande (`nb_clips` 1..15, `selection_approved`), l'opérateur répond au lancement, le projet trace la provenance. | `FR_A_CERVEAU/GATES/demande.py` (`exiger` refuse toute valeur absente ou > 15) |
+| `TRACKING/LES_EXCEPTIONS.md` | Toute dérogation est nommée avec son grep (EXC-M1 → EXC-M8). | Revue à chaque gate |
+| `FR_B_CREATION/tools/recuperer_clip.py` | Après X1, le clip (preview 1) et une frame (preview 2) sont récupérés **avant** tout codex. | `murus.py` refuse (`rc=6`) s'il n'y a pas de clip |
+

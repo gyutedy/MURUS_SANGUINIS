@@ -19,6 +19,11 @@ Au lancement de `MURUS — SIÈGE RÉEL` :
 | `nb_clips` | Combien de clips pour ce siège ? | entier 1..15 (plafond CDC) |
 | `selection_approved` | Valides-tu la sélection M1 soumise ? | `oui` / `non` |
 
+Si tu demandes 15 clips et que la VOD n'en offre que 6 qui remplissent les conditions, la
+question te le dit explicitement (« la VOD n'en fournit que 6 … sans remplissage ») et ta
+réponse porte sur 6. Le projet n'ajoute jamais de clip pour atteindre 15
+(`TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md`).
+
 Le projet valide la valeur (refus au-delà de 15, refus si non entier), puis l'écrit
 dans `answers.json` avec `declared_by` et `source`. Une réponse absente = arrêt net :
 aucune valeur par défaut n'est inventée.

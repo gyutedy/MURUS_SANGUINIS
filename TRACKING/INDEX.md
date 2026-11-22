@@ -4,6 +4,19 @@
 
 ---
 
+## Doctrines et demandes à l'opérateur
+
+| Fichier | Contenu |
+|---|---|
+| `DOCTRINE_ANTI_REMPLISSAGE.md` | Si la VOD n'offre que 6 clips sur 15 demandés, on rend 6 et on l'écrit. Jamais de remplissage. |
+| `DOCTRINE_BILINGUE.md` | Tout document opérateur existe en EN et en FR. Le EN est la source de vérité. |
+| `SELECTION_15_PREME.md` | Les 15 fenêtres de la VOD PREME : texte intégral, force, EN + FR. |
+| `SIEGE_PREME.md` | Rapport de siège réel (portes atteintes, ce qui manque). |
+| `LES_EXCEPTIONS.md` | Toute dérogation à la doctrine, nommée, avec son grep (EXC-M1 → EXC-M8). |
+| `../ARCHIVUM/demande/README.md` | Le mécanisme de demande : le projet demande, l'opérateur répond, le projet trace. |
+
+---
+
 ## Journal général
 
 | Fichier | Contenu |

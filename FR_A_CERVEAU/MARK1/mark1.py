@@ -182,6 +182,28 @@ def cmd_export(a):
         if not windows:
             return _fail(run, cfg, "M1_SELECTION",
                          "aucune fenetre exploitable dans %s" % Path(tpath).name)
+
+        # ---- REGLE ANTI-REMPLISSAGE (cf. TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md) ----
+        # Si l'operateur demande 15 et que seules 6 fenetres remplissent les conditions,
+        # on rend 6 et on l'ECRIT. Jamais de doublon, jamais de moment faible ajoute
+        # pour atteindre le chiffre demande : ce serait du remplissage.
+        demande = int(a.nb_segments or 0)
+        retenu = len(windows)
+        manque = max(0, demande - retenu)
+        pack_in["nb_demande"] = demande
+        pack_in["nb_retenu"] = retenu
+        pack_in["manque"] = manque
+        pack_in["remplissage_refuse"] = bool(manque)
+        if manque:
+            print("[REFUS] ANTI_REMPLISSAGE : demande %d, retenu %d, manque %d."
+                  % (demande, retenu, manque))
+            print("        Aucun clip de remplissage. Raison : seules %d fenetres "
+                  "remplissent les conditions (intro ecartee, marqueur d'enjeu, "
+                  "espacement M1). Le manque est ecrit dans le pack et dans le rapport."
+                  % retenu)
+        else:
+            print("[OK] ANTI_REMPLISSAGE : demande %d, retenu %d — le compte est tenu "
+                  "sans remplissage." % (demande, retenu))
         pack_in["assets"] = [
             {"id": "A%02d" % (i + 1), "start_sec": w["start_sec"], "end_sec": w["end_sec"],
              "source_text": w["source_text"]}

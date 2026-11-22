@@ -16,6 +16,21 @@ Cahier des charges : `MURUS_SANGUINIS_CDC_V1.html` (auto-suffisant, fait foi).
 - **Le run s'arrête à la première porte en échec** — aucune erreur amont ne peut
   déclencher un run A→Z.
 - **Le moteur décide, l'opérateur valide, le ledger juge.**
+- **Aucun remplissage** : si 15 clips sont demandés et que la VOD n'en offre que 6 qui
+  remplissent les conditions, le projet rend **6** et l'écrit (`nb_demande` / `nb_retenu` /
+  `manque` / `remplissage_refuse` dans le pack). Jamais de doublon, jamais de moment faible
+  ajouté pour atteindre le chiffre. Toute porte qui refuse est une porte qui fonctionne.
+  → `TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md`
+- **Deux versions, EN et FR** : tout document destiné à l'opérateur existe en anglais et en
+  français. Le EN est la transcription verbatim (source de vérité), le FR une traduction de
+  compréhension que le moteur ne lit jamais. → `TRACKING/DOCTRINE_BILINGUE.md`
+- **L'opérateur n'édite jamais un fichier en plein siège** : le projet pose la question
+  (`ARCHIVUM/demande/pending/`), l'opérateur répond au lancement (`nb_clips`,
+  `selection_approved`), le projet écrit la trace avec sa provenance.
+  → `ARCHIVUM/demande/README.md`
+- **L'ordre est gravé** : export (D0→X1) → récupération du clip (`FR_B_CREATION/tools/
+  recuperer_clip.py` : clip → preview 1, frame → preview 2) → les DEUX codex signés →
+  rendu (SF_12) → PP2 → CAMOUFLAGE → LUTHER → V7. Aucun rendu avant les codex.
 
 ## Architecture
 

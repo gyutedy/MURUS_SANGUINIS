@@ -321,20 +321,36 @@ jobs:
                     % (s_.get("id"), force, a, b, b - a, txt[:100]))
               rows.append({"id": s_.get("id"), "start": a, "end": b,
                            "force": force, "text": txt[:400]})
+          # REGLE ANTI-REMPLISSAGE : on annonce le compte reel, jamais un compte gonfle.
+          nb_demande = int(os.environ["NB"])
+          nb_retenu = len(rows)
+          manque = max(0, nb_demande - nb_retenu)
+          print("ANTI-REMPLISSAGE : demande %d, retenu %d, manque %d%s"
+                % (nb_demande, nb_retenu, manque,
+                   " — aucun clip de remplissage" if manque else " — compte tenu"))
           Path("/tmp/m1.json").write_text(json.dumps(
               {"gate": {"ok": ok, "code": code, "msg": msg},
-               "nb_demande": int(os.environ["NB"]), "segments": rows}, indent=1),
+               "nb_demande": nb_demande, "nb_retenu": nb_retenu, "manque": manque,
+               "remplissage_refuse": bool(manque), "segments": rows}, indent=1),
               encoding="utf-8")
 
           # La selection est SOUMISE a l'operateur, pas consommee d'office.
           sys.path.insert(0, str(Path("FR_A_CERVEAU/GATES").resolve()))
           import demande
+          if manque:
+              question = ("Tu as demande %d clips, la VOD n'en fournit que %d qui "
+                          "remplissent les conditions. Valides-tu ces %d, sans remplissage ?"
+                          % (nb_demande, nb_retenu, nb_retenu))
+          else:
+              question = "Valides-tu ces %d clips ?" % nb_retenu
           pend = demande.demander(
               "selection",
-              "Valides-tu ces %d clips ?" % len(rows),
-              pourquoi="M1 propose, l'operateur decide : rien n'est rendu avant validation.",
+              question,
+              pourquoi="M1 propose, l'operateur decide : rien n'est rendu avant validation. "
+                        "Aucun clip de remplissage n'est ajoute pour atteindre le chiffre demande.",
               attendu='{"selection_approved": true} (ou false + "selection_note")',
-              payload={"vod": os.environ["VOD_URL"], "clips": rows}, root=".")
+              payload={"vod": os.environ["VOD_URL"], "nb_demande": nb_demande,
+                       "nb_retenu": nb_retenu, "manque": manque, "clips": rows}, root=".")
           print("SELECTION SOUMISE A VALIDATION :", pend)
           print("pour valider : relancer ce workflow avec selection_approved = oui")
           print("pour refuser : selection_approved = non")

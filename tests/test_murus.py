@@ -249,6 +249,47 @@ def test_t17_docs_operateur_bilingues():
         assert "## FR" in t, "%s : section FR absente (doctrine bilingue)" % Path(d).name
 
 
+def test_t18_anti_remplissage():
+    """ANTI-REMPLISSAGE : jamais de clip ajoute pour atteindre le nombre demande.
+
+    On demande beaucoup plus de fenetres que le transcript n'en offre : le moteur
+    doit en rendre MOINS, sans doublon, et le dire (nb_demande / nb_retenu / manque).
+    """
+    import importlib.util
+    import json
+
+    mark1 = ROOT / "FR_A_CERVEAU/MARK1"
+    import sys as _sys
+    if str(mark1) not in _sys.path:
+        _sys.path.insert(0, str(mark1))
+    spec = importlib.util.spec_from_file_location("mt", mark1 / "libs/transcript.py")
+    tr = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(tr)
+
+    doc = {"transcript": {"segments": [
+        {"start": 1000.0, "end": 1020.0, "text": "we lost everything that night"},
+        {"start": 1200.0, "end": 1220.0, "text": "nobody ever paid the truth"},
+    ]}}
+    cfg = {"default_language": "en", "min_segment_sec": 8, "max_segment_sec": 90,
+           "target_segment_sec": 30, "selection": {"intro_skip_sec": 0, "min_force": 1}}
+
+    w = tr.candidate_windows(doc, cfg, limit=15)
+    assert len(w) == 2, "le moteur a fabrique des fenetres : %d pour 2 moments reels" % len(w)
+    starts = [round(float(x["start_sec"]), 1) for x in w]
+    assert len(set(starts)) == len(starts), "un moment a ete duplique pour remplir"
+
+    # la regle est ecrite dans le code du moteur, pas seulement dans un document
+    src = (mark1 / "mark1.py").read_text(encoding="utf-8")
+    assert "ANTI_REMPLISSAGE" in src, "la regle anti-remplissage n'est plus appliquee par mark1.py"
+    for champ in ("nb_demande", "nb_retenu", "manque", "remplissage_refuse"):
+        assert champ in src, "champ trace manquant dans le pack : %s" % champ
+
+    doc_d = ROOT / "TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md"
+    assert doc_d.exists(), "doctrine anti-remplissage absente"
+    t = doc_d.read_text(encoding="utf-8")
+    assert "## EN" in t and "## FR" in t, "la doctrine doit etre bilingue"
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):
