@@ -1,22 +1,10 @@
 {
   "declared_by": "operateur",
-  "source": "workflow_dispatch:murus_preview_2",
-  "params": {
-    "glow": {
-      "mode": "scene",
-      "sigma": 12.0,
-      "opacity": 0.35
-    },
-    "lut": "hdr_imperator",
-    "fade": {
-      "mode": "darken",
-      "duration_sec": "0.8"
-    },
-    "caption": {
-      "size": "72",
-      "y_pct": "78",
-      "font": "Montserrat-ExtraBold.ttf"
-    }
-  },
-  "note": "BROUILLON - rien n'est rendu avant validated_by_magos"
+  "declaration": "ordre explicite de l'operateur : « signe les et on passe a la suite »",
+  "source": "review preview 2 (SF_13_POLITURA/PREVIEW2) -> Export codex_postprod.json",
+  "pack_token": "70f120a8",
+  "pack_token_coherent": true,
+  "sha256": "1f6c2d6b9d7b625fc11ad452dbf8812725f26766e7cbf87aca450da274a98d04",
+  "signed_from_unvalidated_export": true,
+  "note": "Le codex est la verite signee ; la provenance vit ici (ERRATA E-5)."
 }

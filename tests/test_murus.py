@@ -484,6 +484,37 @@ def test_t25_lut_reelle_et_soustitre_temporel():
     # pop-in doit claquer (depassement), sinon indiscernable d'un texte fixe
     assert "scale(1.08)" in a, "pop-in n'a pas de depassement : elle reste invisible"
 
+
+def test_t26_codex_postprod_signe():
+    """Le codex POSTPROD signe passe le schema, tient l'ordre PP2 et la coherence du pack."""
+    import json
+    import sys as _sys
+
+    cx = ROOT / "REVIEW/codex_postprod.json"
+    assert cx.exists(), "REVIEW/codex_postprod.json absent : aucun rendu sans codex signe"
+    codex = json.loads(cx.read_text(encoding="utf-8"))
+    _sys.path.insert(0, str((ROOT / "FR_B_CREATION/SF_11_LUMEN/tools").resolve()))
+    import codex as C
+    assert C.check("postprod", codex) == [], "le codex postprod ne passe pas le schema"
+    assert codex.get("validated_by_magos") is True, "le codex postprod n'est pas signe"
+    assert codex.get("order") == ["glow", "caption", "lut", "fade"], "l'ordre PP2 est altere"
+
+    pack = json.loads((ROOT / "REVIEW/pack_stage.json").read_text(encoding="utf-8"))
+    assert codex.get("pack_token") == pack.get("pack_token"), "pack_token different du pack exporte"
+
+    g = codex["glow"]
+    assert 4 <= g["sigma"] <= 30 and 0 <= g["opacity"] <= 0.6, "GL1 violee (sigma/opacite)"
+    assert "enabled" not in codex["fade_out"], "fade_out n'accepte pas enabled (schema strict)"
+
+    prov = json.loads((ROOT / "REVIEW/codex_postprod.provenance.json").read_text(encoding="utf-8"))
+    assert prov.get("declared_by") == "operateur", "la provenance doit designer l'operateur"
+
+    # G1 : les DEUX codex signes -> la porte s'ouvre
+    _sys.path.insert(0, str((ROOT / "FR_B_CREATION").resolve()))
+    from GATES.gates_b import gate_g1_exige_codex_signes
+    ok, msg = gate_g1_exige_codex_signes()
+    assert ok is True, "G1 refuse encore : %s" % msg
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):

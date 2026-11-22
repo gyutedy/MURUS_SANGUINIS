@@ -22,19 +22,22 @@
 
 Gate **W1-R** accepts it (`load_render_codex` → accepted).
 
-### Codex 2 — POSTPROD (preview 2) — **not signed**
+### Codex 2 — POSTPROD (preview 2)
 
-`REVIEW/codex_postprod.json` does not exist yet. Only a draft
-(`REVIEW/codex_postprod.draft.json`, `validated_by_magos: false`) and its provenance
-sidecar exist. **No render starts without it** — gate G1 refuses:
+| field | value |
+|---|---|
+| file | `REVIEW/codex_postprod.json` |
+| schema | `sanguinala.postprod.codex.v1` |
+| pack_token | `70f120a8` |
+| order | `glow → caption → lut → fade` (PP2) |
+| glow | enabled, `scene`, sigma **26**, opacity **0.5** (preset Large bloom) |
+| caption | Montserrat ExtraBold, 62 px, 50 % / 82 %, `#FFFFFF`, outline 3 px black, glow `#FFD700` 1.4, `pop-in`, speed 1 |
+| lut | enabled, `hdr_imperator` |
+| fade_out | `darken`, 0.6 s |
+| `validated_by_magos` | **true** (signed on the operator's explicit order) |
+| provenance | `REVIEW/codex_postprod.provenance.json` |
 
-```
-GATE G1 : False | REVIEW/codex_postprod.json absent — aucun rendu sans codex
-```
-
-Postprod parameters are given by the operator **at workflow launch**
-(`murus_preview_2.yml`): glow mode/sigma/opacity, LUT profile, fade mode/duration,
-subtitle size/height/font.
+**Gate G1 now passes: `GATE G1 : True`.**
 
 ## FR
 
@@ -54,16 +57,19 @@ subtitle size/height/font.
 
 La porte **W1-R** l'accepte (`load_render_codex` → accepté).
 
-### Codex 2 — POSTPROD (preview 2) — **non signé**
+### Codex 2 — POSTPROD (preview 2)
 
-`REVIEW/codex_postprod.json` n'existe pas encore. Seuls un brouillon
-(`REVIEW/codex_postprod.draft.json`, `validated_by_magos: false`) et sa provenance
-existent. **Aucun rendu ne démarre sans lui** — la porte G1 refuse :
+| champ | valeur |
+|---|---|
+| fichier | `REVIEW/codex_postprod.json` |
+| schéma | `sanguinala.postprod.codex.v1` |
+| pack_token | `70f120a8` |
+| ordre | `glow → caption → lut → fade` (PP2) |
+| glow | activé, `scene`, sigma **26**, opacité **0.5** (préréglage Large bloom) |
+| sous-titres | Montserrat ExtraBold, 62 px, 50 % / 82 %, `#FFFFFF`, contour 3 px noir, glow `#FFD700` 1.4, `pop-in`, vitesse 1 |
+| lut | activée, `hdr_imperator` |
+| fade_out | `darken`, 0.6 s |
+| `validated_by_magos` | **true** (signé sur ordre explicite de l'opérateur) |
+| provenance | `REVIEW/codex_postprod.provenance.json` |
 
-```
-GATE G1 : False | REVIEW/codex_postprod.json absent — aucun rendu sans codex
-```
-
-Les paramètres de postprod sont donnés par l'opérateur **au lancement du workflow**
-(`murus_preview_2.yml`) : mode/sigma/opacité du glow, profil LUT, mode/durée du fade,
-taille/hauteur/police des sous-titres.
+**La porte G1 passe : `GATE G1 : True`.**
