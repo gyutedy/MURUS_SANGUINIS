@@ -115,7 +115,10 @@ def main() -> int:
 
     if a.out_dir:
         a.out_dir.mkdir(parents=True, exist_ok=True)
-        clip = a.out_dir / ("clip_%s.mp4" % (asset.get("id") or idx))
+        # La review LOOK (SF_10) cherche clips/pur_<angle_id>.mp4 :
+        # clipFileCandidates() = [pur_<id>.mp4, <id>_look.mp4, <id>.mp4].
+        # On ecrit donc le PREMIER nom attendu, sinon la page reste noire.
+        clip = a.out_dir / ("pur_%s.mp4" % (asset.get("id") or idx))
         if not couper(src, clip, duree):
             print("[RECUP] ECHEC — coupe ffmpeg")
             return 1

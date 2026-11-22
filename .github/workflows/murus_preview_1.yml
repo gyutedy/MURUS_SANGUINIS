@@ -156,10 +156,10 @@ jobs:
           import json, os
           from pathlib import Path
           clips_dir = Path("FR_B_CREATION/SF_10_SPECULUM/CODEBASE/public/clips")
-          got = sorted(p.name for p in clips_dir.glob("clip_*.mp4"))
+          got = sorted(p.name for p in clips_dir.glob("pur_*.mp4"))
           pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
           attendus = [a.get("id") for a in (pack.get("assets") or [])]
-          manquants = [a for a in attendus if ("clip_%s.mp4" % a) not in got]
+          manquants = [a for a in attendus if ("pur_%s.mp4" % a) not in got]
           print("clips récupérés : %d / %d" % (len(got), len(attendus)))
           if manquants:
               print("::warning::clips manquants : %s" % ", ".join(manquants))
@@ -192,7 +192,7 @@ jobs:
           pack["watermark"] = wm
           (pub / "pack.json").write_text(json.dumps(pack, indent=2, ensure_ascii=False),
                                          encoding="utf-8")
-          clips = sorted((pub / "clips").glob("clip_*.mp4"))
+          clips = sorted((pub / "clips").glob("pur_*.mp4"))
           print("pack stagé : public/pack.json | watermark=%s|null pos=%s size=%s| ops=%s"
                 % (wm["file"], wm.get("position"), wm.get("size_pct"), wm.get("opacity")))
           print("clips en place : %d" % len(clips))

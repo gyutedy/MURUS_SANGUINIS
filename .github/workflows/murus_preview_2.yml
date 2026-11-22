@@ -121,7 +121,7 @@ jobs:
       - name: Extraire la frame (milieu de fenêtre) puis appliquer le GLOW
         run: |
           set -e
-          CLIP=$(ls /tmp/work/clip_*.mp4 | head -1)
+          CLIP=$(ls /tmp/work/pur_*.mp4 | head -1)
           ID="${{ matrix.clip.id }}"
           mkdir -p /tmp/out
           # GL2 : la frame sert de reference AVANT postprod
