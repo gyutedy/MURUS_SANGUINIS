@@ -1,73 +1,70 @@
 {
-  "_what": "Reponses ORACLE (overlay_title) pour la campagne PREME. EXC-1 : c'est le seul endroit ou un LLM/humain ecrit du texte. Le moteur impose les regles (validate + S1) et rejette tout candidat hors contraintes.",
-  "_author": "assistant (Particle-1)",
-  "_validated_by_magos": false,
-  "_note": "Seuls les clips FAISABLES ont une reponse : un titre qui est une suite de mots DU TEXTE, accepte par title_forge + S1 et soutenu a >=50% (anti-bait). Les clips dont le texte ne peut porter aucun titre valide ne recoivent PAS de titre invente : ils sont ecartes a M1 (TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md).",
   "pack_token": "siege_preme",
   "answers": [
     {
-      "asset_id": "A04",
+      "asset_id": "A01",
+      "pack_token": "siege_preme",
       "candidates": [
         "us today too"
-      ],
-      "pack_token": "siege_preme"
+      ]
+    },
+    {
+      "asset_id": "A02",
+      "pack_token": "siege_preme",
+      "candidates": [
+        "500 million art piece"
+      ]
+    },
+    {
+      "asset_id": "A03",
+      "pack_token": "siege_preme",
+      "candidates": [
+        "16 year olds before"
+      ]
+    },
+    {
+      "asset_id": "A04",
+      "pack_token": "siege_preme",
+      "candidates": [
+        "give back today"
+      ]
     },
     {
       "asset_id": "A05",
+      "pack_token": "siege_preme",
       "candidates": [
-        "500 million art piece"
-      ],
-      "pack_token": "siege_preme"
+        "day long show some"
+      ]
+    },
+    {
+      "asset_id": "A06",
+      "pack_token": "siege_preme",
+      "candidates": [
+        "nba i'm never forget"
+      ]
     },
     {
       "asset_id": "A07",
+      "pack_token": "siege_preme",
       "candidates": [
-        "16 year olds before"
-      ],
-      "pack_token": "siege_preme"
+        "change someone's day life"
+      ]
     },
     {
       "asset_id": "A08",
+      "pack_token": "siege_preme",
       "candidates": [
-        "give back today"
-      ],
-      "pack_token": "siege_preme"
+        "nothing else matters hard"
+      ]
     },
     {
       "asset_id": "A09",
-      "candidates": [
-        "day long show some"
-      ],
-      "pack_token": "siege_preme"
-    },
-    {
-      "asset_id": "A10",
-      "candidates": [
-        "nba i'm never forget"
-      ],
-      "pack_token": "siege_preme"
-    },
-    {
-      "asset_id": "A11",
-      "candidates": [
-        "change someone's day life"
-      ],
-      "pack_token": "siege_preme"
-    },
-    {
-      "asset_id": "A13",
-      "candidates": [
-        "nothing else matters hard"
-      ],
-      "pack_token": "siege_preme"
-    },
-    {
-      "asset_id": "A14",
+      "pack_token": "siege_preme",
       "candidates": [
         "day yes that's beautiful"
-      ],
-      "pack_token": "siege_preme"
+      ]
     }
   ],
-  "_scope": "Ces reponses ne s'appliquent QU'AU pack 'siege_preme' (champ pack_token). Tout autre pack (e2e synthetique, campagne future) doit repasser par l'ORACLE : sinon un test pourrait heriter de titres qu'il n'a jamais demandes."
+  "_author": "derive mecaniquement du texte (FR_A_CERVEAU/GATES/faisabilite_overlay.py)",
+  "_note": "Aucun titre invente : chaque titre est une suite de mots du transcript, acceptee par les juges du moteur. Verifie par TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md condition 4."
 }

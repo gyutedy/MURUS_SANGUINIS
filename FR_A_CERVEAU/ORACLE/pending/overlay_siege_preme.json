@@ -13,30 +13,16 @@
   "instructions": "Pour chaque asset_id, propose TROIS titres d'overlay en 2 lignes. Respecte constraints. Reponds en JSON strict : {\"answers\": [{\"asset_id\": \"A01\", \"candidates\": [\"t1\",\"t2\",\"t3\"]}]}",
   "asks": [
     {
-      "asset_id": "A01",
+      "asset_id": "A10",
       "language": "en",
-      "source_text": "We'll be 20, 26, 70, 12, ladies and gentlemen. We're giving away money. It might be. We're giving away a car. Silly those. You like that? We're giving away. We're going up to the street right now. Positive thing. Same, man. We're blessing the people, man. You post the link right now. Job use in the chat for charity. That's going to be crazy. I'm hyped. Shout out Zach man. Shout out to Jim.",
+      "source_text": "Marcus Brown 23. Twizzy Tezo. Cup of Perp. Chat with the word, man. Fuck, you look good, Tristan. This is the type of listening. Tristan's great. It's been my homeboy. He was a kid before he made it to the league. I'll tell you a story about Tristan. We were in the club one time. You made me so happy. Hold it up to get your club. Oh, man. He was like, yeah. I'm going to 2021. And I was like, are you on manifest? I'm rooting for you. He's like, no, I'm going to the NBA. I'm never forget that. Everybody, I'm so dead sure.",
       "subject": "Preme",
       "previous_errors": []
     },
     {
-      "asset_id": "A02",
+      "asset_id": "A11",
       "language": "en",
-      "source_text": "$100,000. I'm going to get a $100,000. We need to turn it off. We need to get a close back. I did it. Free pool for everybody in the hood. I did close all type of shit. Just get a green one. How many years have you been doing that for now? This is going to be my second year. OK, so last year. Yeah, last year was my first year. How hard did that feel? It was great, bro. That was one of the best things. That was like the highlight of my year. That's so dope. I'm honored to be part of that. Yeah. Ever since I got this deal, I've been giving it back to our community. That's good. You've been rich ",
-      "subject": "Preme",
-      "previous_errors": []
-    },
-    {
-      "asset_id": "A03",
-      "language": "en",
-      "source_text": "We don't have to have like 10, 15. We're all hooking. It's going to warm up. Deniality. The shot. Being in denial is the only thing that's going to get me through right now. Cooked. Oh, fuck, man. All right, so what's the point? Boys. Can we tell the stream we're doing? Yeah, we can tell the stream what we're doing. Yeah? Yeah. I'll wait till he's ready. I'm about to board Jim's fucking wheelchair thing and follow you down the street. We got security? Yeah.",
-      "subject": "Preme",
-      "previous_errors": []
-    },
-    {
-      "asset_id": "A06",
-      "language": "en",
-      "source_text": "Shout out Dogshit 420. Shout out Abyss. Shout out couple Perps. He's a lucky man. You know what's going on right now. Like this. Oh, well, look, you got to show this, bro. This is what I'm posting this on. You got to grocery store a barber's salad. This is crazy. Oh, I didn't notice that screen. What the fuck is that? That's crazy.",
+      "source_text": "How's your day going? Something so small that I could change someone's day, life Because you don't know what we're going through, right? So whenever I walk by a stranger I always feel like How's it going? Even though you're like Hey, what's up? Like you said You'll see and feel heard Those small things matter Like, you know, in the sports reference Like a game of inches, right? Those little things Everyone looks at the big moment, right? It's like those little moments that I could change Everyone's trajectory, right? Like, you don't know if someone is shooting the press On the break of whateve",
       "subject": "Preme",
       "previous_errors": []
     },
@@ -44,6 +30,20 @@
       "asset_id": "A12",
       "language": "en",
       "source_text": "Reality's hit about what life is really about And how you feel like Live your life yourself Which when my mom passed away Well, like, I think like that Looks like the biggest opener Because I remember, it's crazy I remember a barber told me You're never going to cry the way you cry When you lose your mom When that happened to me First person, I thought it was a bar I don't even talk to this bar I don't even have his phone number But he's like, after that moment I was like, that's the one person you want to like Make the most proud? Yeah After that, like, you know, losing her I was like, now I ",
+      "subject": "Preme",
+      "previous_errors": []
+    },
+    {
+      "asset_id": "A13",
+      "language": "en",
+      "source_text": "Nothing else matters Hard What's your mom's name? Andrea Brooks Andrea Andrea Andrea What's the biggest lesson you learned from Andrea? Oh If she was listening right now, what do you think she was? She always told me Manors takes you all the way, right? You know, should you make it so she had like broken English Yeah But she's like, if you have manners Yeah People will take their last shirt off their back for you And like, be there for you So like, I always tell like, yes, no reason Thank you, and still my kids Pass that down your head, right?",
+      "subject": "Preme",
+      "previous_errors": []
+    },
+    {
+      "asset_id": "A14",
+      "language": "en",
+      "source_text": "Do you like going to work with this person every day? Yes That's beautiful, man. Thank you for sharing that, too. I really appreciate it. Very good. Yeah I thought that was me. What's up, Ben? He's alive. What's up, big dog? How are you? I don't know. What's up, Bryce? You made me too fucking weird. Get to see me.",
       "subject": "Preme",
       "previous_errors": []
     },

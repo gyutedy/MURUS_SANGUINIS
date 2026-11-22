@@ -4,7 +4,7 @@
   "pourquoi": "M1 propose, l'operateur decide : rien n'est rendu avant validation. Aucun clip de remplissage n'est ajoute pour atteindre le chiffre demande.",
   "attendu": "{\"selection_approved\": true} (ou false + \"selection_note\")",
   "plafond": null,
-  "posee_le": "2026-11-22T05:54:19Z",
+  "posee_le": "2026-11-22T06:01:13Z",
   "reponse_dans": "ARCHIVUM/demande/answers.json",
   "forme": {
     "answers": {
@@ -22,63 +22,72 @@
         "start": 1376.2,
         "end": 1406.2,
         "force": 8,
-        "text": "Probably, like, I don't know, 30, 45 minutes. Anybody from New York? Yeah. That's deep in Brooklyn. How are we? See, I have to find it. That's why I never make it. It's hard. It's hard. You're from? I used to live in Brownsville. Yeah. I'm from Toronto. Where are you from? From Harlem. From Harlem. Morning race. Nice. Are you coming with us today, too, for this? Yeah. Amazing. Growing up over here"
+        "text": "Probably, like, I don't know, 30, 45 minutes. Anybody from New York? Yeah. That's deep in Brooklyn. How are we? See, I have to find it. That's why I never make it. It's hard. It's hard. You're from? I used to live in Brownsville. Yeah. I'm from Toronto. Where are you from? From Harlem. From Harlem. Morning race. Nice. Are you coming with us today, too, for this? Yeah. Amazing. Growing up over here",
+        "overlay_propose": "us today too"
       },
       {
         "id": "A02",
         "start": 709.1,
         "end": 739.1,
         "force": 7,
-        "text": "his family is the biggest art collector in the world. So they got like $500 million art piece all throughout the house. She decided to turn the phone off. Right? Right. So y'all ain't the police. That would be good. Ha, ha, ha. Yeah. It's cracking. Suck with them guys, man. It's like they're like, just keep yourself in front of you. Yeah. Exactly what they got to look like. Yeah, bro, pleasure. Ye"
+        "text": "his family is the biggest art collector in the world. So they got like $500 million art piece all throughout the house. She decided to turn the phone off. Right? Right. So y'all ain't the police. That would be good. Ha, ha, ha. Yeah. It's cracking. Suck with them guys, man. It's like they're like, just keep yourself in front of you. Yeah. Exactly what they got to look like. Yeah, bro, pleasure. Ye",
+        "overlay_propose": "500 million art piece"
       },
       {
         "id": "A03",
         "start": 1727.5,
         "end": 1757.5,
         "force": 5,
-        "text": "and we gave a truck load in 16-year-olds before you do that. When you do that? When you do that? I'll do it all year. We'd love to get ready for a whole big truck of drugs. Hey, here. Yeah. It's about the big truck of crazy. That crystallism. That crystallism. Yeah. Shit. Yeah, well I do want them in Memphis every year. Got me in the door there. Pop out, man. Yeah, I'm there. Pop out. That's what "
+        "text": "and we gave a truck load in 16-year-olds before you do that. When you do that? When you do that? I'll do it all year. We'd love to get ready for a whole big truck of drugs. Hey, here. Yeah. It's about the big truck of crazy. That crystallism. That crystallism. Yeah. Shit. Yeah, well I do want them in Memphis every year. Got me in the door there. Pop out, man. Yeah, I'm there. Pop out. That's what ",
+        "overlay_propose": "16 year olds before"
       },
       {
         "id": "A04",
         "start": 1296.0,
         "end": 1326.0,
         "force": 4,
-        "text": "You said that was my great 7-8. Love. Love. Love. Love. Love. Yeah, yeah, yeah. This is flicking on that shit go crazy. What's up, y'all? What's up, y'all? What's up, y'all? What's up, y'all? What's up, y'all? What's up, y'all? Introduce y'all, man. What's up, y'all? What's up, y'all? Oh, man, shout out Pathfinder. What's up, man? Let's get the subs going. Shout out, Pathfinder, man. Joe Mike in h"
+        "text": "You said that was my great 7-8. Love. Love. Love. Love. Love. Yeah, yeah, yeah. This is flicking on that shit go crazy. What's up, y'all? What's up, y'all? What's up, y'all? What's up, y'all? What's up, y'all? What's up, y'all? Introduce y'all, man. What's up, y'all? What's up, y'all? Oh, man, shout out Pathfinder. What's up, man? Let's get the subs going. Shout out, Pathfinder, man. Joe Mike in h",
+        "overlay_propose": "give back today"
       },
       {
         "id": "A05",
         "start": 1587.5,
         "end": 1617.5,
         "force": 4,
-        "text": "Next 24 hours we challenge everybody to one random act of kindness. We're gonna do some right now. Let's hopefully get inspired. Dr. I'm using the chat. I'm ready to rock. Come on, man. Yeah, see, I like this, man. They fucking with it. They fucking with it, man. We can get on stream and do funny shit all day long. Show some ass shaking all day long. But this is different. This is different. This "
+        "text": "Next 24 hours we challenge everybody to one random act of kindness. We're gonna do some right now. Let's hopefully get inspired. Dr. I'm using the chat. I'm ready to rock. Come on, man. Yeah, see, I like this, man. They fucking with it. They fucking with it, man. We can get on stream and do funny shit all day long. Show some ass shaking all day long. But this is different. This is different. This ",
+        "overlay_propose": "day long show some"
       },
       {
         "id": "A06",
         "start": 1623.7,
         "end": 1653.7,
         "force": 4,
-        "text": "Marcus Brown 23. Twizzy Tezo. Cup of Perp. Chat with the word, man. Fuck, you look good, Tristan. This is the type of listening. Tristan's great. It's been my homeboy. He was a kid before he made it to the league. I'll tell you a story about Tristan. We were in the club one time. You made me so happy. Hold it up to get your club. Oh, man. He was like, yeah. I'm going to 2021. And I was like, are y"
+        "text": "Marcus Brown 23. Twizzy Tezo. Cup of Perp. Chat with the word, man. Fuck, you look good, Tristan. This is the type of listening. Tristan's great. It's been my homeboy. He was a kid before he made it to the league. I'll tell you a story about Tristan. We were in the club one time. You made me so happy. Hold it up to get your club. Oh, man. He was like, yeah. I'm going to 2021. And I was like, are y",
+        "overlay_propose": "nba i'm never forget"
       },
       {
         "id": "A07",
         "start": 294.0,
         "end": 324.0,
         "force": 1,
-        "text": "How's your day going? Something so small that I could change someone's day, life Because you don't know what we're going through, right? So whenever I walk by a stranger I always feel like How's it going? Even though you're like Hey, what's up? Like you said You'll see and feel heard Those small things matter Like, you know, in the sports reference Like a game of inches, right? Those little things"
+        "text": "How's your day going? Something so small that I could change someone's day, life Because you don't know what we're going through, right? So whenever I walk by a stranger I always feel like How's it going? Even though you're like Hey, what's up? Like you said You'll see and feel heard Those small things matter Like, you know, in the sports reference Like a game of inches, right? Those little things",
+        "overlay_propose": "change someone's day life"
       },
       {
         "id": "A08",
         "start": 381.0,
         "end": 411.0,
         "force": 1,
-        "text": "Nothing else matters Hard What's your mom's name? Andrea Brooks Andrea Andrea Andrea What's the biggest lesson you learned from Andrea? Oh If she was listening right now, what do you think she was? She always told me Manors takes you all the way, right? You know, should you make it so she had like broken English Yeah But she's like, if you have manners Yeah People will take their last shirt off th"
+        "text": "Nothing else matters Hard What's your mom's name? Andrea Brooks Andrea Andrea Andrea What's the biggest lesson you learned from Andrea? Oh If she was listening right now, what do you think she was? She always told me Manors takes you all the way, right? You know, should you make it so she had like broken English Yeah But she's like, if you have manners Yeah People will take their last shirt off th",
+        "overlay_propose": "nothing else matters hard"
       },
       {
         "id": "A09",
         "start": 422.1,
         "end": 452.1,
         "force": 1,
-        "text": "Do you like going to work with this person every day? Yes That's beautiful, man. Thank you for sharing that, too. I really appreciate it. Very good. Yeah I thought that was me. What's up, Ben? He's alive. What's up, big dog? How are you? I don't know. What's up, Bryce? You made me too fucking weird. Get to see me."
+        "text": "Do you like going to work with this person every day? Yes That's beautiful, man. Thank you for sharing that, too. I really appreciate it. Very good. Yeah I thought that was me. What's up, Ben? He's alive. What's up, big dog? How are you? I don't know. What's up, Bryce? You made me too fucking weird. Get to see me.",
+        "overlay_propose": "day yes that's beautiful"
       }
     ]
   }
