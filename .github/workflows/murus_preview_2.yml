@@ -1,0 +1,259 @@
+name: MURUS — PREVIEW 2 (SF_11_LUMEN, frame + GLOW, codex postprod)
+
+# PREVIEW 2 = la frame du clip + le sous-titre glow, réglés par l'opérateur.
+# Rien ne rend ici : on produit la comparaison avant/après et le BROUILLON du
+# codex_postprod.json (validated_by_magos: false). Le rendu attend la signature.
+#
+# ARCHITECTURE (consigne opérateur) :
+#   - aucune exécution locale : tout sur GitHub Actions (déclenchement futur
+#     Telegram/Discord) ;
+#   - UN JOB PAR CLIP (matrice) : frame + glow isolés, un clip raté n'annule rien ;
+#   - les paramètres viennent de l'opérateur AU LANCEMENT (workflow_dispatch),
+#     le projet écrit la trace avec provenance ; le projet ne choisit pas le style.
+#
+# Portes appliquées ici (code pillé, pas réécrit) :
+#   GL1 — mode scene|subject, sigma 4..30, opacité 0..0.6  (preview_glow.py)
+#   GL2 — zone caption (y >= 78 %) exclue du glow
+#   PP2 — l'ordre du postprod reste glow -> caption -> lut -> fade (rappel dans le codex)
+
+on:
+  workflow_dispatch:
+    inputs:
+      vod_url:
+        description: 'VOD source (si absente du pack)'
+        required: false
+        default: 'https://www.twitch.tv/videos/2909800627'
+        type: string
+      glow_mode:
+        description: 'GLOW mode (scene|subject) — ton choix'
+        required: false
+        default: 'scene'
+        type: string
+      glow_sigma:
+        description: 'GLOW sigma (4..30) — ton choix'
+        required: false
+        default: '12'
+        type: string
+      glow_opacity:
+        description: 'GLOW opacité (0..0.6) — ton choix'
+        required: false
+        default: '0.35'
+        type: string
+      publish_pages:
+        description: 'Publier la comparaison sur Pages (oui/non)'
+        required: false
+        default: 'oui'
+        type: string
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      assets: ${{ steps.list.outputs.assets }}
+      vod: ${{ steps.list.outputs.vod }}
+      found: ${{ steps.list.outputs.found }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lister les clips du pack exporté
+        id: list
+        env:
+          INPUT_VOD: ${{ inputs.vod_url }}
+        run: |
+          if [ ! -f REVIEW/pack_stage.json ]; then
+            echo "found=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python - << 'PYEOF'
+          import json, os
+          from pathlib import Path
+          pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
+          assets = pack.get("assets") or []
+          plan = [{"index": i, "id": (a.get("id") or ("clip%02d" % (i + 1))),
+                   "start": float(a.get("start_sec") or 0),
+                   "end": float(a.get("end_sec") or 0),
+                   "titre": a.get("overlay_title") or a.get("titre") or ""}
+                  for i, a in enumerate(assets)]
+          vod = (pack.get("source") or {}).get("vod_url") or os.environ.get("INPUT_VOD") or ""
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as f:
+              f.write("assets=" + json.dumps(plan) + "\n")
+              f.write("vod=" + vod + "\n")
+              f.write("found=1\n")
+          print("plan preview 2 : %d frames, vod=%s" % (len(plan), vod or "(dispatch)"))
+          PYEOF
+
+  frame:
+    needs: plan
+    if: fromJSON(needs.plan.outputs.found) == 1
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        clip: ${{ fromJson(needs.plan.outputs.assets) }}
+    env:
+      VOD: ${{ needs.plan.outputs.vod }}
+      INPUT_VOD: ${{ inputs.vod_url }}
+      SIGMA: ${{ inputs.glow_sigma }}
+      OPACITY: ${{ inputs.glow_opacity }}
+      GMODE: ${{ inputs.glow_mode }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Installer ffmpeg + yt-dlp + Pillow
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg
+          python -m pip install --quiet --upgrade yt-dlp pillow
+      - name: Récupérer LA fenêtre de ce clip
+        env:
+          IDX: ${{ matrix.clip.index }}
+        run: |
+          VOD_URL="${VOD:-$INPUT_VOD}"
+          python FR_B_CREATION/tools/recuperer_clip.py \
+            --pack REVIEW/pack_stage.json --index "$IDX" \
+            --out-dir /tmp/work --no-frame --vod "$VOD_URL"
+      - name: Extraire la frame (milieu de fenêtre) puis appliquer le GLOW
+        run: |
+          set -e
+          CLIP=$(ls /tmp/work/clip_*.mp4 | head -1)
+          ID="${{ matrix.clip.id }}"
+          mkdir -p /tmp/out
+          # GL2 : la frame sert de reference AVANT postprod
+          ffmpeg -y -loglevel error -ss 5 -i "$CLIP" -frames:v 1 "/tmp/out/frame_${ID}.png"
+          # le glow vient du code pillé (portes GL1/GL2 incluses), pas d'une reecriture
+          python FR_B_CREATION/SF_11_LUMEN/CODEBASE/preview_glow.py \
+            --frame "/tmp/out/frame_${ID}.png" \
+            --out "/tmp/out/glow_${ID}.png" \
+            --mode "$GMODE" --sigma "$SIGMA" --opacity "$OPACITY"
+          python - << 'PYEOF'
+          import json, os
+          from pathlib import Path
+          Path("/tmp/out/params_%s.json" % os.environ["ID"]).write_text(json.dumps({
+              "asset_id": os.environ["ID"], "mode": os.environ["GMODE"],
+              "sigma": float(os.environ["SIGMA"]), "opacity": float(os.environ["OPACITY"]),
+          }, indent=2), encoding="utf-8")
+          PYEOF
+        env:
+          ID: ${{ matrix.clip.id }}
+      - name: Publier frame + glow de ce clip
+        uses: actions/upload-artifact@v4
+        with:
+          name: frame-${{ matrix.clip.id }}
+          path: /tmp/out
+          if-no-files-found: error
+          retention-days: 14
+
+  assemble:
+    needs: [plan, frame]
+    if: always() && fromJSON(needs.plan.outputs.found) == 1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Réunir les images
+        uses: actions/download-artifact@v4
+        with:
+          pattern: frame-*
+          merge-multiple: true
+          path: REVIEW/preview2
+
+      - name: Comparaison avant / après (page statique) + brouillon de codex
+        env:
+          GMODE: ${{ inputs.glow_mode }}
+          SIGMA: ${{ inputs.glow_sigma }}
+          OPACITY: ${{ inputs.glow_opacity }}
+        run: |
+          python - << 'PYEOF'
+          import json, os
+          from pathlib import Path
+
+          out = Path("REVIEW/preview2")
+          frames = sorted(p.name for p in out.glob("frame_*.png"))
+          glows = sorted(p.name for p in out.glob("glow_*.png"))
+          ids = [n[6:-4] for n in frames]
+          print("frames: %d | glow: %d" % (len(frames), len(glows)))
+
+          rows = "\n".join(
+              "<tr><td><b>%s</b></td><td><img src='frame_%s.png'></td>"
+              "<td><img src='glow_%s.png'></td></tr>" % (i, i, i) for i in ids)
+          p_head = ("<!doctype html><meta charset=utf-8><title>PREVIEW 2 - GLOW</title>"
+                    "<style>body{background:#111;color:#eee;font:14px system-ui;margin:24px}"
+                    "table{border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid #333}"
+                    "img{width:320px;border-radius:6px}h1{font-size:18px}</style>"
+                    "<h1>PREVIEW 2 - GLOW (frame reelle, mode %s, sigma %s, opacite %s)</h1>"
+                    % (os.environ["GMODE"], os.environ["SIGMA"], os.environ["OPACITY"]))
+          p_doc = ("<p><b>EN</b> - Before / after on a real frame. Say your numbers; the draft "
+                   "codex is written with your provenance, then you sign it (validated_by_magos).</p>"
+                   "<p><b>FR</b> - Avant / apres sur une frame reelle. Tu donnes tes chiffres ; le "
+                   "brouillon de codex est ecrit avec ta provenance, puis tu le signes.</p>"
+                   "<p>Ordre du postprod, grave : glow -&gt; caption -&gt; lut -&gt; fade (PP2).</p>")
+          html = (p_head + p_doc + "<table><tr><th>clip</th><th>avant</th><th>apres glow</th></tr>"
+                  + rows + "</table>")
+          (out / "index.html").write_text(html, encoding="utf-8")
+
+          # BROUILLON de codex : les chiffres de l'OPERATEUR, pas ceux du projet.
+          codex = {
+              "codex": "postprod",
+              "order": ["glow", "caption", "lut", "fade"],
+              "glow": {"mode": os.environ["GMODE"],
+                       "sigma": float(os.environ["SIGMA"]),
+                       "opacity": float(os.environ["OPACITY"]),
+                       "caption_zone_excluded": True},
+              "validated_by_magos": False,
+              "_provenance": {
+                  "declared_by": "operateur",
+                  "source": "workflow_dispatch:murus_preview_2",
+                  "note": "BROUILLON - rien n'est rendu avant la signature",
+              },
+          }
+          Path("REVIEW/codex_postprod.draft.json").write_text(
+              json.dumps(codex, indent=2, ensure_ascii=False), encoding="utf-8")
+          print("brouillon écrit : REVIEW/codex_postprod.draft.json (signature requise)")
+          PYEOF
+
+      - name: Committer la comparaison et le brouillon de codex
+        run: |
+          git config user.name "MurusPreview"
+          git config user.email "preview@murus.sanguinis"
+          git add REVIEW/preview2 REVIEW/codex_postprod.draft.json
+          if git diff --cached --quiet; then echo "rien de neuf"; exit 0; fi
+          git commit -m "[PREVIEW 2] comparison avant/apres glow + brouillon codex_postprod (non signe)"
+          git pull --rebase --autostash origin main
+          git push origin main
+
+      - name: Publier l'artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-2-glow
+          path: REVIEW/preview2
+          retention-days: 14
+
+      - name: Publier sur Pages (comparaison)
+        if: inputs.publish_pages == 'oui'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: REVIEW/preview2
+          publish_branch: gh-pages-preview2
+          force_orphan: true
+
+      - name: Résumé opérateur
+        if: always()
+        run: |
+          {
+            echo "## PREVIEW 2 — GLOW"
+            echo ""
+            echo "- mode \`${{ inputs.glow_mode }}\`, sigma \`${{ inputs.glow_sigma }}\`, opacité \`${{ inputs.glow_opacity }}\`"
+            echo "- brouillon : \`REVIEW/codex_postprod.draft.json\` (**non signé**)"
+            echo ""
+            echo "**EN** — These numbers are yours, not the project's. Nothing renders until you sign."
+            echo "**FR** — Ces chiffres sont les tiens, pas ceux du projet. Rien n'est rendu avant ta signature."
+          } >> "$GITHUB_STEP_SUMMARY"
