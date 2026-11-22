@@ -63,6 +63,18 @@ const checks = {
 };
 console.log(JSON.stringify(checks, null, 2));
 
+// Le watermark n'est plus pose d'office : l'operateur le pose. On ne l'exige donc
+// pas, on verifie que le PNG de campagne est joignable (sinon il ne pourra pas le poser).
+const wmOk = await page.evaluate(async () => {
+  try {
+    const r = await fetch('./watermarks/preme.png', { method: 'HEAD' });
+    return r.ok;
+  } catch {
+    return false;
+  }
+});
+if (!wmOk) fails.push('le PNG de campagne watermarks/preme.png est injoignable');
+
 let shotOk = true;
 try {
   await page.screenshot({ path: shot, fullPage: true });
@@ -79,15 +91,7 @@ if (!checks['curseur taille du titre']) fails.push('panneau titre : taille absen
 if (!checks['titre du pack present']) fails.push('aucun titre du pack dans le panneau');
 if (!checks['position horizontale']) fails.push('watermark : curseur horizontale absent');
 if (!checks['position verticale']) fails.push('watermark : curseur verticale absent');
-// Le watermark n'est PLUS pose d'office (l'operateur le pose). Donc on ne l'exige
-// pas ; on verifie seulement que le PNG de campagne est joignable.
-const wmOk = await page.evaluate(async () => {
-  try {
-    const r = await fetch('./watermarks/preme.png', { method: 'HEAD' });
-    return r.ok;
-  } catch { return false; }
-});
-if (!wmOk) fails.push('le PNG de campagne watermarks/preme.png est injoignable');
+
 if (checks['videos'].length === 0) fails.push('aucune video de clip chargee');
 
 if (fails.length) {
