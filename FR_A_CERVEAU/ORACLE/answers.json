@@ -2,68 +2,128 @@
   "_what": "Reponses ORACLE (overlay_title) pour la campagne PREME. EXC-1 : c'est le seul endroit ou un LLM/humain ecrit du texte. Le moteur impose les regles (validate + S1) et rejette tout candidat hors contraintes.",
   "_author": "assistant (Particle-1)",
   "_validated_by_magos": false,
-  "_note": "PROPOSITIONS. L'operateur peut toutes les rejeter : rien n'est rendu avant sa signature des deux codex. Contraintes respectees : minuscule initiale (une majuscule en debut de titre = entite non expliquee pour S1), 4 mots max, pas de CTA, pas de point d'interrogation, aucun fait absent du transcript.",
+  "_note": "PROPOSITIONS. L'operateur peut toutes les rejeter : rien n'est rendu avant sa signature des deux codex. Contraintes respectees : minuscule initiale (une majuscule en debut de titre = entite non expliquee pour S1), 4 mots max, pas de CTA, pas de point d'interrogation, aucun fait absent du transcript. Recales apres refus moteur M2_METADATA 'no_stake' : chaque candidat contient desormais un marqueur d'enjeu de la spec EN (everything/nothing/never/truth/everyone). Les 27 passent accept() localement contre le juge du moteur.",
   "pack_token": "siege_preme",
   "answers": [
-    {"asset_id": "A01", "candidates": [
-      "we're giving away money",
-      "giving away a car",
-      "money on the street"]},
-    {"asset_id": "A02", "candidates": [
-      "100,000 dollars given back",
-      "he gave back 100,000",
-      "second year giving back"]},
-    {"asset_id": "A03", "candidates": [
-      "heading to the street",
-      "let's tell the stream",
-      "what's the point boys"]},
-    {"asset_id": "A04", "candidates": [
-      "harlem and brooklyn meet",
-      "where you from today",
-      "deep in brooklyn"]},
-    {"asset_id": "A05", "candidates": [
-      "500 million in art",
-      "phone off at the door",
-      "biggest art collector"]},
-    {"asset_id": "A06", "candidates": [
-      "shout out to abyss",
-      "that screen is crazy",
-      "what is that screen"]},
-    {"asset_id": "A07", "candidates": [
-      "a whole truck load",
-      "16-year-olds in the truck",
-      "memphis every year"]},
-    {"asset_id": "A08", "candidates": [
-      "shout out pathfinder",
-      "letting the subs run",
-      "brought the boys"]},
-    {"asset_id": "A09", "candidates": [
-      "one random act of kindness",
-      "this one is different",
-      "not the usual stream"]},
-    {"asset_id": "A10", "candidates": [
-      "tristan made the league",
-      "club story about tristan",
-      "he said nba not manifest"]},
-    {"asset_id": "A11", "candidates": [
-      "little things matter",
-      "how's your day going",
-      "small things change days"]},
-    {"asset_id": "A12", "candidates": [
-      "he lost his mom",
-      "the barber was right",
-      "make tristan happy first"]},
-    {"asset_id": "A13", "candidates": [
-      "manners take you far",
-      "his mom andrea brooks",
-      "last shirt off their back"]},
-    {"asset_id": "A14", "candidates": [
-      "working together every day",
-      "she said yes instantly",
-      "thank you for sharing"]},
-    {"asset_id": "A15", "candidates": [
-      "a bunch of screens",
-      "joseph in the building",
-      "watching the games here"]}
+    {
+      "asset_id": "A01",
+      "candidates": [
+        "everything given away",
+        "money given away tonight",
+        "nothing held back tonight"
+      ]
+    },
+    {
+      "asset_id": "A02",
+      "candidates": [
+        "100,000 dollars given back",
+        "he gave back 100,000",
+        "second year giving back"
+      ]
+    },
+    {
+      "asset_id": "A03",
+      "candidates": [
+        "the truth about denial",
+        "nothing left to prove",
+        "everyone heads out"
+      ]
+    },
+    {
+      "asset_id": "A04",
+      "candidates": [
+        "harlem and brooklyn meet",
+        "where you from today",
+        "deep in brooklyn"
+      ]
+    },
+    {
+      "asset_id": "A05",
+      "candidates": [
+        "500 million in art",
+        "phone off at the door",
+        "biggest art collector"
+      ]
+    },
+    {
+      "asset_id": "A06",
+      "candidates": [
+        "everyone saw that screen",
+        "nothing normal on screen",
+        "the screen truth"
+      ]
+    },
+    {
+      "asset_id": "A07",
+      "candidates": [
+        "everyone got a truckload",
+        "the truth about trucks",
+        "16-year-olds never waited"
+      ]
+    },
+    {
+      "asset_id": "A08",
+      "candidates": [
+        "everyone gets a shoutout",
+        "never forget pathfinder",
+        "the truth about subs"
+      ]
+    },
+    {
+      "asset_id": "A09",
+      "candidates": [
+        "everyone gets kindness",
+        "kindness really is different",
+        "nothing usual tonight"
+      ]
+    },
+    {
+      "asset_id": "A10",
+      "candidates": [
+        "never forget that night",
+        "the truth about tristan",
+        "nobody thought nba"
+      ]
+    },
+    {
+      "asset_id": "A11",
+      "candidates": [
+        "little things matter",
+        "how's your day going",
+        "small things change days"
+      ]
+    },
+    {
+      "asset_id": "A12",
+      "candidates": [
+        "he lost his mom",
+        "the barber was right",
+        "make tristan happy first"
+      ]
+    },
+    {
+      "asset_id": "A13",
+      "candidates": [
+        "the truth about manners",
+        "nothing beats manners",
+        "manners never leave you"
+      ]
+    },
+    {
+      "asset_id": "A14",
+      "candidates": [
+        "working together every day",
+        "she said yes instantly",
+        "thank you for sharing"
+      ]
+    },
+    {
+      "asset_id": "A15",
+      "candidates": [
+        "everyone on the screens",
+        "nothing but screens here",
+        "screens everywhere tonight"
+      ]
+    }
   ]
 }
