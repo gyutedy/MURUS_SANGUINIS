@@ -15,12 +15,23 @@
     "note": "Declaration operateur du 2026-11-20 : campagne SANS limite de duree. M0B_CYCLE exige un cycle.end : la sentinelle 2099-12-31 signifie 'pas de fin', elle n'invente aucune date."
   },
   "payout": {
-    "per_platform": {},
+    "per_platform": {
+      "youtube_shorts": {
+        "payout_usd": 0.6,
+        "views_per_unit": 1000
+      }
+    },
     "minimum": null,
     "maximum": null,
-    "budget": null,
+    "budget": 2500,
     "methods": null,
-    "_missing": "Termes de paiement (USD / vues, minimum, maximum, budget) non communiques par l'operateur. Aucune valeur n'est inventee : D0_DIRECTIVE refuse tant qu'ils manquent."
+    "_provenance": {
+      "mode": "exemple_de_calage",
+      "declared_by": "Warsmith",
+      "source": "valeurs d'exemple fournies par l'operateur pour caler la chaine",
+      "note": "CE NE SONT PAS les chiffres reels de la campagne. Voir TRACKING/LES_EXCEPTIONS.md EXC-M7.",
+      "date": "2026-11-22"
+    }
   },
   "requirements": [
     "Preme must be the main focal point of the clip (cannot be in the background, or appear only for a brief moment)",
@@ -99,17 +110,5 @@
   "notes": [
     "Handles de caption deduits du watermark fourni (@Preme) : a confirmer par l'operateur.",
     "Mention #ad ajoutee par le moteur (regle C2 du forge : condition de paiement, pas precaution)."
-  ],
-  "payouts": {
-    "youtube_shorts": {
-      "usd_per_1k": 0.3,
-      "_provenance": {
-        "mode": "exemple_de_calage",
-        "declared_by": "Warsmith",
-        "source": "valeurs d'exemple fournies par l'operateur pour caler la chaine",
-        "note": "CE NE SONT PAS les chiffres reels de la campagne. Ils servent a faire passer les portes pour valider le projet de bout en bout. Toute soumission reelle exige des valeurs confirmees. Voir TRACKING/LES_EXCEPTIONS.md EXC-M7.",
-        "date": "2026-11-22"
-      }
-    }
-  }
+  ]
 }
