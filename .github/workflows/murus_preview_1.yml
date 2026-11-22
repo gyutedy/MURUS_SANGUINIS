@@ -51,24 +51,34 @@ jobs:
 
       - name: Lister les clips du pack exporté
         id: list
+        env:
+          INPUT_VOD: ${{ inputs.vod_url }}
         run: |
           if [ ! -f REVIEW/pack_stage.json ]; then
             echo "found=0" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           python - << 'PYEOF'
-          import json
+          import json, os
           from pathlib import Path
+
           pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
           assets = pack.get("assets") or []
           plan = [{"index": i, "id": (a.get("id") or ("clip%02d" % (i + 1))),
                    "start": float(a.get("start_sec") or 0),
                    "end": float(a.get("end_sec") or 0)} for i, a in enumerate(assets)]
-          vod = (pack.get("source") or {}).get("vod_url") or ""
-          print("assets=" + json.dumps(plan))
-          print("vod=" + vod)
-          print("count=%d" % len(plan))
-          print("found=1")
+          vod = (pack.get("source") or {}).get("vod_url") or os.environ.get("INPUT_VOD") or ""
+
+          # Les sorties d'un job s'ecrivent dans $GITHUB_OUTPUT (un print ne suffit pas).
+          out = Path(os.environ["GITHUB_OUTPUT"])
+          with out.open("a", encoding="utf-8") as f:
+              f.write("assets=" + json.dumps(plan) + "\n")
+              f.write("vod=" + vod + "\n")
+              f.write("count=%d\n" % len(plan))
+              f.write("found=1\n")
+          print("plan : %d clips, vod=%s" % (len(plan), vod or "(celle du dispatch)"))
+          for c in plan:
+              print("  job clip-%s : %.1fs -> %.1fs" % (c["id"], c["start"], c["end"]))
           PYEOF
 
   clip:
