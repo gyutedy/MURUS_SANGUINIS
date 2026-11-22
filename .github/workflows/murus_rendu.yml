@@ -30,9 +30,9 @@ on:
         default: 'https://www.twitch.tv/videos/2909800627'
         type: string
       nb_clips:
-        description: 'Nombre de clips a rendre (1 = preuve, 9 = tout)'
+        description: 'Nombre de clips a rendre (defaut 9 = TOUT le pack)'
         required: false
-        default: '1'
+        default: '9'
         type: string
       clip_ids:
         description: 'Clips precis (ex. A01,A02) — vide = tous selon nb_clips'

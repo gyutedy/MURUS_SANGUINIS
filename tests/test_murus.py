@@ -531,6 +531,8 @@ def test_t27_rendu_un_job_par_clip():
     # les deux codex signes sont la seule cle
     assert "validated_by_magos" in w, "la porte ne verifie pas la signature des codex"
     assert "REVIEW/pack_stage.json" in w, "le rendu ne lit pas le pack stage"
+    # un lancement rend TOUT le pack par defaut (un job par clip)
+    assert "default: '9'" in w, "le rendu ne prend pas tous les clips par defaut"
 
     # les CLIs pillees sont appelees, pas reecrites
     for cli in ("recuperer_clip.py", "convert_pur_pack.mjs", "render_pictor.mjs", "postprod.py"):
