@@ -4,7 +4,7 @@
   "pourquoi": "M1 propose, l'operateur decide : rien n'est rendu avant validation.",
   "attendu": "{\"selection_approved\": true} (ou false + \"selection_note\")",
   "plafond": null,
-  "posee_le": "2026-11-22T05:32:19Z",
+  "posee_le": "2026-11-22T05:38:39Z",
   "reponse_dans": "ARCHIVUM/demande/answers.json",
   "forme": {
     "answers": {
