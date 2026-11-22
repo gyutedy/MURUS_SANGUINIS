@@ -48,6 +48,9 @@ try {
     const stageEl = document.querySelector('main');
     const rect = stageEl ? stageEl.getBoundingClientRect() : null
     const aside = document.querySelector('aside')
+    // la LUT doit REELLEMENT filtrer l'image du lecteur (pas un filtre vide)
+    const mediaBox = document.querySelector('video')?.closest('div')
+    const lutFilter = mediaBox ? getComputedStyle(mediaBox).filter : null
     const capEl = [...document.querySelectorAll('div')].find((d) => {
       const cs = getComputedStyle(d)
       return cs.animationName && cs.animationName.startsWith('murus-')
@@ -56,6 +59,7 @@ try {
       videosCount: document.querySelectorAll('video').length,
       captionAnimation: capEl ? getComputedStyle(capEl).animationName : null,
       glowLayers: document.querySelectorAll('div[aria-hidden="true"]').length,
+      lutFilter,
       legends,
       videos,
       imgs,
@@ -80,6 +84,9 @@ try {
   if (audit.videosCount > 1) fails.push(`doublon de lecteur : ${audit.videosCount} videos (une video floue superposee ne doit plus exister)`)
   if (!audit.captionAnimation) fails.push('aucune animation de sous-titre : la motion ne se voit pas')
   if (audit.glowLayers === 0) fails.push('aucun calque de glow (backdrop-filter) : le glow ne s applique pas')
+  if (!audit.lutFilter || audit.lutFilter === 'none' || !audit.lutFilter.includes('contrast')) {
+    fails.push(`la LUT ne filtre pas l image : filter=${audit.lutFilter}`)
+  }
   if (!audit.imgs.some((s) => s && s.includes('frame_'))) fails.push('aucune frame de reference affichee')
   if (audit.asideScroll !== true) fails.push('la colonne de reglages ne defile pas')
   if (audit.bodyScroll === true) fails.push('la page defile : les panneaux doivent defiler, pas la page')
@@ -99,6 +106,7 @@ try {
     videos_dans_la_page: audit.videosCount,
     animation_sous_titre: audit.captionAnimation,
     calques_de_glow: audit.glowLayers,
+    filtre_lut_applique: audit.lutFilter,
   }, null, 2))
 
   if (fails.length) {
