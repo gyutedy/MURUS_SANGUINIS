@@ -15,8 +15,10 @@ FR_B_CREATION/*/OUT/*
 EXPORT/production_pack_*.json
 EXPORT/sieges/*
 !EXPORT/sieges/.gitkeep
-REVIEW/codex_render.json
-REVIEW/codex_postprod.json
+# Les codex SIGNES sont commites : les portes W1-R / PP1 les lisent DANS le depot.
+# (Ils l'etaient ignores — le codex signe n'arrivait donc jamais sur GitHub : ERRATA E-10.)
+REVIEW/codex_render.draft.json
+REVIEW/codex_postprod.draft.json
 !REVIEW/*.example.json
 
 # Node / Python
