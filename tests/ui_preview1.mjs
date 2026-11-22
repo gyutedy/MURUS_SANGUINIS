@@ -34,7 +34,10 @@ const audit = await page.evaluate(() => {
     w: i.naturalWidth,
     h: i.naturalHeight,
   }));
-  const stage = document.querySelector('video') ? document.querySelector('video').getBoundingClientRect() : null;
+  // Le <video> interne est mis a l'echelle par Remotion : sa position ne dit rien de
+  // la mise en page. On mesure le CONTENEUR de scene (celui qui porte le double-clic).
+  const stageEl = document.querySelector('[title^="Double-cliquez"]');
+  const stage = stageEl ? stageEl.getBoundingClientRect() : null;
   const aside = document.querySelector('aside');
   return {
     labels,
