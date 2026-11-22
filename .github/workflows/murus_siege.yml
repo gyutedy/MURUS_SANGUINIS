@@ -238,17 +238,6 @@ jobs:
           PYEOF
           echo "NB=$(cat /tmp/nb_clips.txt)" >> "$GITHUB_ENV"
 
-      - name: Publier la question posée à l'opérateur (commit du pending)
-        if: always()
-        run: |
-          git config user.name "MurusDemande"
-          git config user.email "demande@murus.sanguinis"
-          git add ARCHIVUM/demande || true
-          if git diff --cached --quiet; then echo "aucune question à publier"; exit 0; fi
-          git commit -m "[DEMANDE] question posée à l'opérateur (le projet demande, il ne décide pas)"
-          git pull --rebase --autostash origin main
-          git push origin main || echo "::warning::push de la question impossible (voir logs)"
-
       - name: Construire le pack d'entrée depuis les déclarations de l'opérateur
         env:
           VOD_URL: ${{ inputs.vod_url }}
@@ -462,6 +451,17 @@ jobs:
           git commit -m "[SIÈGE] rapport réel sur la VOD opérateur"
           git pull --rebase --autostash origin main
           git push origin main
+
+      - name: Publier ce que le projet a écrit à l'opérateur (question + sélection)
+        if: always()
+        run: |
+          git config user.name "MurusDemande"
+          git config user.email "demande@murus.sanguinis"
+          git add ARCHIVUM/demande || true
+          if git diff --cached --quiet; then echo "aucune question à publier"; exit 0; fi
+          git commit -m "[DEMANDE] question + sélection soumise à l'opérateur"
+          git pull --rebase --autostash origin main
+          git push origin main || echo "::warning::push de la question impossible (voir logs)"
 
       - name: Échec assumé — la porte a refusé ce qu'elle devait refuser
         if: env.SIEGE_RC != '0'
