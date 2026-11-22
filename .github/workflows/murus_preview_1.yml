@@ -1,15 +1,18 @@
 name: MURUS — PREVIEW 1 (SF_10_SPECULUM, LOOK sur clips réels)
 
-# PREVIEW 1 = ce que l'opérateur regarde pour décider du LOOK (style du titre T1,
-# taille de la vidéo claire, place du logo W1). Elle ne rend RIEN de définitif :
+# PREVIEW 1 = ce que l'opérateur regarde pour décider du LOOK. Rien ne rend ici :
 # elle prépare le codex_render.json que l'opérateur signe.
 #
-# Entrées : REVIEW/pack_stage.json (pack réellement exporté par le siège) + la VOD.
-# Le workflow RÉCUPÈRE les clips du pack (yt-dlp section + ffmpeg), les met dans
-# public/clips/, place le watermark de campagne, construit la review et la publie.
+# ARCHITECTURE (consigne opérateur 2026-11-22) :
+#   - AUCUNE exécution locale : tout tourne sur GitHub Actions, comme le sera le
+#     projet fini (déclenchements Telegram/Discord).
+#   - UN JOB PAR CLIP (matrice) : 9 clips = 9 jobs parallèles, isolés. Un clip qui
+#     échoue ne tue pas les autres ; chaque job télécharge SA fenêtre de VOD.
+#   - job `assemble` : réunit les clips (artefacts), staged le pack + le watermark
+#     de campagne (jamais modifié par la review), construit Vite, publie Pages.
 #
-# Aucune décision ici : ni style, ni codex. Le codex est écrit par l'opérateur
-# dans la page, puis signé.
+# Le pack vient de REVIEW/pack_stage.json : le pack réellement exporté par le siège
+# (gates D0→X1), jamais reconstruit ici.
 
 on:
   workflow_dispatch:
@@ -36,7 +39,88 @@ permissions:
   id-token: write
 
 jobs:
-  preview1:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      assets: ${{ steps.list.outputs.assets }}
+      vod: ${{ steps.list.outputs.vod }}
+      count: ${{ steps.list.outputs.count }}
+      found: ${{ steps.list.outputs.found }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lister les clips du pack exporté
+        id: list
+        run: |
+          if [ ! -f REVIEW/pack_stage.json ]; then
+            echo "found=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python - << 'PYEOF'
+          import json
+          from pathlib import Path
+          pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
+          assets = pack.get("assets") or []
+          plan = [{"index": i, "id": (a.get("id") or ("clip%02d" % (i + 1))),
+                   "start": float(a.get("start_sec") or 0),
+                   "end": float(a.get("end_sec") or 0)} for i, a in enumerate(assets)]
+          vod = (pack.get("source") or {}).get("vod_url") or ""
+          print("assets=" + json.dumps(plan))
+          print("vod=" + vod)
+          print("count=%d" % len(plan))
+          print("found=1")
+          PYEOF
+
+  clip:
+    needs: plan
+    if: fromJSON(needs.plan.outputs.found) == 1
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        clip: ${{ fromJson(needs.plan.outputs.assets) }}
+    env:
+      VOD: ${{ needs.plan.outputs.vod }}
+      INPUT_VOD: ${{ inputs.vod_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer ffmpeg + yt-dlp
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg
+          python -m pip install --quiet --upgrade yt-dlp
+          yt-dlp --version
+
+      - name: Récupérer LA fenêtre de ce clip (matrice job ${{ matrix.clip.index }})
+        env:
+          IDX: ${{ matrix.clip.index }}
+        run: |
+          VOD_URL="${VOD:-$INPUT_VOD}"
+          python FR_B_CREATION/tools/recuperer_clip.py \
+            --pack REVIEW/pack_stage.json \
+            --index "$IDX" \
+            --out-dir /tmp/clips \
+            --json-out /tmp/clips/manifest.json \
+            --no-frame \
+            --vod "$VOD_URL"
+
+      - name: Publier le clip (un artefact par clip)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clip-${{ matrix.clip.id }}
+          path: /tmp/clips
+          if-no-files-found: error
+          retention-days: 14
+
+  assemble:
+    needs: [plan, clip]
+    if: always() && fromJSON(needs.plan.outputs.found) == 1
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,83 +133,30 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Installer ffmpeg + yt-dlp
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y ffmpeg
-          python -m pip install --quiet --upgrade yt-dlp
-          ffmpeg -version | head -1
-          yt-dlp --version
+      - name: Télécharger tous les clips récupérés
+        uses: actions/download-artifact@v4
+        with:
+          pattern: clip-*
+          merge-multiple: true
+          path: FR_B_CREATION/SF_10_SPECULUM/CODEBASE/public/clips
 
-      - name: Y a-t-il un pack exporté à reviewer ?
-        id: pack
-        run: |
-          if [ -f REVIEW/pack_stage.json ]; then
-            echo "found=1" >> "$GITHUB_OUTPUT"
-            python - << 'PYEOF'
-          import json
-          d = json.load(open("REVIEW/pack_stage.json", encoding="utf-8"))
-          print("pack : token=%s clips=%d (demandé %s, manque %s)"
-                % (d.get("pack_token"), len(d.get("assets") or []),
-                   d.get("nb_demande"), d.get("manque")))
-          PYEOF
-          else
-            echo "found=0" >> "$GITHUB_OUTPUT"
-            echo "::warning::aucun REVIEW/pack_stage.json — lance d'abord le siège réel"
-          fi
-
-      - name: Récupérer les clips du pack (fenêtres réelles, pas la VOD entière)
-        if: steps.pack.outputs.found == '1'
-        env:
-          VOD_FALLBACK: ${{ inputs.vod_url }}
+      - name: Vérifier le compte (anti-remplissage : on annonce ce qui est là)
         run: |
           python - << 'PYEOF'
-          import json, os, subprocess, glob
+          import json, os
           from pathlib import Path
-
+          clips_dir = Path("FR_B_CREATION/SF_10_SPECULUM/CODEBASE/public/clips")
+          got = sorted(p.name for p in clips_dir.glob("clip_*.mp4"))
           pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
-          vod = (pack.get("source") or {}).get("vod_url") or os.environ["VOD_FALLBACK"]
-          out = Path("FR_B_CREATION/SF_10_SPECULUM/CODEBASE/public/clips")
-          out.mkdir(parents=True, exist_ok=True)
-          wm_dir = Path("FR_B_CREATION/SF_10_SPECULUM/CODEBASE/public/watermarks")
-          wm_dir.mkdir(parents=True, exist_ok=True)
-
-          total = 0
-          for a in pack.get("assets") or []:
-              aid = a.get("id") or "clip"
-              start = float(a.get("start_sec") or 0)
-              end = float(a.get("end_sec") or (start + 30))
-              dur = max(1.0, end - start)
-              work = Path("/tmp/recup") / aid
-              work.mkdir(parents=True, exist_ok=True)
-              src_pat = str(work / "src.%(ext)s")
-              rc = subprocess.run(["yt-dlp", "--no-playlist",
-                                   "-f", "bv*[height<=1080]+ba/b[height<=1080]",
-                                   "--download-sections", "*%s-%s" % (start, end + 1),
-                                   "--force-keyframes-at-cuts", "-o", src_pat, vod]).returncode
-              hits = sorted(glob.glob(str(work / "src.*")))
-              if rc != 0 or not hits:
-                  print("::warning::clip %s non récupéré (%.1fs)" % (aid, start))
-                  continue
-              dest = out / ("%s.mp4" % aid)
-              rc = subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", hits[0],
-                                   "-t", str(dur), "-c:v", "libx264", "-preset", "veryfast",
-                                   "-crf", "18", "-c:a", "aac", "-b:a", "128k",
-                                   "-movflags", "+faststart", str(dest)]).returncode
-              if rc != 0:
-                  print("::warning::coupe ffmpeg échouée pour %s" % aid)
-                  continue
-              # le LOOK cherche clips/<id>.mp4 ET clips/pur_<id>.mp4
-              subprocess.run(["cp", str(dest), str(out / ("pur_%s.mp4" % aid))])
-              print("clip %s : %.1fs -> %.1fs (%.1fs) -> %s"
-                    % (aid, start, end, dur, dest.relative_to(out.parent.parent.parent.parent)))
-              total += 1
-          print("clips récupérés : %d" % total)
-          Path("/tmp/clips_count.txt").write_text(str(total), encoding="utf-8")
+          attendus = [a.get("id") for a in (pack.get("assets") or [])]
+          manquants = [a for a in attendus if ("clip_%s.mp4" % a) not in got]
+          print("clips récupérés : %d / %d" % (len(got), len(attendus)))
+          if manquants:
+              print("::warning::clips manquants : %s" % ", ".join(manquants))
+          Path("/tmp/clips_count.txt").write_text("%d/%d" % (len(got), len(attendus)), encoding="utf-8")
           PYEOF
 
       - name: Stager le pack + le watermark dans la review
-        if: steps.pack.outputs.found == '1'
         env:
           WM: ${{ inputs.watermark }}
         run: |
@@ -146,22 +177,24 @@ jobs:
 
           wm = pack.get("watermark") or {}
           wm["file"] = "watermarks/%s" % wm_name
-          wm.setdefault("required", True)
-          wm.setdefault("enabled", True)
+          wm["required"] = True
+          wm["enabled"] = True
           pack["watermark"] = wm
           (pub / "pack.json").write_text(json.dumps(pack, indent=2, ensure_ascii=False),
                                          encoding="utf-8")
-          print("pack stagé : public/pack.json | watermark: %s (opacity=%s, position=%s, size=%s)"
-                % (wm["file"], wm.get("opacity"), wm.get("position"), wm.get("size_pct")))
+          clips = sorted((pub / "clips").glob("clip_*.mp4"))
+          print("pack stagé : public/pack.json | watermark=%s|null pos=%s size=%s| ops=%s"
+                % (wm["file"], wm.get("position"), wm.get("size_pct"), wm.get("opacity")))
+          print("clips en place : %d" % len(clips))
           PYEOF
 
       - name: Construire la review (Vite)
-        if: steps.pack.outputs.found == '1'
+        id: build
         working-directory: FR_B_CREATION/SF_10_SPECULUM/CODEBASE
         run: |
           npm ci --no-audit --no-fund
           npm run build
-          ls -la dist | head -8
+          ls dist | head -10
 
       - name: Résumé opérateur
         if: always()
@@ -169,33 +202,30 @@ jobs:
           {
             echo "## PREVIEW 1 — LOOK"
             echo ""
-            if [ "${{ steps.pack.outputs.found }}" = "1" ]; then
-              echo "- pack : \`REVIEW/pack_stage.json\`"
-              echo "- clips récupérés : $(cat /tmp/clips_count.txt 2>/dev/null || echo 0)"
-              echo "- watermark : \`${{ inputs.watermark }}\`"
-              echo ""
-              echo "**EN** — Open the page, tune the LOOK (title style T1, clear-video size,"
-              echo "logo position), then **Export** to write \`REVIEW/codex_render.json\`."
-              echo "Nothing is rendered until that codex is signed."
-              echo ""
-              echo "**FR** — Ouvre la page, règle le LOOK (style du titre T1, taille de la vidéo"
-              echo "claire, place du logo), puis **Export** pour écrire \`REVIEW/codex_render.json\`."
-              echo "Rien n'est rendu avant la signature de ce codex."
-            else
-              echo "Aucun pack : lance d'abord \`MURUS — SIÈGE RÉEL\`."
-            fi
+            echo "- pack : \`REVIEW/pack_stage.json\` (gates D0→X1 passées)"
+            echo "- clips récupérés : $(cat /tmp/clips_count.txt 2>/dev/null || echo inconnu)"
+            echo "- watermark : \`${{ inputs.watermark }}\`"
+            echo ""
+            echo "**EN** — Open the page, tune the LOOK (title style T1, clear-video size,"
+            echo "logo position), then **Export** to write \`REVIEW/codex_render.json\`."
+            echo "Nothing is rendered until that codex is signed."
+            echo ""
+            echo "**FR** — Ouvre la page, règle le LOOK (style du titre T1, taille de la vidéo"
+            echo "claire, place du logo), puis **Export** pour écrire \`REVIEW/codex_render.json\`."
+            echo "Rien n'est rendu avant la signature de ce codex."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publier la review (artefact téléchargeable)
-        if: steps.pack.outputs.found == '1'
+        if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: preview-1-look
           path: FR_B_CREATION/SF_10_SPECULUM/CODEBASE/dist
           retention-days: 14
+        continue-on-error: true
 
       - name: Publier sur GitHub Pages
-        if: steps.pack.outputs.found == '1' && inputs.publish_pages == 'oui'
+        if: inputs.publish_pages == 'oui'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

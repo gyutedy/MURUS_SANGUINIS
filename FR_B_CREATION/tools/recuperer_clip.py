@@ -77,6 +77,12 @@ def main() -> int:
     ap.add_argument("--index", type=int, default=0, help="index du clip dans le pack")
     ap.add_argument("--vod", default=None, help="URL de la VOD (sinon lue dans le pack)")
     ap.add_argument("--work", type=Path, default=ROOT / "EXPORT" / "RECUP")
+    # Mode MATRICE (GitHub Actions) : un job par clip. Chaque job ecrit UN fichier
+    # dans --out-dir et n'ecrit pas de frame (la frame appartient a la preview 2).
+    ap.add_argument("--out-dir", type=Path, default=None,
+                    help="ecrit clip_<asset_id>.mp4 dans ce dossier (mode un job par clip)")
+    ap.add_argument("--no-frame", action="store_true", help="ne pas extraire de frame")
+    ap.add_argument("--json-out", type=Path, default=None, help="manifest JSON de ce clip")
     a = ap.parse_args()
 
     pack_path = a.pack or dernier_pack()
@@ -107,11 +113,29 @@ def main() -> int:
         print("[RECUP] ECHEC — telechargement de la fenetre impossible (VOD privee/expiree ?)")
         return 1
 
+    if a.out_dir:
+        a.out_dir.mkdir(parents=True, exist_ok=True)
+        clip = a.out_dir / ("clip_%s.mp4" % (asset.get("id") or idx))
+        if not couper(src, clip, duree):
+            print("[RECUP] ECHEC — coupe ffmpeg")
+            return 1
+        print("[RECUP] clip ->", clip)
+        if a.json_out:
+            a.json_out.parent.mkdir(parents=True, exist_ok=True)
+            a.json_out.write_text(json.dumps({
+                "asset_id": asset.get("id"), "start_sec": start, "end_sec": end,
+                "clip": clip.name, "vod": vod,
+            }, indent=2), encoding="utf-8")
+        return 0
+
     clip = PREVIEW_1 / "clip.mp4"
     if not couper(src, clip, duree):
         print("[RECUP] ECHEC — coupe ffmpeg")
         return 1
     prev = PREVIEW_2 / "frame.png"
+    if a.no_frame:
+        print("[RECUP] clip ->", clip, "(frame non demandee)")
+        return 0
     if not frame(clip, prev):
         print("[RECUP] ECHEC — extraction de la frame")
         return 1
