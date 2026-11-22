@@ -242,3 +242,42 @@ jobs:
           publish_dir: FR_B_CREATION/SF_10_SPECULUM/CODEBASE/dist
           publish_branch: gh-pages
           keep_files: true
+
+  ui_check:
+    needs: [assemble]
+    if: always() && needs.assemble.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: preview-1-look
+          path: site
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Servir le site construit
+        run: |
+          npx --yes http-server site -p 8099 -s >/tmp/http.log 2>&1 &
+          sleep 4
+          curl -s -o /dev/null -w "site local: HTTP %{http_code}" http://127.0.0.1:8099/; echo
+
+      - name: Installer Chromium
+        run: |
+          npm init -y > /dev/null 2>&1
+          npm i --no-audit --no-fund puppeteer@23 > /dev/null 2>&1
+
+      - name: Verifier l'interface dans un vrai navigateur
+        run: node tests/ui_preview1.mjs http://127.0.0.1:8099/ review-preview1.png
+
+      - name: Publier la capture d'ecran
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-1-screenshot
+          path: review-preview1.png
+          if-no-files-found: warn
+          retention-days: 14
