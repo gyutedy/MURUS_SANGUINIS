@@ -488,6 +488,9 @@ jobs:
           git config user.name "MurusDemande"
           git config user.email "demande@murus.sanguinis"
           git add ARCHIVUM/demande || true
+          # La question de l'ORACLE appartient a l'operateur : elle doit etre
+          # publiee comme les autres, sinon il ne peut pas y repondre.
+          git add FR_A_CERVEAU/ORACLE || true
           if git diff --cached --quiet; then echo "aucune question à publier"; exit 0; fi
           git commit -m "[DEMANDE] question + sélection soumise à l'opérateur"
           git pull --rebase --autostash origin main
