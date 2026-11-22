@@ -543,6 +543,12 @@ def test_t27_rendu_un_job_par_clip():
         assert "'../F03_PREVIEW" not in t and "'F03_PREVIEW/CODEBASE/src/preview/_purPackComposition.jsx'" not in t,             "chemin mort F03_PREVIEW encore present dans %s" % f
         assert "SF_10_SPECULUM/CODEBASE/src/preview" in t, "chemin non repointe dans %s" % f
 
+    # le bundle Remotion ne doit plus tirer aucun chemin mort F03_PREVIEW
+    look = ROOT / "FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/src"
+    for jsx in look.rglob("*.jsx"):
+        t = jsx.read_text(encoding="utf-8")
+        assert "F03_PREVIEW/CODEBASE" not in t, "import mort F03_PREVIEW encore dans %s" % jsx.name
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):

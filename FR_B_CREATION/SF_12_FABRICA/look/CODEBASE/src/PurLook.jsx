@@ -1,6 +1,6 @@
 import React from 'react';
 import { staticFile } from 'remotion';
-import { PurPackComposition } from '../../../F03_PREVIEW/CODEBASE/src/preview/_purPackComposition.jsx';
+import { PurPackComposition } from '../../../../SF_10_SPECULUM/CODEBASE/src/preview/_purPackComposition.jsx';
 
 function withStaticClips(manifest) {
   if (!manifest || typeof manifest !== 'object') return manifest;
