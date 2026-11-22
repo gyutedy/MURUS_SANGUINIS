@@ -1,0 +1,12 @@
+{
+  "answers": {
+    "nb_clips": "15"
+  },
+  "provenance": {
+    "nb_clips": {
+      "declared_by": "operateur",
+      "source": "workflow_dispatch",
+      "enregistree_le": "2026-11-22T04:37:29Z"
+    }
+  }
+}
