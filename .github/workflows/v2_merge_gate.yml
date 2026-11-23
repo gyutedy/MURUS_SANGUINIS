@@ -1,0 +1,50 @@
+name: MURUS V2 — porte de merge (v2 vers main)
+
+# PLAN_V2 etape 9. La V2 n'a pas le droit de casser une V1 qui fonctionne : ce
+# workflow s'execute sur toute PR vers `main` et refuse tant que les portes V1 et
+# V2 ne sont pas vertes. Il ne protege pas la branche (droits d'admin requis) :
+# il pose un statut rouge que personne de serieux ne fusionne par-dessus.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  portes:
+    name: portes V1 + V2 avant merge
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Portes V1 (doctrine, rendu, purgue, V7)
+        run: python tests/test_murus.py
+
+      - name: Portes V2 (T20-T29)
+        run: python tests/test_murus_v2.py
+
+      - name: La branche dit-elle ce qui n'a pas tourne ?
+        run: |
+          python - <<'PYEOF'
+          import sys
+          from pathlib import Path
+          plan = Path("TRACKING/PLAN_V2.md").read_text(encoding="utf-8")
+          parcours = Path("TRACKING/PARCOURS_V2.md").read_text(encoding="utf-8")
+          motifs = []
+          if "État d'exécution" not in plan:
+              motifs.append("PLAN_V2 sans etat d'execution : on ne sait pas ou en est la branche")
+          if "ATTENDU" not in parcours:
+              motifs.append("PARCOURS_V2 ne declare aucun oracle ATTENDU : il pretend tout fini")
+          if "## EN" not in parcours or "## FR" not in parcours:
+              motifs.append("PARCOURS_V2 n'est pas bilingue (EXC-M8)")
+          for m in motifs:
+              print("::error::PORTE MERGE REFUS : %s" % m)
+          raise SystemExit(1 if motifs else 0)
+          PYEOF
+          echo "PORTE MERGE : V1 verte, V2 verte, et la branche declare ce qui reste ATTENDU"
