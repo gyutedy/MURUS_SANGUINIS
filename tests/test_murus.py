@@ -675,6 +675,17 @@ def test_t29_parcours_reel_grave():
     for c in clis:
         assert list(ROOT.rglob(c)), "CLI cite mais absent du depot : %s" % c
 
+    # les DEUX revues sont des etapes de plein droit, avec leur adresse et leur codex
+    for revue in ("review 1", "review 2", "revue 1", "revue 2", "preview2/"):
+        assert revue in txt, "revue absente du parcours : %s" % revue
+    assert "codex_render.json" in txt and "codex_postprod.json" in txt, \
+        "les codex produits par les revues ne sont pas nommes"
+    assert txt.index("codex_render.json") < txt.index("codex_postprod.json"), \
+        "l'ordre des deux codex est inverse"
+    assert "les deux codex" in txt, "le parcours ne dit pas que les deux codex sont exiges"
+    assert "ui_preview1.mjs" in txt and "ui_preview2.mjs" in txt, \
+        "les portes Chromium des deux revues ne sont pas citees"
+
     # les portes sont nommees
     for porte in ("G1", "PP2", "5b", "qa_pass"):
         assert porte in txt, "porte non documentee : %s" % porte

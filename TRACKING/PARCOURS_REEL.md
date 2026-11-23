@@ -16,13 +16,45 @@ one job per clip, no serial loop.
 | # | step | entry point | produces |
 |---|------|-------------|----------|
 | 0 | siege: VOD → transcript → selection → pack | `murus_siege.yml` | `ARCHIVUM/montage/transcripts/v<vod>_transcript.json`, `REVIEW/pack_stage.json` |
-| 1 | preview 1 (LOOK review) | `murus_preview_1.yml` → Pages `/` | operator verdict on blur / title / logo |
-| 2 | preview 2 (GLOW, LUT, caption, FADE review) | `murus_preview_2.yml` → Pages `/preview2/` | operator verdict on the four panels |
-| 3 | codex 1 signed (LOOK) | `REVIEW/codex_render.json` + `.provenance.json` | `validated_by_magos: true` |
-| 4 | codex 2 signed (POSTPROD) | `REVIEW/codex_postprod.json` + `.provenance.json` | `validated_by_magos: true` |
+| 1 | **review 1 — LOOK** | `murus_preview_1.yml` → Pages `/` | operator verdict: blur, title, logo, watermark |
+| 2 | **codex 1 signed (LOOK)** | export from review 1 → `REVIEW/codex_render.json` + `.provenance.json` | `validated_by_magos: true` |
+| 3 | **review 2 — POSTPROD** | `murus_preview_2.yml` → Pages `/preview2/` | operator verdict: video glow, subtitles, LUT, fade |
+| 4 | **codex 2 signed (POSTPROD)** | export from review 2 → `REVIEW/codex_postprod.json` + `.provenance.json` | `validated_by_magos: true` |
 | 5 | render, one job per clip | `murus_rendu.yml` | `pur_A01..A09.mp4` + `livrable-A01..A09` + `preme-pack-9-livrables` |
 | 6 | V7 delivery manifest | `murus_v7.yml` | `REVIEW/submissions.json` (sha256 + checklist, status `a_poster`) |
 | 7 | operator posts | human only | views 1h/24h, payout, campaign close |
+
+### The two reviews are not optional — they are what produces the codex
+
+Nothing is rendered before **both** reviews have run and **both** codex are signed.
+The reviews are the only place where a human judges; the codex is their written,
+signed output, and the render is only the executor of that signature.
+
+```
+VOD -> siege -> pack_stage.json
+                    |
+                    +-> REVIEW 1  (Pages /)          LOOK    : blur, title, logo, watermark
+                    |      +-> export + signature -> REVIEW/codex_render.json   -+
+                    |                                                          +-> G1
+                    +-> REVIEW 2  (Pages /preview2/) POSTPROD: glow, subtitles, -+
+                           +-> export + signature -> REVIEW/codex_postprod.json
+                                                    |
+                                    murus_rendu.yml -+-> 9 clips, one job each
+```
+
+| | review 1 — LOOK | review 2 — POSTPROD |
+|---|---|---|
+| workflow | `murus_preview_1.yml` | `murus_preview_2.yml` |
+| address | `https://gyutedy.github.io/MURUS_SANGUINIS/` | `https://gyutedy.github.io/MURUS_SANGUINIS/preview2/` |
+| what you see | the player stuck to the top, W1 watermark panel, T1 title panel | four panels: glow video, subtitles, LUT, fade + signature/export |
+| what you decide | blur strength and background/core split, title size/place/colours/font, the single watermark and its place | glow preset on real parameters, subtitle style and word-by-word motion, LUT profile and intensity, fade |
+| what it signs | `codex_render.json` (`sanguinala.render.codex.v1`) | `codex_postprod.json` (`sanguinala.postprod.codex.v1`) |
+| how it is proofed | Chromium gate `tests/ui_preview1.mjs` | Chromium gate `tests/ui_preview2.mjs` + `exact_frame` (real ffmpeg on one frame) |
+| what it unlocks | half of G1 | the other half of G1 — the render opens only with both |
+
+Two reviews, two roles, two codex: one GitHub Pages site per repository forces the
+second under `/preview2/` (declared EXC-M10). A preview is a **review**, not a report:
+it always plays the real video next to the exact frame, with live sliders.
 
 ### Per-clip job (the real sequence, 7 steps)
 
@@ -84,9 +116,9 @@ render run 45113267319 · V7 run 45120117577
 
 ```bash
 gh workflow run murus_siege.yml    -f vod_url=https://www.twitch.tv/videos/2909800627
-gh workflow run murus_preview_1.yml
-gh workflow run murus_preview_2.yml
-# sign REVIEW/codex_render.json and REVIEW/codex_postprod.json (operator export + signature)
+gh workflow run murus_preview_1.yml   # review 1 -> LOOK verdict -> export -> sign codex_render.json
+gh workflow run murus_preview_2.yml   # review 2 -> POSTPROD verdict -> export -> sign codex_postprod.json
+# no render can start before both codex carry validated_by_magos: true
 gh workflow run murus_rendu.yml    -f vod_url=https://www.twitch.tv/videos/2909800627 -f nb_clips=9
 gh workflow run murus_v7.yml       # run_id empty = last successful render
 # post the 9 clips yourself, then record views 1h/24h and payout
@@ -102,13 +134,46 @@ le travail, **un job par clip**, jamais de boucle en série.
 | # | étape | point d'entrée | produit |
 |---|-------|----------------|---------|
 | 0 | siège : VOD → transcription → sélection → pack | `murus_siege.yml` | `ARCHIVUM/montage/transcripts/v<vod>_transcript.json`, `REVIEW/pack_stage.json` |
-| 1 | aperçu 1 (revue LOOK) | `murus_preview_1.yml` → Pages `/` | verdict opérateur sur blur / titre / logo |
-| 2 | aperçu 2 (revue GLOW, LUT, sous-titres, FADE) | `murus_preview_2.yml` → Pages `/preview2/` | verdict opérateur sur les quatre panneaux |
-| 3 | codex 1 signé (LOOK) | `REVIEW/codex_render.json` + `.provenance.json` | `validated_by_magos: true` |
-| 4 | codex 2 signé (POSTPROD) | `REVIEW/codex_postprod.json` + `.provenance.json` | `validated_by_magos: true` |
+| 1 | **revue 1 — LOOK** | `murus_preview_1.yml` → Pages `/` | verdict opérateur : blur, titre, logo, watermark |
+| 2 | **codex 1 signé (LOOK)** | export de la revue 1 → `REVIEW/codex_render.json` + `.provenance.json` | `validated_by_magos: true` |
+| 3 | **revue 2 — POSTPROD** | `murus_preview_2.yml` → Pages `/preview2/` | verdict opérateur : glow vidéo, sous-titres, LUT, fade |
+| 4 | **codex 2 signé (POSTPROD)** | export de la revue 2 → `REVIEW/codex_postprod.json` + `.provenance.json` | `validated_by_magos: true` |
 | 5 | rendu, un job par clip | `murus_rendu.yml` | `pur_A01..A09.mp4` + `livrable-A01..A09` + `preme-pack-9-livrables` |
 | 6 | manifeste de livraison V7 | `murus_v7.yml` | `REVIEW/submissions.json` (sha256 + checklist, statut `a_poster`) |
 | 7 | l'opérateur poste | humain uniquement | vues 1 h / 24 h, payout, clôture de campagne |
+
+### Les deux revues ne sont pas optionnelles — ce sont elles qui produisent les codex
+
+Rien n'est rendu avant que **les deux revues** soient passées et que **les deux codex**
+soient signés. Les revues sont le seul endroit où un humain juge ; le codex est leur
+sortie écrite et signée, et le rendu n'est que l'exécuteur de cette signature.
+
+```
+VOD -> siège -> pack_stage.json
+                    |
+                    +-> REVUE 1  (Pages /)          LOOK    : blur, titre, logo, watermark
+                    |      +-> export + signature -> REVIEW/codex_render.json   -+
+                    |                                                          +-> G1
+                    +-> REVUE 2  (Pages /preview2/) POSTPROD: glow, sous-titres, -+
+                           +-> export + signature -> REVIEW/codex_postprod.json
+                                                    |
+                                    murus_rendu.yml -+-> 9 clips, un job chacun
+```
+
+| | revue 1 — LOOK | revue 2 — POSTPROD |
+|---|---|---|
+| workflow | `murus_preview_1.yml` | `murus_preview_2.yml` |
+| adresse | `https://gyutedy.github.io/MURUS_SANGUINIS/` | `https://gyutedy.github.io/MURUS_SANGUINIS/preview2/` |
+| ce que tu vois | le lecteur collé en haut, le panneau W1 (watermark), le panneau T1 (titre) | quatre panneaux : glow vidéo, sous-titres, LUT, fade + signature/export |
+| ce que tu décides | force du blur et partage fond/sujet, taille/place/couleurs/police du titre, watermark unique et sa place | preset de glow sur de vrais paramètres, style de sous-titres et motion mot par mot, profil de LUT et intensité, fade |
+| ce que ça signe | `codex_render.json` (`sanguinala.render.codex.v1`) | `codex_postprod.json` (`sanguinala.postprod.codex.v1`) |
+| comment c'est prouvé | porte Chromium `tests/ui_preview1.mjs` | porte Chromium `tests/ui_preview2.mjs` + `exact_frame` (vrai ffmpeg sur une image) |
+| ce que ça débloque | la moitié de G1 | l'autre moitié de G1 — le rendu ne s'ouvre qu'avec les deux |
+
+Deux revues, deux rôles, deux codex : un seul site GitHub Pages par dépôt impose la
+seconde sous `/preview2/` (déclaré EXC-M10). Un aperçu est une **revue**, pas un
+rapport : il joue toujours la vraie vidéo à côté de l'image exacte, avec des curseurs
+en direct.
 
 ### Le job par clip (la séquence réelle, 7 étapes)
 
@@ -172,9 +237,9 @@ run de rendu 45113267319 · run V7 45120117577
 
 ```bash
 gh workflow run murus_siege.yml    -f vod_url=https://www.twitch.tv/videos/2909800627
-gh workflow run murus_preview_1.yml
-gh workflow run murus_preview_2.yml
-# signer REVIEW/codex_render.json et REVIEW/codex_postprod.json (export opérateur + signature)
+gh workflow run murus_preview_1.yml   # revue 1 -> verdict LOOK -> export -> signature codex_render.json
+gh workflow run murus_preview_2.yml   # revue 2 -> verdict POSTPROD -> export -> signature codex_postprod.json
+# aucun rendu ne demarre avant que les deux codex portent validated_by_magos: true
 gh workflow run murus_rendu.yml    -f vod_url=https://www.twitch.tv/videos/2909800627 -f nb_clips=9
 gh workflow run murus_v7.yml       # run_id vide = dernier rendu réussi
 # poster les 9 clips soi-même, puis relever les vues 1 h / 24 h et le payout
