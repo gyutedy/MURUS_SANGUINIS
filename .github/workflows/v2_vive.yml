@@ -9,6 +9,11 @@ name: MURUS V2 — moteur vive (T20/T22, un job par clip)
 # jobs sont independants, aucun ne depend d'un artefact partage.
 
 on:
+  # declencheur de secours : GitHub n'indexe un workflow neuf que sur un push
+  push:
+    paths:
+      - "FR_B_CREATION/SF_12_FABRICA/vive/vive_runner.py"
+      - ".github/workflows/v2_vive.yml"
   workflow_dispatch:
     inputs:
       vod:
