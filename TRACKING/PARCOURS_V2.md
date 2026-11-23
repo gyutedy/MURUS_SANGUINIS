@@ -71,7 +71,16 @@ Prouvés hors ligne, sans réseau, par les oracles du plan :
   répond `deja_publie` avec son identifiant, aucun upload n'a lieu. Un `403
   quotaExceeded` recule (1 h → 4 h → 12 h) sans jamais retirer un créneau.
 
-### 3. Ce qui reste ATTENDU
+### 3. La passe d'élocution en CI — run `45234204559` (success)
+
+Le workflow réel a tourné sur les 9 assets : **9 titres, 0 reformulé, 9 replis**.
+Cause écrite dans le log : `pas de clé` — `NVIDIA_API_KEY` n'est pas encore posée
+comme secret du dépôt. La porte a laissé passer (c'est prévu : un titre manqué
+n'arrête pas un siège) et le ledger a enregistré le repli. Ce que ça prouve : la
+chaîne complète fonctionne : appel, refus, reprise, repli, porte, ledger. Ce que
+ça ne prouve pas : la qualité d'une reformulation réelle par le modèle.
+
+### 4. Ce qui reste ATTENDU
 
 - **T29** — le siège V2 complet sur une source réelle, avec `NVIDIA_API_KEY` et
   les trois secrets OAuth YouTube : crédits NVIDIA réellement consommés, unités
@@ -80,7 +89,7 @@ Prouvés hors ligne, sans réseau, par les oracles du plan :
   les neuf demanderait d'extraire les cinq rapports d'artefacts — c'est faisable,
   ce n'est pas fait.
 
-### 4. Les cinq portes qui peuvent refuser la voie vive
+### 5. Les cinq portes qui peuvent refuser la voie vive
 
 | porte | refuse si |
 |-------|-----------|
