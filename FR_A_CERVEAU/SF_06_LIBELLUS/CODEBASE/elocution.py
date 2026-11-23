@@ -150,7 +150,7 @@ def appeler_modele(prompt, modele, cle, timeout=90):
         "model": modele,
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.4,
-        "max_tokens": 220,
+        "max_tokens": 400,
         "stream": False,
     }
     req = urllib.request.Request(
@@ -161,7 +161,12 @@ def appeler_modele(prompt, modele, cle, timeout=90):
     )
     with urllib.request.urlopen(req, timeout=timeout) as r:
         data = json.loads(r.read().decode("utf-8", "replace"))
-    texte = (data["choices"][0]["message"]["content"] or "").strip()
+    message = data["choices"][0]["message"]
+    # Certains modeles raisonnent d'abord (reasoning_content) et laissent
+    # `content` vide si max_tokens est atteint : on lit les deux, jamais un vide.
+    texte = (message.get("content") or "").strip()
+    if not texte:
+        texte = (message.get("reasoning_content") or "").strip()
     usage = data.get("usage") or {}
     return texte, {"jetons_entree": usage.get("prompt_tokens"),
                    "jetons_sortie": usage.get("completion_tokens"),
@@ -192,7 +197,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="seconde passe des titres, re-jugée par les gabarits")
     ap.add_argument("--pack", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--model", default=os.environ.get("NVIDIA_MODEL", "meta/llama-3.1-70b-instruct"))
+    ap.add_argument("--model", default=os.environ.get("NVIDIA_MODEL", "nvidia/nemotron-3.5-bolt-e4b"))
     ap.add_argument("--tentatives", type=int, default=3)
     ap.add_argument("--delais", default="5,30,120",
                     help="secondes entre tentatives (1re, 2e, 3e) — 0,0,0 pour un test")
