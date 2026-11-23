@@ -591,9 +591,15 @@ def test_t27_rendu_un_job_par_clip():
     assert not trop, "pop-in doit graver un mot a la fois, trouve : %r" % trop[:3]
     assert ar.__dict__ and "cues_from_words" in dir(ar)
 
-    # la source doit mesurer les temps par mot (sinon tout est interpole)
-    siege = (ROOT / ".github/workflows/murus_siege.yml").read_text(encoding="utf-8")
-    assert "word_timestamps=True" in siege, "la transcription ne mesure pas les temps par mot (E-19)"
+    # la source doit mesurer les temps par mot (sinon tout est interpole).
+    # E-19 suivi jusqu'ou vit la transcription depuis V2 : le CLI versionne et le
+    # service Modal, pas un python inline dans le YAML.
+    cli_vox = (ROOT / "FR_A_CERVEAU/SF_05_VOX/CODEBASE/transcrire_vod.py").read_text(encoding="utf-8")
+    modal_svc = (ROOT / "MODAL/transcribe.py").read_text(encoding="utf-8")
+    siege_yaml = (ROOT / ".github/workflows/murus_siege.yml").read_text(encoding="utf-8")
+    assert "word_timestamps=True" in cli_vox, "le CLI de transcription ne demande pas les temps par mot (E-19)"
+    assert "word_timestamps=True" in modal_svc, "le service Modal ne demande pas les temps par mot (E-19)"
+    assert "transcrire_vod.py" in siege_yaml, "le siege n'appelle plus l'outil versionne de transcription (E-18)"
 
     # E-17 : la police est demandee par son nom lisible, le fichier a un autre nom
     sys.path.insert(0, str(ROOT / "FR_B_CREATION" / "SF_13_POLITURA" / "CODEBASE" / "caption"))

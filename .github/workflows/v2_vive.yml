@@ -47,6 +47,9 @@ jobs:
       - name: Verifier les deux codex et construire la matrice
         id: m
         run: |
+          export ASSETS="${ASSETS:-A01,A02,A03,A04,A05}"
+          export VOD="${VOD:-https://www.twitch.tv/videos/2909800627}"
+          echo "assets demandes : $ASSETS"
           python - <<'PYEOF'
           import json, os, sys
           for nom in ("codex_render.json", "codex_postprod.json"):
@@ -58,6 +61,9 @@ jobs:
           pack = json.load(open("REVIEW/pack_stage.json", encoding="utf-8"))
           ids = [a["id"] for a in pack["assets"]]
           voulus = [a.strip() for a in os.environ["ASSETS"].split(",") if a.strip()]
+          if not voulus:
+              print("::error::aucune fenetre demandee (input assets vide) : refus, pas un rendu a zero clip")
+              raise SystemExit(1)
           absents = [a for a in voulus if a not in ids]
           if absents:
               print("::error::fenetres absentes du pack : %s" % absents)
@@ -103,6 +109,8 @@ jobs:
           ID: ${{ matrix.clip.id }}
         run: |
           mkdir -p /tmp/work
+          export VOD="${VOD:-https://www.twitch.tv/videos/2909800627}"
+          echo "source : $VOD"
           python FR_B_CREATION/SF_12_FABRICA/vive/vive_runner.py \
             --pack REVIEW/pack_stage.json \
             --vod "$VOD" \
@@ -118,6 +126,9 @@ jobs:
         env:
           ID: ${{ matrix.clip.id }}
         run: |
+          export ASSETS="${ASSETS:-A01,A02,A03,A04,A05}"
+          export VOD="${VOD:-https://www.twitch.tv/videos/2909800627}"
+          echo "assets demandes : $ASSETS"
           python - <<'PYEOF'
           import json, os, sys
           ident = os.environ["ID"]
@@ -158,6 +169,9 @@ jobs:
         env:
           ID: ${{ matrix.clip.id }}
         run: |
+          export ASSETS="${ASSETS:-A01,A02,A03,A04,A05}"
+          export VOD="${VOD:-https://www.twitch.tv/videos/2909800627}"
+          echo "assets demandes : $ASSETS"
           python - <<'PYEOF'
           import json, os, sys
           ident = os.environ["ID"]

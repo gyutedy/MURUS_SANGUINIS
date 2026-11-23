@@ -44,6 +44,11 @@ on:
         required: false
         default: 'base.en'
         type: string
+      transcription_chunks:
+        description: 'Morceaux = VM Modal en parallèle (1 = série; 8 = huit conteneurs)'
+        required: false
+        default: '8'
+        type: string
       max_minutes:
         description: 'Fenêtre max de la VOD transcrite (minutes)'
         required: false
@@ -88,7 +93,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip
-          pip install yt-dlp faster-whisper
+          pip install yt-dlp faster-whisper modal
 
       - name: Télécharger l'audio de la VOD
         if: steps.deja.outputs.skip != '1'
@@ -109,62 +114,29 @@ jobs:
           ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 /tmp/vod/audio.wav | \
             awk '{printf "durée transcrite: %.1f min\n", $1/60}'
 
-      - name: Transcrire (faster-whisper CPU) -> format ARCHIVUM
+      - name: Transcrire (Modal fan-out multi-VM, repli CPU declare) -> format ARCHIVUM
         if: steps.deja.outputs.skip != '1'
         env:
           VOD_URL: ${{ inputs.vod_url }}
           MODEL: ${{ inputs.whisper_model }}
+          CHUNKS: ${{ inputs.transcription_chunks }}
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
         run: |
-          python - << 'PYEOF'
-          import json, os, re
-          from pathlib import Path
-          from faster_whisper import WhisperModel
-
-          vod_url = os.environ["VOD_URL"]
-          model_name = os.environ["MODEL"]
-          m = re.search(r"/videos?/(\d{6,})", vod_url)
-          vid = m.group(1) if m else "unknown"
-
-          model = WhisperModel(model_name, device="cpu", compute_type="int8")
-          segments, info = model.transcribe(
-              "/tmp/vod/audio.wav", language="en", vad_filter=True,
-              word_timestamps=True,
-              vad_parameters={"min_silence_duration_ms": 500})
-
-          segs, texts = [], []
-          for s in segments:
-              txt = (s.text or "").strip()
-              if not txt:
-                  continue
-              mots = [{"word": (w.word or "").strip(),
-                       "start": round(float(w.start), 2),
-                       "end": round(float(w.end), 2)}
-                      for w in (getattr(s, "words", None) or []) if (w.word or "").strip()]
-              segs.append({"start": round(float(s.start), 2), "text": txt,
-                           "duration": round(float(s.end - s.start), 2),
-                           "words": mots})
-              texts.append(txt)
-          doc = {
-              "video_id": vid,
-              "vod_url": vod_url,
-              "title": "PREME VOD %s" % vid,
-              "duration": round(float(getattr(info, "duration", 0.0) or 0.0), 2),
-              "language": getattr(info, "language", "en"),
-              "transcription_mode": "faster-whisper:%s:cpu" % model_name,
-              "transcript": {
-                  "text": " ".join(texts),
-                  "segments": segs,
-                  "status": "OK",
-                  "segment_count": len(segs),
-              },
-          }
-          dest = Path("ARCHIVUM/montage/transcripts")
-          dest.mkdir(parents=True, exist_ok=True)
-          out = dest / ("v%s_transcript.json" % vid)
-          out.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
-          print("transcript:", out, "|", len(segs), "segments |",
-                round(doc["duration"] / 60, 1), "min | langue", doc["language"])
-          PYEOF
+          VID=$(echo "$VOD_URL" | grep -oE '[0-9]{6,}' | head -1)
+          mkdir -p ARCHIVUM/montage/transcripts
+          if [ -z "${MODAL_TOKEN_ID}" ]; then
+            echo "::warning::MODAL_TOKEN_ID absent — la transcription retombe en CPU et le rapport le dira"
+          fi
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/transcrire_vod.py \
+            --vod /tmp/vod/audio.wav \
+            --out "ARCHIVUM/montage/transcripts/v${VID}_transcript.json" \
+            --chunks "${CHUNKS}" \
+            --model "${MODEL}" \
+            --language en \
+            --max-minutes "${{ inputs.max_minutes }}" \
+            --report "/tmp/transcription_report.json"
+          cp /tmp/transcription_report.json "ARCHIVUM/montage/transcripts/v${VID}_transcription_report.json"
 
       - name: Committer le transcript dans ARCHIVUM
         if: steps.deja.outputs.skip != '1'
