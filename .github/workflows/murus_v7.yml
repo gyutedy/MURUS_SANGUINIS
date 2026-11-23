@@ -1,0 +1,147 @@
+name: MURUS — V7 LIVRAISON (manifeste de soumission + porte qa_pass)
+
+# V7 / SF_16_MISSIO
+# ---------------
+# Ce workflow ne poste RIEN. Le projet ne poste jamais : il prepare le
+# manifeste exact des livrables, verifie la porte qa_pass, et laisse
+# l'operateur poster. Doctrine : le projet demande, l'operateur decide.
+#
+# Entree : l'identifiant du run de rendu (ou vide = le dernier reussi).
+# Sortie : REVIEW/submissions.json  +  REVIEW/render/v7_report.json (commites)
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Run de rendu a livrer (vide = dernier run de rendu reussi)'
+        required: false
+        default: ''
+        type: string
+      compte:
+        description: 'Compte qui postera (slug libre, ex: clip_main)'
+        required: false
+        default: 'clip_main'
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: murus-v7-livraison
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  manifeste:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resoudre le run de rendu
+        id: run
+        run: |
+          RID="${{ github.event.inputs.run_id }}"
+          if [ -z "$RID" ]; then
+            RID=$(curl -sS -H "Authorization: token $GH_TOKEN" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/murus_rendu.yml/runs?status=success&per_page=1" \
+              | python -c "import json,sys; r=json.load(sys.stdin)['workflow_runs']; print(r[0]['id'] if r else '')")
+          fi
+          if [ -z "$RID" ]; then echo "::error::aucun run de rendu reussi"; exit 1; fi
+          echo "run=$RID" >> "$GITHUB_OUTPUT"
+          echo "run de rendu : $RID"
+
+      - name: Telecharger les livrables de ce run
+        run: |
+          mkdir -p /tmp/v7
+          gh run download "${{ steps.run.outputs.run }}" --pattern 'livrable-*' --dir /tmp/v7
+          find /tmp/v7 -name '*.mp4' | sort
+
+      - name: PORTE V7 — aucun livrable sans qa_pass
+        run: |
+          mkdir -p FR_B_CREATION/SF_14_CAMOUFLAGE/OUT FR_B_CREATION/SF_15_LUTHER/OUT
+          cp REVIEW/render/camouflage_batch_report.json FR_B_CREATION/SF_14_CAMOUFLAGE/OUT/camouflage_batch_report.json
+          cp REVIEW/render/luther_batch_report.json FR_B_CREATION/SF_15_LUTHER/OUT/luther_batch_report.json
+          python - << 'PYEOF'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "FR_B_CREATION")
+          from GATES.gates_b import gate_v7_refuses_sale_livrable
+          ok, motif = gate_v7_refuses_sale_livrable()
+          print("PORTE V7 :", ok, "|", motif)
+          if not ok:
+              print("::error::V7 REFUSE :", motif)
+              raise SystemExit(1)
+          PYEOF
+
+      - name: Ecrire le manifeste de soumission (le projet demande, l'operateur poste)
+        env:
+          COMPTE: ${{ github.event.inputs.compte }}
+          RUN_ID: ${{ steps.run.outputs.run }}
+        run: |
+          python - << 'PYEOF'
+          import hashlib, json, os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          racine = Path("/tmp/v7")
+          paquets = {}
+          for f in sorted(racine.rglob("*.mp4")):
+              clip = f.name.split("_")[1] if "_" in f.name else f.stem
+              sha = hashlib.sha256(f.read_bytes()).hexdigest()
+              paquets[clip] = {
+                  "clip": clip,
+                  "fichier": f.name,
+                  "octets": f.stat().st_size,
+                  "sha256": sha,
+                  "etages": ["postprod", "camouflage", "luther"],
+                  "checklist": {
+                      "items": [
+                          {"id": "poster_le_clip", "fait": False},
+                          {"id": "soumettre_whop_sous_1h", "deadline_min": 60, "fait": False},
+                          {"id": "releve_vues_1h_24h", "fait": False},
+                      ]
+                  },
+                  "statut": "a_poster",
+              }
+
+          pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
+          doc = {
+              "schema_version": "murus.submissions.v1",
+              "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "pack_token": pack.get("pack_token"),
+              "run_de_rendu": os.environ.get("RUN_ID"),
+              "compte": os.environ.get("COMPTE") or "clip_main",
+              "nb_demande": len(pack.get("assets") or []),
+              "nb_livrable": len(paquets),
+              "regle": "le projet ne poste jamais : chaque clip attend la main de l'operateur",
+              "clips": [paquets[k] for k in sorted(paquets)],
+          }
+          Path("REVIEW").mkdir(parents=True, exist_ok=True)
+          Path("REVIEW/submissions.json").write_text(
+              json.dumps(doc, indent=2, ensure_ascii=False) + chr(10), encoding="utf-8")
+          print(json.dumps({"nb_demande": doc["nb_demande"], "nb_livrable": doc["nb_livrable"],
+                            "clips": [c["clip"] for c in doc["clips"]]}, ensure_ascii=False))
+          if doc["nb_livrable"] != doc["nb_demande"]:
+              print("::error::livrables incomplets : %d/%d" % (doc["nb_livrable"], doc["nb_demande"]))
+              raise SystemExit(1)
+          PYEOF
+
+      - name: Publier le manifeste (artefact + commit)
+        run: |
+          git config user.name "murus-bot"
+          git config user.email "murus-bot@users.noreply.github.com"
+          git add -f REVIEW/submissions.json
+          if git diff --cached --quiet; then echo "manifeste inchange"; exit 0; fi
+          git commit -m "[V7] manifeste de soumission (9 livrables, sha256, checklist operateur)"
+          for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin main && exit 0; sleep 6; done
+          echo "::warning::manifeste non pousse (course git)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v7-manifeste-soumission
+          path: REVIEW/submissions.json
+          retention-days: 30

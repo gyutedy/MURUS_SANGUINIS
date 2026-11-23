@@ -631,3 +631,17 @@ if __name__ == "__main__":
                 print(f"ERROR {name} : {type(e).__name__}: {e}")
     print(f"\n{'TOUTES LES PORTES SONT VERTES' if fails == 0 else f'{fails} ECHEC(S)'}")
     sys.exit(1 if fails else 0)
+
+
+def test_t28_v7_manifeste_de_soumission():
+    """V7 : le projet prepare la soumission, il ne poste JAMAIS."""
+    w = (ROOT / ".github/workflows/murus_v7.yml").read_text(encoding="utf-8")
+    assert "gate_v7_refuses_sale_livrable" in w, "V7 sans porte qa_pass"
+    assert "murus.submissions.v1" in w, "aucun manifeste de soumission"
+    assert "sha256" in w, "les livrables ne sont pas identifies (sha256)"
+    assert "submissions.json" in w, "manifeste non ecrit"
+    assert "a_poster" in w, "le manifeste ne declare pas que l'operateur doit poster"
+    for interdit in ("--post", "auto-post", "curl -X POST https://whop", "youtube.com/upload"):
+        assert interdit not in w, "V7 poste tout seul : %s" % interdit
+    assert "jamais" in w or "ne poste jamais" in w, "la regle 'le projet ne poste jamais' n'est pas ecrite"
+
