@@ -39,6 +39,9 @@ jobs:
         run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
       - name: Run tests/test_murus.py
         run: python tests/test_murus.py
+
+      - name: Run tests/test_murus_v2.py (portes T20-T22, V2)
+        run: python tests/test_murus_v2.py
       - name: Consigner la sortie réelle dans TRACKING/MURUS_LOG.md
         if: always()
         run: |

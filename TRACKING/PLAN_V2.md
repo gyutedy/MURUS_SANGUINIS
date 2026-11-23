@@ -102,14 +102,20 @@ double avec ceux de SF_13.
 1. lire `REVIEW/pack_stage.json` et les deux codex **signés** (refus si
    `validated_by_magos != true` — G1 s'applique identiquement aux deux moteurs) ;
 2. démarrer le vendor headless (`sys.executable app.py`, `NEONCLIPPING_PORT`) ;
-3. `POST /make` avec `moments` = `[{start,end} pour chaque asset]`,
-   `mode: "fast"`, `count = len(assets)`, `min_len`/`max_len` = bornes du pack ;
+3. **amendement A-1 (ERRATA E-20)** : `POST /export` par fenêtre signée, et non
+   `POST /make` — le code réel de `/make` grave les sous-titres en dur
+   (`'captions':True`) et re-score des moments déjà décidés. `/export` accepte
+   `captions:false`, donc notre pile reste la seule à graver quoi que ce soit ;
 4. sonder `GET /make/{job}` jusqu'à `status` terminal, **timeout dur** ;
 5. collecter les MP4 vers `vive/OUT/`, nommage `pur_<id>.mp4` (E-1 : le nom que
    SF_13 attend) ;
 6. écrire `vive/REVIEW/vive_report.json` : job id, durée par clip, nombre de
    clips demandés/obtenus, **toute passe non appliquée nommée** ;
 7. tuer le serveur (SIGTERM) même en cas d'erreur.
+
+**Amendement A-1** : la source est déposée une fois dans `NEONCLIPPING_DATA_DIR`,
+puis une requête `/export` par fenêtre. Les `.css`/titres du moteur ne sont jamais
+atteints ; la géométrie (`layout`, `top`, `cam`, `game`) est transmise telle quelle.
 
 **Oracle T20** : 5 clips rendus, zéro appel Ollama (`grep -ci ollama` sur le log
 `/make` = 0), aucun navigateur lancé, `vive/OUT/` contient les 5 clips, titres

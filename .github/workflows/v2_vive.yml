@@ -1,0 +1,275 @@
+name: MURUS V2 — moteur vive (T20/T22, un job par clip)
+
+# Ce workflow est la PREUVE de l'etape 2 du PLAN_V2 : le moteur vive coupe des
+# fenetres deja signees, sans LLM, sans navigateur, sans machine locale ; puis le
+# clip subit EXACTEMENT la purgue de V1 (SF_14 puis SF_15) — T22.
+#
+# Cout declare : chaque job telecharge la source (une VOD de 30 min pese
+# plusieurs centaines de Mo). C'est le prix de la regle "un job par clip" : les
+# jobs sont independants, aucun ne depend d'un artefact partage.
+
+on:
+  workflow_dispatch:
+    inputs:
+      vod:
+        description: "Source (url de VOD ou fichier du depot)"
+        required: true
+        default: "https://www.twitch.tv/videos/2909800627"
+      assets:
+        description: "Fenetres a couper (ids du pack)"
+        required: true
+        default: "A01,A02,A03,A04,A05"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: v2-vive-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  VOD: ${{ inputs.vod }}
+  ASSETS: ${{ inputs.assets }}
+
+jobs:
+  porte:
+    name: G1 — codex signes + pack lisible
+    runs-on: ubuntu-latest
+    outputs:
+      matrice: ${{ steps.m.outputs.matrice }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verifier les deux codex et construire la matrice
+        id: m
+        run: |
+          python - <<'PYEOF'
+          import json, os, sys
+          for nom in ("codex_render.json", "codex_postprod.json"):
+              d = json.load(open("REVIEW/" + nom, encoding="utf-8"))
+              if d.get("validated_by_magos") is not True:
+                  print("::error::G1 REFUS : %s n'est pas signe" % nom)
+                  raise SystemExit(1)
+              print("G1 %s : signe (pack %s)" % (nom, d.get("pack_token")))
+          pack = json.load(open("REVIEW/pack_stage.json", encoding="utf-8"))
+          ids = [a["id"] for a in pack["assets"]]
+          voulus = [a.strip() for a in os.environ["ASSETS"].split(",") if a.strip()]
+          absents = [a for a in voulus if a not in ids]
+          if absents:
+              print("::error::fenetres absentes du pack : %s" % absents)
+              raise SystemExit(1)
+          matrice = json.dumps({"clip": [{"id": a} for a in voulus]})
+          print("matrice : %s" % matrice)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write("matrice=" + matrice + "\n")
+          PYEOF
+          echo "GATE G1 : True"
+
+  vive:
+    name: vive ${{ matrix.clip.id }} — coupe, camouflage, luther
+    needs: porte
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.porte.outputs.matrice) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Outils systeme
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          ffmpeg -version | head -1
+
+      - name: Dependances du moteur vendé
+        run: |
+          python -m pip install -q --upgrade pip
+          python -m pip install -q fastapi "uvicorn>=0.30" python-multipart yt-dlp numpy Pillow opencv-python-headless
+
+      - name: Contrat du moteur (selfcheck, sans reseau)
+        run: python FR_B_CREATION/SF_12_FABRICA/vive/vive_runner.py --selfcheck
+
+      - name: 2. COUPE (moteur vive, headless, sans LLM)
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          mkdir -p /tmp/work
+          python FR_B_CREATION/SF_12_FABRICA/vive/vive_runner.py \
+            --pack REVIEW/pack_stage.json \
+            --vod "$VOD" \
+            --codex-render REVIEW/codex_render.json \
+            --codex-postprod REVIEW/codex_postprod.json \
+            --assets "$ID" \
+            --out /tmp/work/vive \
+            --report "/tmp/work/vive_report_${ID}.json" \
+            --timeout 1800
+          ls -la /tmp/work/vive
+
+      - name: 2b. PORTE VIVE — aucune decision, aucun LLM, aucun sous-titre du moteur
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          python - <<'PYEOF'
+          import json, os, sys
+          ident = os.environ["ID"]
+          r = json.load(open("/tmp/work/vive_report_%s.json" % ident, encoding="utf-8"))
+          d = r["doctrine"]
+          motifs = []
+          if d["llm_detecte"] and not d["derogation_llm"]:
+              motifs.append("un LLM repond : la selection doit rester sans LLM")
+          if d["navigateur_lance"]:
+              motifs.append("un navigateur a ete lance")
+          if d["sous_titres_du_moteur"]:
+              motifs.append("le moteur a grave des sous-titres (SF_13 les grave)")
+          if d["titre_grave_par_le_moteur"]:
+              motifs.append("le moteur a grave un titre (D-5)")
+          if r["rendus"] != 1 or len(r["clips"]) != 1:
+              motifs.append("aucun clip rendu (%d/%d)" % (r["rendus"], r["demande"]))
+          if not r["mapping"]["ecarts"]:
+              motifs.append("aucun ecart declare : le mapping est muet, donc faux")
+          if motifs:
+              for m in motifs:
+                  print("::error::PORTE VIVE REFUS %s : %s" % (ident, m))
+              raise SystemExit(1)
+          c = r["clips"][0]
+          print("PORTE VIVE %s : ok (%s, %.1f Mo, %ss moteur)" % (ident, c["fichier"], c["octets"] / 1e6, c["secondes_moteur"]))
+          PYEOF
+
+      - name: 6. CAMOUFLAGE (SF_14) — seul re-encodeur, H.264 yuv420p, faststart, loudnorm
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          mkdir -p "/tmp/work/cam/${ID}" "/tmp/work/livre/${ID}"
+          python FR_B_CREATION/SF_14_CAMOUFLAGE/CODEBASE/lac_f05_camouflage.py \
+            --input "/tmp/work/vive/pur_${ID}.mp4" \
+            --output "/tmp/work/cam/${ID}"
+          mv "/tmp/work/cam/${ID}/short_camouflaged.mp4" "/tmp/work/cam/${ID}/pur_${ID}_cam.mp4"
+
+      - name: 6b. PORTE qa_pass — un clip non purgé ne sort pas
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          python - <<'PYEOF'
+          import json, os, sys
+          ident = os.environ["ID"]
+          r = json.load(open("/tmp/work/cam/%s/camouflage_report.json" % ident, encoding="utf-8"))
+          if r.get("qa_pass") is not True:
+              print("::error::CAMOUFLAGE REFUS %s : qa_pass faux — codec=%s, tags residuels=%s"
+                    % (ident, (r.get("after") or {}).get("video_codec"), r.get("suspicious_tags_after")))
+              raise SystemExit(1)
+          print("CAMOUFLAGE %s : qa_pass true (%s)" % (ident, (r.get("after") or {}).get("video_codec")))
+          PYEOF
+
+      - name: 7. LUTHER (SF_15) — metadonnees retirees, stream copy, livrable
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          python FR_B_CREATION/SF_15_LUTHER/CODEBASE/lac_f06_luther.py \
+            --input "/tmp/work/cam/${ID}/pur_${ID}_cam.mp4" \
+            --output "/tmp/work/livre/${ID}"
+          mv "/tmp/work/livre/${ID}/short_master.mp4" "/tmp/work/livre/${ID}/pur_${ID}_LIVRABLE.mp4"
+          ls -la "/tmp/work/livre/${ID}"
+
+      - name: 7b. Preuves dans un chemin commitables (E-15) et rapport du clip
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          mkdir -p REVIEW/render/vive
+          cp "/tmp/work/cam/${ID}/camouflage_report.json" "REVIEW/render/vive/camouflage_${ID}.json"
+          cp "/tmp/work/vive_report_${ID}.json" "REVIEW/render/vive/vive_${ID}.json"
+          cp "/tmp/work/livre/${ID}/luther_report.json" "REVIEW/render/vive/luther_${ID}.json" || true
+          ls -la REVIEW/render/vive
+
+      - name: Publier les etapes intermediaires (diagnostic)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vive-etapes-${{ matrix.clip.id }}
+          path: /tmp/work
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Publier LE LIVRABLE vive de ce clip (telechargeable seul)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: livrable-vive-${{ matrix.clip.id }}
+          path: /tmp/work/livre/${{ matrix.clip.id }}
+          if-no-files-found: error
+          retention-days: 30
+
+  assemble:
+    name: assemble — rapports de la voie vive
+    needs: [porte, vive]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: livrable-vive-*
+          path: /tmp/livrables
+          merge-multiple: false
+
+      - name: Construire le rapport de voie et le pack
+        run: |
+          python - <<'PYEOF'
+          import json, os
+          from pathlib import Path
+          base = Path("/tmp/livrables")
+          clips, total = [], 0
+          for d in sorted(base.glob("livrable-vive-*")):
+              mp4 = sorted(d.glob("*.mp4"))
+              if not mp4:
+                  continue
+              p = mp4[0]
+              clips.append({"id": d.name.split("livrable-vive-")[-1], "fichier": p.name,
+                            "octets": p.stat().st_size})
+              total += p.stat().st_size
+          rapport = {"schema": "murus.vive_batch.v1", "voie": "vive",
+                     "moteur": "neonclipping vendé (MIT, commit 0525004)",
+                     "clips": clips, "nb_livrable": len(clips), "octets_total": total}
+          Path("REVIEW/render/vive_batch_report.json").write_text(
+              json.dumps(rapport, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps({"nb_livrable": len(clips), "Mo": round(total / 1e6, 1)}, ensure_ascii=False))
+          PYEOF
+          cd /tmp/livrables && zip -qr /tmp/vive-pack.zip . && ls -la /tmp/vive-pack.zip
+
+      - name: Publier le pack de la voie vive
+        uses: actions/upload-artifact@v4
+        with:
+          name: preme-pack-vive
+          path: /tmp/vive-pack.zip
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Committer les preuves (jamais bloquant — E-14)
+        continue-on-error: true
+        run: |
+          git config user.name "murus-v2"
+          git config user.email "murus-v2@users.noreply.github.com"
+          git add -f REVIEW/render/vive REVIEW/render/vive_batch_report.json
+          if git diff --cached --quiet; then
+            echo "aucune preuve nouvelle"
+            exit 0
+          fi
+          git commit -m "V2 vive: preuves de la voie vive (T20/T22)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase --autostash && git push; then
+              echo "preuves poussees"
+              exit 0
+            fi
+            sleep $((i * 5))
+          done
+          echo "::warning::preuves non poussees (course git) — les artefacts restent la verite"
