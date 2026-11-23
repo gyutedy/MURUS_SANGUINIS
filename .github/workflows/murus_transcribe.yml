@@ -35,8 +35,7 @@ jobs:
           pip install --upgrade pip
           pip install yt-dlp modal fastapi python-multipart
 
-      - name: Deploy Modal transcription service (pillé F00B_VOX/MODAL)
-        working-directory: FR_A_CERVEAU/SF_04_SELECTIO/CODEBASE
+      - name: Deploy Modal transcription service (F00B_VOX/MODAL -> MODAL/transcribe.py)
         env:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
@@ -58,27 +57,36 @@ jobs:
           fi
           echo "MODAL_URL=$URL" >> "$GITHUB_ENV"
 
-      - name: Run SF_05_VOX (transcription via Modal)
+      - name: Transcrire en FAN-OUT (8 morceaux = 8 VM Modal en parallele)
         env:
-          MODAL_URL: ${{ env.MODAL_URL }}
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
           VOD_URL: ${{ inputs.vod_url }}
-          NB_CLIPS: ${{ inputs.nb_clips }}
         run: |
-          mkdir -p FR_A_CERVEAU/SF_05_VOX/IN FR_A_CERVEAU/SF_05_VOX/OUT
-          jq -n --arg url "$VOD_URL" --argjson n "$NB_CLIPS" \
-            '{vod_urls:[{url:$url}], nb_clips_demandes:$n}' \
-            > FR_A_CERVEAU/SF_05_VOX/IN/vox_input.json
-          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/vox.py --profile vod
+          VODID=$(echo "$VOD_URL" | grep -oE '[0-9]{6,}' | head -1)
+          mkdir -p ARCHIVUM/montage/transcripts
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/transcrire_vod.py \
+            --vod "$VOD_URL" \
+            --out "ARCHIVUM/montage/transcripts/v${VODID}_transcript.json" \
+            --chunks 8 \
+            --model small.en \
+            --language en \
+            --max-minutes 180 \
+            --report "ARCHIVUM/montage/transcripts/v${VODID}_transcription_report.json" \
+            | tee /tmp/fanout.json
+          echo "--- rapport ---"
+          cat "ARCHIVUM/montage/transcripts/v${VODID}_transcription_report.json"
 
       - name: Commit transcript to ARCHIVUM
         run: |
           VODID=$(echo "${{ inputs.vod_url }}" | grep -oE '[0-9]{6,}' | head -1)
           mkdir -p ARCHIVUM/montage/transcripts
-          [ -f FR_A_CERVEAU/SF_05_VOX/OUT/transcript.json ] && \
-            cp FR_A_CERVEAU/SF_05_VOX/OUT/transcript.json "ARCHIVUM/montage/transcripts/v${VODID}_transcript.json" \
-            || echo "no transcript"
+          if [ ! -f "ARCHIVUM/montage/transcripts/v${VODID}_transcript.json" ]; then
+            echo "::error::aucun transcript produit — une transcription absente ne se maquille pas en succes"
+            exit 1
+          fi
           git config user.name "MurusVox"
           git config user.email "vox@murus.sanguinis"
           git add ARCHIVUM/montage/transcripts
-          git commit -m "[SF_05_VOX] transcript v${VODID} (Modal GPU)" || echo "nothing to commit"
+          git commit -m "[SF_05_VOX] transcript v${VODID} (Modal fan-out, 8 VM)" || echo "nothing to commit"
           for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin main && exit 0; echo "push rejete, tentative $i"; sleep 6; done; echo "::warning::push impossible apres 5 tentatives" || echo "push failed"
