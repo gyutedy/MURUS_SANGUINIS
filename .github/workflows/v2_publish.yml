@@ -1,0 +1,22 @@
+name: MURUS V2 — publication programmee (NON IMPLEMENTE)
+
+# PLACEHOLDER DECLARE — PLAN_V2.md etape 7.
+# Ce workflow n'est pas encore ecrit. Il refuse bruyamment au lieu de ne rien
+# faire : un fichier vide dans .github/workflows/ est un workflow invalide, et
+# un workflow qui ne fait rien est un mensonge. Tant que l'etape 7 n'est pas
+# livree et verte, ce bouton echoue avec le motif exact.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  non_implemente:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refus declare
+        run: |
+          echo "::error::SF_17_PROGRAMMA n'est pas encore implemente — voir TRACKING/PLAN_V2.md etape 7 (programma.py + T25/T26/T27/T28)"
+          exit 1

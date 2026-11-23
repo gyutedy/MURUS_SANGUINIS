@@ -1,0 +1,20 @@
+name: MURUS V2 — elocution (NON IMPLEMENTE)
+
+# PLACEHOLDER DECLARE — PLAN_V2.md etape 5.
+# La passe d'elocution NVIDIA (SF_06, second temps) n'est pas encore ecrite.
+# Le workflow refuse bruyamment avec le motif exact.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  non_implemente:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refus declare
+        run: |
+          echo "::error::elocution.py n'est pas encore implemente — voir TRACKING/PLAN_V2.md etape 5 (T23/T24)"
+          exit 1
