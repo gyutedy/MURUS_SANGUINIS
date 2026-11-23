@@ -578,7 +578,7 @@ def test_t27_rendu_un_job_par_clip():
     assert ts.slice_transcript([{"text": "x", "start": 0.0, "end": 1.0}], 100.0, 130.0) == []
     refus = subprocess.run(
         [sys.executable, str(ROOT / "FR_B_CREATION" / "SF_13_POLITURA" / "CODEBASE" / "caption" / "transcript_slice.py"),
-         "--transcript", str(source), "--start", "100", "--end", "130", "--out", "/tmp/rien.json"],
+         "--transcript", str(source), "--start", "99999", "--end", "100029", "--out", "/tmp/rien.json"],
         capture_output=True, text=True)
     assert refus.returncode == 1, "un silence doit etre refuse explicitement (code 1)"
 
