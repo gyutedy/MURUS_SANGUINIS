@@ -7,6 +7,13 @@ Cahier des charges : `MURUS_SANGUINIS_CDC_V1.html` (auto-suffisant, fait foi).
 > Pack `70f120a8`, 9 clips demandés, 9 livrés, `all_qa_pass = true` des deux côtés,
 > `PORTE V7 : True`. Ce guide est en EN + FR et la CI vérifie qu'il ne dérive pas.
 
+## État des branches
+
+| branche | état | référence |
+|---------|------|-----------|
+| `main` | **V1 exécutée et mesurée** — 29 portes, pack `70f120a8`, 9/9 livrés, `PORTE V7 : True` | `TRACKING/PARCOURS_REEL.md` |
+| `v2` | **assemblage en cours** — deux moteurs (premium + vive), une voix (élocution), un calendrier (publication programmée). Merge vers `main` **interdit** tant que T20–T29 ne sont pas verts | `TRACKING/PLAN_V2.md` + `CDC/MURUS_SANGUINIS_CDC_V2.html` |
+
 ## Doctrine (intangible)
 
 - **FR_A_CERVEAU ne touche JAMAIS une vidéo** — elle produit des packs JSON dans `EXPORT/`

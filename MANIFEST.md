@@ -83,3 +83,21 @@ numérotation, SF_01/SF_08/SF_16 (composites) et le nom.
 | `REVIEW/render/*_batch_report.json` | preuves `qa_pass` commitées (E-15) |
 | `REVIEW/submissions.json` | manifeste V7 : sha256, checklist, statut `a_poster` |
 | `TRACKING/PARCOURS_REEL.md` | le parcours réel, EN + FR, opposable |
+
+## Branche v2 — l'assemblage (deux moteurs, une voix, un calendrier)
+
+Créée depuis `main` (= V1, 28 portes vertes). Aucun fichier de V1 n'est supprimé.
+
+| ajout | rôle | étiquette |
+|-------|------|-----------|
+| `CDC/MURUS_SANGUINIS_CDC_V2.html` | le cahier des charges V2, dans le dépôt | CRÉÉ (V2) |
+| `TRACKING/PLAN_V2.md` | plan d'implémentation opposable, 10 étapes, oracles T20–T29 | CRÉÉ (V2) |
+| `FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/` | moteur vive figé (MIT, commit `0525004`) — 112 fichiers, code + tests + modèle ONNX | PILLÉ (NeonClipping) |
+| `FR_B_CREATION/SF_12_FABRICA/vive/VENDOR.md` | provenance, exclusions déclarées, interface réelle du moteur | CRÉÉ (V2) |
+| `FR_B_CREATION/SF_12_FABRICA/vive/vive_runner.py` | wrapper headless (`POST /make` + sondage + collecte) | CRÉÉ (V2) |
+| `FR_A_CERVEAU/SF_06_LIBELLUS/CODEBASE/elocution.py` | 2e temps des métadonnées (NVIDIA NIM, re-jugé par les gabarits) | CRÉÉ (V2) |
+| `FR_B_CREATION/SF_17_PROGRAMMA/` | publication programmée YouTube (calendrier 4–10 h, `publishAt`) | CRÉÉ (V2) |
+| `.github/workflows/v2_publish.yml` | cron de publication (dry-run par défaut) | CRÉÉ (V2) |
+| `.github/workflows/v2_elocution.yml` | passe d'élocution dans le siège | CRÉÉ (V2) |
+| `tests/test_murus_v2.py` | T20–T29, un oracle par test | CRÉÉ (V2) |
+

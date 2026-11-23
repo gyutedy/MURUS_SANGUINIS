@@ -15,6 +15,8 @@
 | `CODEX_SIGNES.md` | Registre des codex signés (LOOK = signé, POSTPROD = en attente) avec pack_token, paramètres et provenance. |
 | `PREVIEWS_ROLES.md` | Quel panneau appartient à quelle preview, et quel codex chacune signe. |
 | `PARCOURS_REEL.md` | **Le parcours réellement exécuté** (EN + FR) : les 7 étapes, les 5 workflows, les portes, les chiffres du run `45113267319`, et les limites avouées. |
+| `PLAN_V2.md` | Plan d'implementation de la branche `v2` : 10 etapes, conditions de refus, oracles T20–T29. |
+| `../CDC/MURUS_SANGUINIS_CDC_V2.html` | Le cahier des charges V2, lu dans le depot et non dans une conversation. |
 | `ERRATA.md` | Les erreurs déjà payées : ne pas les repayer (nommage, YAML, lecteur noir, provenance). |
 | `LES_EXCEPTIONS.md` | Toute dérogation à la doctrine, nommée, avec son grep (EXC-M1 → EXC-M12). |
 | `../ARCHIVUM/demande/README.md` | Le mécanisme de demande : le projet demande, l'opérateur répond, le projet trace. |
