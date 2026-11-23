@@ -163,3 +163,52 @@ async def transcribe(request: Request):
                 os.remove(tmp_path)
             except OSError:
                 pass
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Mode FAN-OUT (plusieurs VM en parallèle) — V2
+# ─────────────────────────────────────────────────────────────────────────────
+# Le même service, appelé comme une FONCTION et non plus comme une URL : le
+# client envoie N morceaux, Modal alloue jusqu'à `concurrency_limit` conteneurs
+# simultanés et les traite en parallèle. Chaque morceau connaît son `offset`
+# global : les mots renvoyés sont donc déjà en temps VOD, aucune reprise de
+# calcul côté client. C'est ce que `FR_A_CERVEAU/SF_05_VOX/CODEBASE/
+# transcrire_vod.py` appelle. Aucun secret ici : le token Modal vit hors dépôt.
+@app.function(image=image, timeout=3600, concurrency_limit=20, **_GPU_KWARGS)
+def transcribe_chunk(data: bytes, offset: float = 0.0, language: str | None = None) -> dict:
+    """Transcrit UN morceau d'audio et rend ses mots en temps global (offset)."""
+    import tempfile
+
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".m4a", delete=False) as f:
+            f.write(data)
+            tmp_path = f.name
+        model = _get_model()
+        segments, info = model.transcribe(
+            tmp_path,
+            language=language or None,
+            word_timestamps=True,
+            beam_size=5,
+            vad_filter=True,
+        )
+        words = []
+        for seg in segments:
+            for w in getattr(seg, "words", None) or []:
+                words.append({
+                    "word": w.word,
+                    "start": round(w.start + offset, 3),
+                    "end": round(w.end + offset, 3),
+                })
+        return {
+            "words": words,
+            "language": getattr(info, "language", language),
+            "offset": offset,
+            "container": os.environ.get("MODAL_TASK_ID", ""),
+        }
+    finally:
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
