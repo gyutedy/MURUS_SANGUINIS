@@ -1,0 +1,232 @@
+{
+  "schema": "murus.elocution.v1",
+  "pack_token": "70f120a8",
+  "modele": null,
+  "cle_presente": false,
+  "replay": false,
+  "assets": 9,
+  "elocutions": 0,
+  "replis": 9,
+  "budget_epuise": false,
+  "secondes_totales": 315.0,
+  "jetons_total": 0,
+  "regle": "le LLM ne décide jamais : sa sortie est re-jugée par les gabarits du dépôt",
+  "titres": [
+    {
+      "id": "A01",
+      "titre": "us today too",
+      "metadata_title": "Preme Probably, like, I don't know, 30, 45 minutes",
+      "titre_gabarit": "us today too",
+      "source": "gabarit",
+      "essais": 3,
+      "elocution_fallback": true,
+      "jetons": 0,
+      "verdicts": [
+        {
+          "essai": 1,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 2,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 3,
+          "erreur": "pas de clé"
+        }
+      ]
+    },
+    {
+      "id": "A02",
+      "titre": "500 million art piece",
+      "metadata_title": "Preme his family is the biggest art collector in the world",
+      "titre_gabarit": "500 million art piece",
+      "source": "gabarit",
+      "essais": 3,
+      "elocution_fallback": true,
+      "jetons": 0,
+      "verdicts": [
+        {
+          "essai": 1,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 2,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 3,
+          "erreur": "pas de clé"
+        }
+      ]
+    },
+    {
+      "id": "A03",
+      "titre": "16 year olds before",
+      "metadata_title": "Preme and we gave a truck load in 16-year-olds before you do that",
+      "titre_gabarit": "16 year olds before",
+      "source": "gabarit",
+      "essais": 3,
+      "elocution_fallback": true,
+      "jetons": 0,
+      "verdicts": [
+        {
+          "essai": 1,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 2,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 3,
+          "erreur": "pas de clé"
+        }
+      ]
+    },
+    {
+      "id": "A04",
+      "titre": "give back today",
+      "metadata_title": "Preme You said that was my great 7-8",
+      "titre_gabarit": "give back today",
+      "source": "gabarit",
+      "essais": 3,
+      "elocution_fallback": true,
+      "jetons": 0,
+      "verdicts": [
+        {
+          "essai": 1,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 2,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 3,
+          "erreur": "pas de clé"
+        }
+      ]
+    },
+    {
+      "id": "A05",
+      "titre": "day long show some",
+      "metadata_title": "Preme Next 24 hours we challenge everybody to one random act of kindness",
+      "titre_gabarit": "day long show some",
+      "source": "gabarit",
+      "essais": 3,
+      "elocution_fallback": true,
+      "jetons": 0,
+      "verdicts": [
+        {
+          "essai": 1,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 2,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 3,
+          "erreur": "pas de clé"
+        }
+      ]
+    },
+    {
+      "id": "A06",
+      "titre": "nba i'm never forget",
+      "metadata_title": "Preme Marcus Brown 23",
+      "titre_gabarit": "nba i'm never forget",
+      "source": "gabarit",
+      "essais": 3,
+      "elocution_fallback": true,
+      "jetons": 0,
+      "verdicts": [
+        {
+          "essai": 1,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 2,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 3,
+          "erreur": "pas de clé"
+        }
+      ]
+    },
+    {
+      "id": "A07",
+      "titre": "change someone's day life",
+      "metadata_title": "Preme How's your day going",
+      "titre_gabarit": "change someone's day life",
+      "source": "gabarit",
+      "essais": 3,
+      "elocution_fallback": true,
+      "jetons": 0,
+      "verdicts": [
+        {
+          "essai": 1,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 2,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 3,
+          "erreur": "pas de clé"
+        }
+      ]
+    },
+    {
+      "id": "A08",
+      "titre": "nothing else matters hard",
+      "metadata_title": "Preme Nothing else matters Hard What's your mom's name",
+      "titre_gabarit": "nothing else matters hard",
+      "source": "gabarit",
+      "essais": 3,
+      "elocution_fallback": true,
+      "jetons": 0,
+      "verdicts": [
+        {
+          "essai": 1,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 2,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 3,
+          "erreur": "pas de clé"
+        }
+      ]
+    },
+    {
+      "id": "A09",
+      "titre": "day yes that's beautiful",
+      "metadata_title": "Preme Do you like going to work with this person every day",
+      "titre_gabarit": "day yes that's beautiful",
+      "source": "gabarit",
+      "essais": 3,
+      "elocution_fallback": true,
+      "jetons": 0,
+      "verdicts": [
+        {
+          "essai": 1,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 2,
+          "erreur": "pas de clé"
+        },
+        {
+          "essai": 3,
+          "erreur": "pas de clé"
+        }
+      ]
+    }
+  ]
+}
