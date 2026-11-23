@@ -174,7 +174,7 @@ async def transcribe(request: Request):
 # global : les mots renvoyés sont donc déjà en temps VOD, aucune reprise de
 # calcul côté client. C'est ce que `FR_A_CERVEAU/SF_05_VOX/CODEBASE/
 # transcrire_vod.py` appelle. Aucun secret ici : le token Modal vit hors dépôt.
-@app.function(image=image, timeout=3600, concurrency_limit=20, **_GPU_KWARGS)
+@app.function(image=image, timeout=3600, max_containers=20, **_GPU_KWARGS)
 def transcribe_chunk(data: bytes, offset: float = 0.0, language: str | None = None) -> dict:
     """Transcrit UN morceau d'audio et rend ses mots en temps global (offset)."""
     import tempfile
