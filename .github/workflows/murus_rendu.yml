@@ -207,6 +207,17 @@ jobs:
             --entry 0
           ls -la /tmp/work/look
 
+      - name: 5a. Sous-titres - la decoupe de la transcription est faite par le depot
+        env:
+          ID: ${{ matrix.clip.id }}
+          START: ${{ matrix.clip.start }}
+          END: ${{ matrix.clip.end }}
+        run: |
+          python FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/transcript_slice.py \
+            --vod "https://www.twitch.tv/videos/2909800627"\
+            --start "$START" --end "$END" \
+            --id "$ID" --out "/tmp/work/pp/transcript_${ID}.json"
+
       - name: 5. PP2 — glow, sous-titres, lut, fade (ordre grave)
         env:
           ID: ${{ matrix.clip.id }}
@@ -217,6 +228,7 @@ jobs:
             --input "$IN" \
             --output "/tmp/work/final/pur_${ID}.mp4" \
             --codex-postprod REVIEW/codex_postprod.json \
+            --transcript "/tmp/work/pp/transcript_${ID}.json" \
             --work /tmp/work/pp \
             --report "/tmp/work/final/postprod_${ID}.json"
           ls -la /tmp/work/final || true

@@ -559,6 +559,28 @@ def test_t27_rendu_un_job_par_clip():
     assert "REVIEW/render/luther_batch_report.json" in w, "la preuve qa_pass n'est pas copiee vers REVIEW/render"
     assert "git add -f REVIEW/render/render_report.json" in w, "les preuves ne sont pas ajoutees explicitement"
     assert "PORTE SOUS-TITRES" in w, "aucune porte n'interdit un clip sans sous-titres"
+    # E-18 : la decoupe de la transcription est un OUTIL du depot, pas un python inline
+    assert "transcript_slice.py" in w, "le workflow ne passe pas par l'outil de decoupe du depot"
+    assert '--transcript "/tmp/work/pp/transcript_${ID}.json"' in w, "postprod ne recoit aucun transcript"
+
+    # l'outil de decoupe : la transcription reelle suffit a produire des sous-titres
+    sys.path.insert(0, str(ROOT / "FR_B_CREATION" / "SF_13_POLITURA" / "CODEBASE" / "caption"))
+    import transcript_slice as ts
+    source = ts.transcript_du_pack("https://www.twitch.tv/videos/2909800627")
+    assert source.is_file(), "la transcription reelle du depot est introuvable (E-18)"
+    segments = ts._segments_from(json.loads(source.read_text(encoding="utf-8")))
+    assert len(segments) > 100, "transcription trop pauvre : %d segment(s)" % len(segments)
+    for debut, fin in ((1376.2, 1406.2), (294.0, 324.0), (1727.5, 1757.5)):
+        mots = ts.slice_transcript(segments, debut, fin)
+        assert mots, "aucune parole decoupee entre %.1fs et %.1fs" % (debut, fin)
+        assert all(0.0 <= m["start"] < (fin - debut) + 1 for m in mots), "temps non relatifs au clip"
+    # un silence ne produit aucun mot, et le CLI doit alors REFUSER (code 1)
+    assert ts.slice_transcript([{"text": "x", "start": 0.0, "end": 1.0}], 100.0, 130.0) == []
+    refus = subprocess.run(
+        [sys.executable, str(ROOT / "FR_B_CREATION" / "SF_13_POLITURA" / "CODEBASE" / "caption" / "transcript_slice.py"),
+         "--transcript", str(source), "--start", "100", "--end", "130", "--out", "/tmp/rien.json"],
+        capture_output=True, text=True)
+    assert refus.returncode == 1, "un silence doit etre refuse explicitement (code 1)"
 
     # E-17 : la police est demandee par son nom lisible, le fichier a un autre nom
     sys.path.insert(0, str(ROOT / "FR_B_CREATION" / "SF_13_POLITURA" / "CODEBASE" / "caption"))
