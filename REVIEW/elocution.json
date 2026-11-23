@@ -8,8 +8,8 @@
   "elocutions": 0,
   "replis": 9,
   "budget_epuise": false,
-  "secondes_totales": 331.9,
-  "jetons_total": 4927,
+  "secondes_totales": 331.6,
+  "jetons_total": 4905,
   "regle": "le LLM ne décide jamais : sa sortie est re-jugée par les gabarits du dépôt",
   "titres": [
     {
@@ -20,35 +20,35 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 564,
+      "jetons": 552,
       "verdicts": [
         {
           "essai": 1,
           "titre": "Us Today Too",
-          "metadata_title": "Preme Probably like I don't know 30 45 minutes",
+          "metadata_title": "Preme Probably 30 45 minutes",
           "accepte": false,
           "violations": [
             "too_short",
-            "too_many_words"
+            "unexplained_entity"
           ]
         },
         {
           "essai": 1,
-          "erreur": "refusé par les gabarits : ['too_short', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         },
         {
           "essai": 2,
           "titre": "Us Today Too",
-          "metadata_title": "Preme Probably like I don't know 30 45 minutes",
+          "metadata_title": "Preme Probably 30 45 minutes",
           "accepte": false,
           "violations": [
             "too_short",
-            "too_many_words"
+            "unexplained_entity"
           ]
         },
         {
           "essai": 2,
-          "erreur": "refusé par les gabarits : ['too_short', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         },
         {
           "essai": 3,
@@ -74,21 +74,20 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 543,
+      "jetons": 537,
       "verdicts": [
         {
           "essai": 1,
           "titre": "500 Million Art Piece",
-          "metadata_title": "Preme his family is the biggest art collector in the world",
+          "metadata_title": "His family is biggest art collector",
           "accepte": false,
           "violations": [
-            "unexplained_entity",
-            "too_many_words"
+            "unexplained_entity"
           ]
         },
         {
           "essai": 1,
-          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['unexplained_entity']"
         },
         {
           "essai": 2,
@@ -135,13 +134,12 @@
           "accepte": false,
           "violations": [
             "unexplained_entity",
-            "too_long",
-            "too_many_words"
+            "too_long"
           ]
         },
         {
           "essai": 1,
-          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_long', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_long']"
         },
         {
           "essai": 2,
@@ -150,13 +148,12 @@
           "accepte": false,
           "violations": [
             "unexplained_entity",
-            "too_long",
-            "too_many_words"
+            "too_long"
           ]
         },
         {
           "essai": 2,
-          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_long', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_long']"
         },
         {
           "essai": 3,
@@ -165,13 +162,12 @@
           "accepte": false,
           "violations": [
             "unexplained_entity",
-            "too_long",
-            "too_many_words"
+            "too_long"
           ]
         },
         {
           "essai": 3,
-          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_long', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_long']"
         }
       ]
     },
@@ -237,21 +233,21 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 550,
+      "jetons": 549,
       "verdicts": [
         {
           "essai": 1,
           "titre": "Day Long Show Some",
-          "metadata_title": "Preme Next 24 hours one random act of kindness",
+          "metadata_title": "Preme Next 24 hours random act of kindness",
           "accepte": false,
           "violations": [
             "unexplained_entity",
-            "too_many_words"
+            "unexplained_entity"
           ]
         },
         {
           "essai": 1,
-          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'unexplained_entity']"
         },
         {
           "essai": 2,
@@ -408,12 +404,12 @@
           "accepte": false,
           "violations": [
             "unexplained_entity",
-            "too_many_words"
+            "unexplained_entity"
           ]
         },
         {
           "essai": 1,
-          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'unexplained_entity']"
         },
         {
           "essai": 2,
@@ -422,12 +418,12 @@
           "accepte": false,
           "violations": [
             "unexplained_entity",
-            "too_many_words"
+            "unexplained_entity"
           ]
         },
         {
           "essai": 2,
-          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'unexplained_entity']"
         },
         {
           "essai": 3,
@@ -436,12 +432,12 @@
           "accepte": false,
           "violations": [
             "unexplained_entity",
-            "too_many_words"
+            "unexplained_entity"
           ]
         },
         {
           "essai": 3,
-          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'unexplained_entity']"
         }
       ]
     },
@@ -453,21 +449,20 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 546,
+      "jetons": 543,
       "verdicts": [
         {
           "essai": 1,
-          "titre": "Day Yes That's Beautiful",
+          "titre": "Day Yes Beautiful",
           "metadata_title": "Do you like going to work with this person every day",
           "accepte": false,
           "violations": [
-            "unexplained_entity",
-            "too_many_words"
+            "too_short"
           ]
         },
         {
           "essai": 1,
-          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['too_short']"
         },
         {
           "essai": 2,
@@ -475,13 +470,12 @@
           "metadata_title": "Do you like going to work with this person every day",
           "accepte": false,
           "violations": [
-            "too_short",
-            "too_many_words"
+            "too_short"
           ]
         },
         {
           "essai": 2,
-          "erreur": "refusé par les gabarits : ['too_short', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['too_short']"
         },
         {
           "essai": 3,
@@ -489,13 +483,12 @@
           "metadata_title": "Do you like going to work with this person every day",
           "accepte": false,
           "violations": [
-            "too_short",
-            "too_many_words"
+            "too_short"
           ]
         },
         {
           "essai": 3,
-          "erreur": "refusé par les gabarits : ['too_short', 'too_many_words']"
+          "erreur": "refusé par les gabarits : ['too_short']"
         }
       ]
     }
