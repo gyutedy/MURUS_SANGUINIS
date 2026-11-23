@@ -1,15 +1,15 @@
 {
   "schema": "murus.elocution.v1",
   "pack_token": "70f120a8",
-  "modele": null,
-  "cle_presente": false,
+  "modele": "nvidia/nemotron-3.5-bolt-e4b",
+  "cle_presente": true,
   "replay": false,
   "assets": 9,
   "elocutions": 0,
   "replis": 9,
   "budget_epuise": false,
-  "secondes_totales": 315.0,
-  "jetons_total": 0,
+  "secondes_totales": 331.9,
+  "jetons_total": 4927,
   "regle": "le LLM ne décide jamais : sa sortie est re-jugée par les gabarits du dépôt",
   "titres": [
     {
@@ -20,19 +20,49 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 0,
+      "jetons": 564,
       "verdicts": [
         {
           "essai": 1,
-          "erreur": "pas de clé"
+          "titre": "Us Today Too",
+          "metadata_title": "Preme Probably like I don't know 30 45 minutes",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 1,
+          "erreur": "refusé par les gabarits : ['too_short', 'too_many_words']"
         },
         {
           "essai": 2,
-          "erreur": "pas de clé"
+          "titre": "Us Today Too",
+          "metadata_title": "Preme Probably like I don't know 30 45 minutes",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 2,
+          "erreur": "refusé par les gabarits : ['too_short', 'too_many_words']"
         },
         {
           "essai": 3,
-          "erreur": "pas de clé"
+          "titre": "Us Today Too",
+          "metadata_title": "Preme Probably 30 45 minutes",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 3,
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         }
       ]
     },
@@ -44,19 +74,47 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 0,
+      "jetons": 543,
       "verdicts": [
         {
           "essai": 1,
-          "erreur": "pas de clé"
+          "titre": "500 Million Art Piece",
+          "metadata_title": "Preme his family is the biggest art collector in the world",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 1,
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
         },
         {
           "essai": 2,
-          "erreur": "pas de clé"
+          "titre": "500 Million Art Piece",
+          "metadata_title": "His family is biggest art collector",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 2,
+          "erreur": "refusé par les gabarits : ['unexplained_entity']"
         },
         {
           "essai": 3,
-          "erreur": "pas de clé"
+          "titre": "500 Million Art Piece",
+          "metadata_title": "His family is biggest art collector",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 3,
+          "erreur": "refusé par les gabarits : ['unexplained_entity']"
         }
       ]
     },
@@ -68,19 +126,52 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 0,
+      "jetons": 600,
       "verdicts": [
         {
           "essai": 1,
-          "erreur": "pas de clé"
+          "titre": "16 Year Olds Before",
+          "metadata_title": "Preme and we gave a truck load in 16-year-olds before you do that",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity",
+            "too_long",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 1,
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_long', 'too_many_words']"
         },
         {
           "essai": 2,
-          "erreur": "pas de clé"
+          "titre": "16 Year Olds Before",
+          "metadata_title": "Preme and we gave a truck load in 16-year-olds before you do that",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity",
+            "too_long",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 2,
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_long', 'too_many_words']"
         },
         {
           "essai": 3,
-          "erreur": "pas de clé"
+          "titre": "16 Year Olds Before",
+          "metadata_title": "Preme and we gave a truck load in 16-year-olds before you do that",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity",
+            "too_long",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 3,
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_long', 'too_many_words']"
         }
       ]
     },
@@ -92,19 +183,49 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 0,
+      "jetons": 534,
       "verdicts": [
         {
           "essai": 1,
-          "erreur": "pas de clé"
+          "titre": "Give Back Today",
+          "metadata_title": "Preme You said that was my great 7-8",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 1,
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         },
         {
           "essai": 2,
-          "erreur": "pas de clé"
+          "titre": "Give Back Today",
+          "metadata_title": "Preme You said that was my great 7-8",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 2,
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         },
         {
           "essai": 3,
-          "erreur": "pas de clé"
+          "titre": "Give Back Today",
+          "metadata_title": "Preme You said that was my great 7-8",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 3,
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         }
       ]
     },
@@ -116,19 +237,49 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 0,
+      "jetons": 550,
       "verdicts": [
         {
           "essai": 1,
-          "erreur": "pas de clé"
+          "titre": "Day Long Show Some",
+          "metadata_title": "Preme Next 24 hours one random act of kindness",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 1,
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
         },
         {
           "essai": 2,
-          "erreur": "pas de clé"
+          "titre": "Day Long Show Some",
+          "metadata_title": "Preme Next 24 hours random act of kindness",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 2,
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'unexplained_entity']"
         },
         {
           "essai": 3,
-          "erreur": "pas de clé"
+          "titre": "Day Long Show Some",
+          "metadata_title": "Preme Next 24 hours random act of kindness",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 3,
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'unexplained_entity']"
         }
       ]
     },
@@ -140,19 +291,49 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 0,
+      "jetons": 513,
       "verdicts": [
         {
           "essai": 1,
-          "erreur": "pas de clé"
+          "titre": "NBA Never Forget",
+          "metadata_title": "Preme Marcus Brown 23",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 1,
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         },
         {
           "essai": 2,
-          "erreur": "pas de clé"
+          "titre": "NBA Never Forget",
+          "metadata_title": "Preme Marcus Brown 23",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 2,
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         },
         {
           "essai": 3,
-          "erreur": "pas de clé"
+          "titre": "NBA Never Forget",
+          "metadata_title": "Preme Marcus Brown 23",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 3,
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         }
       ]
     },
@@ -164,19 +345,49 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 0,
+      "jetons": 525,
       "verdicts": [
         {
           "essai": 1,
-          "erreur": "pas de clé"
+          "titre": "Change Someone's Day",
+          "metadata_title": "Preme How's Your Day Going",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 1,
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         },
         {
           "essai": 2,
-          "erreur": "pas de clé"
+          "titre": "Change Someone's Day",
+          "metadata_title": "Preme How's Your Day Going",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 2,
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         },
         {
           "essai": 3,
-          "erreur": "pas de clé"
+          "titre": "Change Someone's Day",
+          "metadata_title": "Preme How's Your Day Going",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "unexplained_entity"
+          ]
+        },
+        {
+          "essai": 3,
+          "erreur": "refusé par les gabarits : ['too_short', 'unexplained_entity']"
         }
       ]
     },
@@ -188,19 +399,49 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 0,
+      "jetons": 552,
       "verdicts": [
         {
           "essai": 1,
-          "erreur": "pas de clé"
+          "titre": "Nothing Else Matters Hard",
+          "metadata_title": "Preme Nothing else matters Hard What's your mom's name",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 1,
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
         },
         {
           "essai": 2,
-          "erreur": "pas de clé"
+          "titre": "Nothing Else Matters Hard",
+          "metadata_title": "Preme Nothing else matters Hard What's your mom's name",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 2,
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
         },
         {
           "essai": 3,
-          "erreur": "pas de clé"
+          "titre": "Nothing Else Matters Hard",
+          "metadata_title": "Preme Nothing else matters Hard What's your mom's name",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 3,
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
         }
       ]
     },
@@ -212,19 +453,49 @@
       "source": "gabarit",
       "essais": 3,
       "elocution_fallback": true,
-      "jetons": 0,
+      "jetons": 546,
       "verdicts": [
         {
           "essai": 1,
-          "erreur": "pas de clé"
+          "titre": "Day Yes That's Beautiful",
+          "metadata_title": "Do you like going to work with this person every day",
+          "accepte": false,
+          "violations": [
+            "unexplained_entity",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 1,
+          "erreur": "refusé par les gabarits : ['unexplained_entity', 'too_many_words']"
         },
         {
           "essai": 2,
-          "erreur": "pas de clé"
+          "titre": "Day Yes Beautiful",
+          "metadata_title": "Do you like going to work with this person every day",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 2,
+          "erreur": "refusé par les gabarits : ['too_short', 'too_many_words']"
         },
         {
           "essai": 3,
-          "erreur": "pas de clé"
+          "titre": "Day Yes Beautiful",
+          "metadata_title": "Do you like going to work with this person every day",
+          "accepte": false,
+          "violations": [
+            "too_short",
+            "too_many_words"
+          ]
+        },
+        {
+          "essai": 3,
+          "erreur": "refusé par les gabarits : ['too_short', 'too_many_words']"
         }
       ]
     }
