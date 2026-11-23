@@ -5,39 +5,39 @@
   "livrables": [
     {
       "clip": "A01",
-      "octets": 20901786
+      "octets": 20608039
     },
     {
       "clip": "A02",
-      "octets": 20669398
+      "octets": 20488533
     },
     {
       "clip": "A03",
-      "octets": 21334895
+      "octets": 21105036
     },
     {
       "clip": "A04",
-      "octets": 21649676
+      "octets": 21309917
     },
     {
       "clip": "A05",
-      "octets": 22102302
+      "octets": 21911535
     },
     {
       "clip": "A06",
-      "octets": 22806174
+      "octets": 22995602
     },
     {
       "clip": "A07",
-      "octets": 16824957
+      "octets": 16808822
     },
     {
       "clip": "A08",
-      "octets": 16605661
+      "octets": 16427494
     },
     {
       "clip": "A09",
-      "octets": 18905088
+      "octets": 18694968
     }
   ],
   "etages": [
