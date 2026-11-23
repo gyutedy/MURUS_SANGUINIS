@@ -555,6 +555,9 @@ def test_t27_rendu_un_job_par_clip():
     # E-14 : un rapport ne doit jamais bloquer la livraison
     assert "continue-on-error: true" in w, "le commit du rapport peut encore faire echouer la livraison"
     assert "git pull --rebase" in w, "pas de reprise sur rejet de push (course git)"
+    # E-15 : OUT/ est gitignore, la preuve qa_pass doit etre copiee ailleurs et ajoutee en clair
+    assert "REVIEW/render/luther_batch_report.json" in w, "la preuve qa_pass n'est pas copiee vers REVIEW/render"
+    assert "git add -f REVIEW/render/render_report.json" in w, "les preuves ne sont pas ajoutees explicitement"
 
 
     # EXC-M11 : plus aucun chemin F03_PREVIEW/... mort dans les CLIs utilisees

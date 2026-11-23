@@ -344,6 +344,13 @@ jobs:
                 "FR_B_CREATION/SF_14_CAMOUFLAGE/OUT/camouflage_batch_report.json")
           merge(demande, "livre/*", "luther_report.json", "luther_batch_report.json",
                 "FR_B_CREATION/SF_15_LUTHER/OUT/luther_batch_report.json")
+          # OUT/ est gitignore (E-15) : la preuve doit vivre a un endroit commitable
+          import shutil
+          Path("REVIEW/render").mkdir(parents=True, exist_ok=True)
+          for src in ("FR_B_CREATION/SF_14_CAMOUFLAGE/OUT/camouflage_batch_report.json",
+                      "FR_B_CREATION/SF_15_LUTHER/OUT/luther_batch_report.json"):
+              shutil.copyfile(src, Path("REVIEW/render") / Path(src).name)
+              print("preuve copiee ->", Path("REVIEW/render") / Path(src).name)
           PYEOF
 
       - name: PORTE V7 — aucun livrable sale ne sort
@@ -391,7 +398,8 @@ jobs:
         run: |
           git config user.name "murus-bot"
           git config user.email "murus-bot@users.noreply.github.com"
-          git add REVIEW/render/render_report.json FR_B_CREATION/SF_14_CAMOUFLAGE/OUT FR_B_CREATION/SF_15_LUTHER/OUT 2>/dev/null || true
+          git add -f REVIEW/render/render_report.json             REVIEW/render/camouflage_batch_report.json             REVIEW/render/luther_batch_report.json || {
+            echo "::error::preuves de rendu absentes — impossible de tracer le run"; exit 1; }
           if git diff --cached --quiet; then
             echo "rapport inchange"
             exit 0
