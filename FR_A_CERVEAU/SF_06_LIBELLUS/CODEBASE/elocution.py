@@ -255,7 +255,9 @@ def main(argv=None):
                 titre = str(proposition.get("titre") or "").strip()
                 meta = str(proposition.get("metadata_title") or "").strip()
                 ok_titre, viol_titre = accepter(titre, cfg, args.langue, sujet, termes)
-                ok_meta, viol_meta = accepter(meta, {**cfg, "overlay_max_words": 40},
+                ok_meta, viol_meta = accepter(meta, {**cfg, "overlay_max_words": 40,
+                                                   "title_max_words": 25,
+                                                   "title_min_words": 1},
                                               args.langue, sujet, termes, enjeu=False)
                 verdicts.append({"essai": essais, "titre": titre, "metadata_title": meta,
                                  "accepte": ok_titre and ok_meta,
