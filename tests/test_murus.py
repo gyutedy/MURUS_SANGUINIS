@@ -645,3 +645,47 @@ def test_t28_v7_manifeste_de_soumission():
         assert interdit not in w, "V7 poste tout seul : %s" % interdit
     assert "jamais" in w or "ne poste jamais" in w, "la regle 'le projet ne poste jamais' n'est pas ecrite"
 
+
+def test_t29_parcours_reel_grave():
+    """Le parcours REELLEMENT execute est grave dans les guides, bilingue.
+
+    Un guide qui decrit un parcours imagine est un guide qui perd l'operateur.
+    Ce test verifie que chaque workflow et chaque CLI du parcours reel sont
+    nommes, que les portes sont citees, et que rien n'est raconte sur un
+    composant qui n'existe plus (Modal GPU obligatoire, 16 tests).
+    """
+    guide = ROOT / "TRACKING/PARCOURS_REEL.md"
+    assert guide.is_file(), "le parcours reel n'est pas grave : TRACKING/PARCOURS_REEL.md"
+    txt = guide.read_text(encoding="utf-8")
+
+    # bilingue, comme tout document operateur
+    assert "## EN" in txt and "## FR" in txt, "PARCOURS_REEL.md doit etre bilingue (EXC-M8)"
+
+    # chaque workflow du parcours est nomme
+    for wf in ("murus_siege.yml", "murus_preview_1.yml", "murus_preview_2.yml",
+               "murus_rendu.yml", "murus_v7.yml"):
+        assert (ROOT / ".github/workflows" / wf).is_file(), "workflow cite mais absent : %s" % wf
+        assert wf in txt, "workflow du parcours non documente : %s" % wf
+
+    # chaque CLI reel est nomme, dans l'ordre grave
+    clis = ["recuperer_clip.py", "convert_pur_pack.mjs", "render_pictor.mjs", "transcript_slice.py",
+            "postprod.py", "lac_f05_camouflage.py", "lac_f06_luther.py"]
+    positions = [txt.index(c) for c in clis]
+    assert positions == sorted(positions), "l'ordre des etapes est faux dans le guide"
+    for c in clis:
+        assert list(ROOT.rglob(c)), "CLI cite mais absent du depot : %s" % c
+
+    # les portes sont nommees
+    for porte in ("G1", "PP2", "5b", "qa_pass"):
+        assert porte in txt, "porte non documentee : %s" % porte
+
+    # les limites reelles sont avouees
+    assert "interpolated" in txt, "le guide cache que le minutage est interpole"
+    assert "a_poster" in txt, "le guide ne dit pas que l'operateur doit poster"
+
+    # le README pointe le guide, et ne pretend plus que Modal est obligatoire
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "TRACKING/PARCOURS_REEL.md" in readme, "le README ne pointe pas le parcours reel"
+    assert "16 tests" not in readme, "le README annonce encore 16 tests"
+    assert "la transcription GPU passe par **Modal**" not in readme,         "le README pretend encore que tout passe par Modal GPU"
+

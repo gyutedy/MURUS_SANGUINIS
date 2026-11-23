@@ -71,3 +71,15 @@ numérotation, SF_01/SF_08/SF_16 (composites) et le nom.
 | `TRACKING/ERRATA.md` | Les erreurs déjà payées (nommage `pur_<id>.mp4`, `$GITHUB_OUTPUT`, `: ` interdit dans un nom d'étape, identité du Player, provenance en sidecar, Pages unique, pack commité, un job par clip). | `tests/test_murus.py::test_t20_errata` |
 | `FR_B_CREATION/tools/recuperer_clip.py` | Après X1, le clip (preview 1) et une frame (preview 2) sont récupérés **avant** tout codex. | `murus.py` refuse (`rc=6`) s'il n'y a pas de clip |
 
+## Fichiers du parcours réel (ajoutés après exécution en conditions réelles)
+
+| fichier | rôle |
+|---------|------|
+| `.github/workflows/murus_rendu.yml` | rendu : porte (2 codex signés, pack, PNG) → `clip` matrice (un job par clip) → `assemble` + zip |
+| `.github/workflows/murus_v7.yml` | V7 : manifeste de soumission, porte `qa_pass`, `REVIEW/submissions.json` |
+| `FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/transcript_slice.py` | découpe de la transcription réelle sur la fenêtre du clip (E-18) |
+| `FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/ass_render.py` | gravure ASS : résolution du nom de police (E-17), pop-in = un mot (E-19) |
+| `REVIEW/render/render_report.json` | rapport de rendu commité (preuve de livraison) |
+| `REVIEW/render/*_batch_report.json` | preuves `qa_pass` commitées (E-15) |
+| `REVIEW/submissions.json` | manifeste V7 : sha256, checklist, statut `a_poster` |
+| `TRACKING/PARCOURS_REEL.md` | le parcours réel, EN + FR, opposable |

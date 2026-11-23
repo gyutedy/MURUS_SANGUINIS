@@ -96,3 +96,43 @@ Fichier / file : `ARCHIVUM/campaign/operator_declarations.json`
 
 Compléter ce fichier = répondre aux portes. Aucune valeur n'est inventée par le code.
 
+---
+
+## EN — Real siege, 2026-11-23 (render → delivery)
+
+The chain was executed end to end on GitHub Actions, one job per clip.
+
+```
+pack 70f120a8 · 9 clips requested · 9 delivered · 0 failure
+render run 45113267319 · V7 run 45120117577
+camouflage_batch_report.json : 9 videos, all_qa_pass = true
+luther_batch_report.json     : 9 videos, all_qa_pass = true
+PORTE V7 : True
+deliverables 15.9 → 22.5 MB · preme-pack-9-livrables 180.2 MB
+REVIEW/submissions.json : 9 clips, sha256 + checklist, status a_poster
+```
+
+What the operator still owns: post the 9 clips, submit on Whop within 60 minutes,
+then report views at 1 h and 24 h and the payout. The project never posts.
+
+Full path: `TRACKING/PARCOURS_REEL.md`.
+
+## FR — Siège réel, 2026-11-23 (rendu → livraison)
+
+La chaîne a été exécutée de bout en bout sur GitHub Actions, un job par clip.
+
+```
+pack 70f120a8 · 9 clips demandés · 9 livrés · 0 échec
+run de rendu 45113267319 · run V7 45120117577
+camouflage_batch_report.json : 9 vidéos, all_qa_pass = true
+luther_batch_report.json     : 9 vidéos, all_qa_pass = true
+PORTE V7 : True
+livrables 15,9 → 22,5 Mo · preme-pack-9-livrables 180,2 Mo
+REVIEW/submissions.json : 9 clips, sha256 + checklist, statut a_poster
+```
+
+Ce qui reste à l'opérateur : poster les 9 clips, soumettre sur Whop sous 60 minutes,
+puis relever les vues à 1 h et 24 h et le payout. Le projet ne poste jamais.
+
+Parcours complet : `TRACKING/PARCOURS_REEL.md`.
+

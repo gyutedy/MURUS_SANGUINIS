@@ -77,6 +77,57 @@ blocks only on real inputs (the two signed codex, the staged pack, the campaign 
 and reports expected outputs without requiring them. The single `chaine` job was also
 replaced by **one job per clip** (matrix, `fail-fast: false`).
 
+### E-13 — The pillaged CLI paths pointed to a tree that does not exist here
+`convert_pur_pack.mjs`, `render_pictor.mjs` and `PurLook.jsx` imported from
+`F03_PREVIEW/...`, the layout of the source repo. In MURUS that directory does not
+exist, so the render died on `Module not found` while the pack builder looked fine.
+Repointed to `SF_10_SPECULUM` (EXC-M11); test `t27` now asserts no look `.jsx`
+references a dead path.
+
+### E-14 — A report commit could cancel a delivery
+The assemble job committed `render_report.json` then ran a bare `git push`. Any
+concurrent push made git reject it (`fetch first`), the step failed, and the **zip
+of the nine deliverables was never uploaded** because it came after. A report must
+never block a delivery: `git pull --rebase` with five retries, `continue-on-error:
+true`, and a warning instead of a failure.
+
+### E-15 — The qa_pass proofs could never be committed
+`FR_B_CREATION/*/OUT/*` is gitignored, so the camouflage and luther reports were
+written inside the runner and silently dropped by a `git add ... || true`. The
+delivery trace never reached GitHub. The proofs are now copied into `REVIEW/render/`
+and added explicitly with `git add -f`, failing loudly if absent.
+
+### E-16 — Six bare `git push` in the workflows
+Each of them could interrupt a useful job on a rejected ref. All six now rebase and
+retry, and no bare `git push` remains in any workflow.
+
+### E-17 — The codex names the font, the file has another name
+`REVIEW/codex_postprod.json` carries `caption.font = "Montserrat ExtraBold"` (the
+readable name), while the file is `Montserrat-ExtraBold.ttf`. `font_file()` did
+`FONT_DIR / name`, found nothing, raised `CaptionError`, and `postprod.py` recorded
+`caption: applied=false` — **the clips shipped without subtitles and still reported
+`qa_pass: true`**, because the technical QA only checked codec and metadata. The
+name is now resolved to the real file (never a system fallback), and a dedicated
+gate (`5b PORTE SOUS-TITRES`) refuses any clip without burned captions.
+
+### E-18 — No transcript was passed to postprod
+`postprod.py` fell back to faster-whisper, which is not installed in the render job:
+`SANS SOUS-TITRES ... faster-whisper absent`. The real transcript already lived in
+the repo (`ARCHIVUM/montage/transcripts/v<vod>_transcript.json`) but holds absolute
+VOD times, unusable for a 30 s clip. `caption/transcript_slice.py` is now the
+versioned tool that slices it, shifts times to zero, and refuses an empty window —
+the workflow calls this CLI instead of inline python nobody can review.
+
+### E-19 — A subtitle "word" was a whole sentence
+The siege transcription called `model.transcribe(...)` without
+`word_timestamps=True`, so only ~3.4 s sentence segments existed. `transcript_slice`
+passed them through as if each were a word, and the renderer grouped them with
+`max_words=2` **whatever the motion** — producing a mix of full paragraphs and single
+words. Now the codex motion decides the cue (`pop-in` = one word), segments are split
+into words with declared `interpolated` timing, and the transcription requests real
+word times (`measured`) which always take precedence.
+
+
 ## FR
 
 ## FR
@@ -154,3 +205,54 @@ gitignoré : la porte ne pouvait donc jamais s'ouvrir (`chaîne incomplète : 4 
 Elle ne bloque plus que sur de vraies entrées (les deux codex signés, le pack stagé, le
 PNG de campagne) et annonce les sorties attendues sans les exiger. Le job unique `chaine`
 a aussi été remplacé par **un job par clip** (matrice, `fail-fast: false`).
+
+### E-13 — Les chemins des CLI pillés pointaient un arbre inexistant ici
+`convert_pur_pack.mjs`, `render_pictor.mjs` et `PurLook.jsx` importaient depuis
+`F03_PREVIEW/...`, l'arborescence du dépôt source. Dans MURUS ce dossier n'existe
+pas : le rendu mourait sur `Module not found` alors que le constructeur de packs
+semblait correct. Repointés vers `SF_10_SPECULUM` (EXC-M11) ; le test `t27` interdit
+désormais tout `.jsx` de look référençant un chemin mort.
+
+### E-14 — Un commit de rapport pouvait annuler une livraison
+Le job `assemble` commitait `render_report.json` puis lançait un `git push` nu. Un
+push concurrent le faisait rejeter (`fetch first`), l'étape échouait, et le **zip des
+neuf livrables n'était jamais produit** car il venait après. Un rapport ne doit jamais
+bloquer une livraison : `git pull --rebase` avec cinq reprises, `continue-on-error:
+true`, et un avertissement au lieu d'un échec.
+
+### E-15 — Les preuves `qa_pass` ne pouvaient jamais être commitées
+`FR_B_CREATION/*/OUT/*` est gitignoré : les rapports camouflage et luther étaient
+écrits dans le runner puis perdus en silence par un `git add ... || true`. La trace de
+livraison n'atteignait jamais GitHub. Les preuves sont maintenant copiées dans
+`REVIEW/render/` et ajoutées explicitement (`git add -f`), avec échec bruyant si absentes.
+
+### E-16 — Six `git push` nus dans les workflows
+Chacun pouvait interrompre un job utile sur un rejet de référence. Les six font
+désormais rebase puis reprise, et plus aucun `git push` nu ne subsiste.
+
+### E-17 — Le codex nomme la police, le fichier porte un autre nom
+`REVIEW/codex_postprod.json` porte `caption.font = "Montserrat ExtraBold"` (le nom
+lisible), alors que le fichier est `Montserrat-ExtraBold.ttf`. `font_file()` faisait
+`FONT_DIR / name`, ne trouvait rien, levait `CaptionError`, et `postprod.py` notait
+`caption: applied=false` — **les clips sortaient sans sous-titres en annonçant
+`qa_pass: true`**, parce que la QA technique ne regardait que le codec et les
+métadonnées. Le nom est maintenant résolu vers le fichier réel (jamais un repli
+système), et une porte dédiée (`5b PORTE SOUS-TITRES`) refuse tout clip sans sous-titres.
+
+### E-18 — Aucune transcription n'était passée à postprod
+`postprod.py` retombait sur faster-whisper, absent du job de rendu :
+`SANS SOUS-TITRES ... faster-whisper absent`. La transcription réelle existait déjà
+dans le dépôt (`ARCHIVUM/montage/transcripts/v<vod>_transcript.json`) mais en temps
+absolus de la VOD, inutilisable pour un clip de 30 s. `caption/transcript_slice.py`
+est désormais l'outil versionné qui la découpe, ramène les temps à zéro et refuse une
+fenêtre vide — le workflow appelle ce CLI, plus de python inline que personne ne relit.
+
+### E-19 — Un « mot » de sous-titre était une phrase entière
+La transcription du siège appelait `model.transcribe(...)` sans `word_timestamps=True` :
+seuls des segments de phrase d'environ 3,4 s existaient. `transcript_slice` les
+transmettait comme des mots, et le graveur les regroupait avec `max_words=2` **quelle
+que soit la motion** — d'où un mélange de pavés et de mots isolés. Maintenant la motion
+du codex décide du cue (`pop-in` = un mot), les segments sont découpés en mots avec un
+minutage déclaré `interpolated`, et la transcription demande les vrais temps par mot
+(`measured`), qui ont toujours priorité.
+

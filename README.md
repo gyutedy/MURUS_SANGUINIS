@@ -3,6 +3,10 @@
 Fusion **PERTURABO** (le cerveau) × **LACRIMAE** (le bras armé) × **gta6-clipper-windows** (le détecteur).
 Cahier des charges : `MURUS_SANGUINIS_CDC_V1.html` (auto-suffisant, fait foi).
 
+> **Parcours réel, exécuté et mesuré (2026-11-23)** : `TRACKING/PARCOURS_REEL.md`.
+> Pack `70f120a8`, 9 clips demandés, 9 livrés, `all_qa_pass = true` des deux côtés,
+> `PORTE V7 : True`. Ce guide est en EN + FR et la CI vérifie qu'il ne dérive pas.
+
 ## Doctrine (intangible)
 
 - **FR_A_CERVEAU ne touche JAMAIS une vidéo** — elle produit des packs JSON dans `EXPORT/`
@@ -73,13 +77,19 @@ des derniers codex signés. SF_14/SF_15 tournent quand même.
 ## Exécution
 
 Rien ne tourne sur la machine opérateur : **tout est orchestré par GitHub Actions**
-(`.github/workflows/`), la transcription GPU passe par **Modal**
-(secrets `MODAL_TOKEN_ID` / `MODAL_TOKEN_SECRET`).
+(`.github/workflows/`), un job par clip. La transcription tourne en **faster-whisper
+CPU** ; le GPU Modal n'est qu'une option de vitesse (secrets `MODAL_TOKEN_ID` /
+`MODAL_TOKEN_SECRET`, absents par défaut).
+
+**Le parcours réellement exécuté, étape par étape, avec ses chiffres et ses portes :
+`TRACKING/PARCOURS_REEL.md` (EN + FR).** C'est le document de référence : il décrit
+ce qui a tourné, pas ce qui était prévu.
 
 ## Tests
 
-16 tests e2e : `tests/test_murus.py` (statut CDC : ATTENDU → remplacé par la sortie
-réelle à la première exécution en CI). Test de doctrine global T0 :
+28 portes : `python tests/test_murus.py` (statut CDC : ATTENDU → remplacé par la
+sortie réelle à la première exécution en CI). Portes navigateur : `tests/ui_preview1.mjs`,
+`tests/ui_preview2.mjs`. Test de doctrine global T0 :
 
 ```
 grep -rni "ffmpeg\|libx264" FR_A_CERVEAU/   # doit renvoyer ZÉRO ligne
