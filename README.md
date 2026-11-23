@@ -27,9 +27,20 @@ le droit de casser une V1 qui fonctionne.
 
 | pouvoir | ce qu'il apporte | pièce | état |
 |---------|------------------|-------|------|
-| **Le mur s'étend au LIVE** | un second moteur coupe des clips pendant/juste après le direct, sans machine locale, sans GPU, sans LLM | `SF_12_FABRICA/vive/` (moteur NeonClipping **figé**, MIT, commit `0525004`) | vendé, `vive_runner.py` à écrire (étape 2) |
-| **La voix gagne une seconde passe** | les métadonnées sont d'abord posées par le moteur (déterministe), puis retravaillées par un LLM — et **re-jugées** par les gabarits | `SF_06_LIBELLUS/CODEBASE/elocution.py` | à écrire (étape 5) |
-| **L'heure devient programmable** | les livrables acceptés sont publiés par lots, à 4–10 h d'intervalle, via l'API officielle YouTube (`publishAt`) | `SF_17_PROGRAMMA/` | à écrire (étape 6) |
+| **Le mur s'étend au LIVE** | un second moteur coupe des clips pendant/juste après le direct, sans machine locale, sans GPU, sans LLM | `SF_12_FABRICA/vive/` (moteur NeonClipping **figé**, MIT, commit `0525004`) | **exécuté** : 5/5 clips, run `45206542668` |
+| **La voix gagne une seconde passe** | les métadonnées sont d'abord posées par le moteur (déterministe), puis retravaillées par un LLM — et **re-jugées** par les gabarits | `SF_06_LIBELLUS/CODEBASE/elocution.py` | **écrit**, prouvé hors ligne (T23/T24) ; crédits réels ATTENDU |
+| **L'heure devient programmable** | les livrables acceptés sont publiés par lots, à 4–10 h d'intervalle, via l'API officielle YouTube (`publishAt`) | `SF_17_PROGRAMMA/` | **écrit**, prouvé hors ligne (T25–T28) ; upload réel ATTENDU |
+
+### Étapes V2 livrées (PLAN_V2)
+
+| étape | état | preuve |
+|-------|------|--------|
+| 0–1 socle + vendor tracé | livré | `a9d71b5`, `VENDOR.md`, t30 |
+| 2–4 moteur vive + purgue | livré | run `45206542668`, T20/T21/T22 |
+| 5 titres re-jugés | livré (hors ligne) | T23/T24 |
+| 6 calendrier 4–10 h | livré (hors ligne) | T25/T26 |
+| 7–8 publication + idempotence | livré (dry-run) | T27/T28 |
+| 9 siège mesuré (crédits, unités, upload réel) | **ATTENDU** | `TRACKING/PARCOURS_V2.md` |
 
 **TikTok est retiré en V2** : la filigrane y étant interdite, l'API d'upload entreprise
 réduirait le texte à ~90 caractères et exigerait des devs audités. YouTube seul, en API

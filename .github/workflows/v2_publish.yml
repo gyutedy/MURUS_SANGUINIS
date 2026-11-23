@@ -1,22 +1,164 @@
-name: MURUS V2 — publication programmee (NON IMPLEMENTE)
+name: MURUS V2 — publication programmee (SF_17_PROGRAMMA)
 
-# PLACEHOLDER DECLARE — PLAN_V2.md etape 7.
-# Ce workflow n'est pas encore ecrit. Il refuse bruyamment au lieu de ne rien
-# faire : un fichier vide dans .github/workflows/ est un workflow invalide, et
-# un workflow qui ne fait rien est un mensonge. Tant que l'etape 7 n'est pas
-# livree et verte, ce bouton echoue avec le motif exact.
+# PLAN_V2 etapes 6-8. Deux modes, un seul defaut :
+#   - `planifier`  : tire les intervalles de 4-10 h (graine au ledger) et ecrit
+#                    REVIEW/schedule.json, NON SIGNE. Le projet ne signe pas.
+#   - `publier`    : ne fait rien sans `validated_by_magos: true`; respecte le
+#                    publishAt natif, refuse un creneau a moins de 4 h, verifie
+#                    l'existence avant toute insertion (idempotence).
+#
+# Le chrono horaire ne publie PAS : il verifie et rapporte. Une publication
+# reelle demande la signature de l'operateur puis ce meme workflow en mode
+# `publier` avec l'entree `publier=true`.
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "planifier | publier | verifier"
+        required: true
+        default: "verifier"
+      publier:
+        description: "true = publier pour de vrai (exige un calendrier signe)"
+        required: false
+        default: "false"
+      seed:
+        description: "Graine du tirage (vide = aleatoire, ecrite au ledger)"
+        required: false
+        default: ""
+  schedule:
+    - cron: "17 * * * *"
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: v2-publish
+  cancel-in-progress: false
 
 jobs:
-  non_implemente:
+  verifier:
+    name: verifier — le calendrier est-il signe, coherent, dans les bornes
+    runs-on: ubuntu-latest
+    outputs:
+      pret: ${{ steps.porte.outputs.pret }}
+      mode: ${{ steps.porte.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: PORTE SCHEDULE
+        id: porte
+        env:
+          MODE: ${{ inputs.mode }}
+          PUBLIER: ${{ inputs.publier }}
+        run: |
+          MODE="${MODE:-verifier}"
+          PUBLIER="${PUBLIER:-false}"
+          echo "mode=${MODE}" >> "$GITHUB_OUTPUT"
+          if [ ! -f REVIEW/schedule.json ]; then
+            echo "::warning::aucun REVIEW/schedule.json — rien a publier (le projet ne devine pas)"
+            echo "pret=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python - <<'PYEOF'
+          import json, os, sys
+          d = json.load(open("REVIEW/schedule.json", encoding="utf-8"))
+          pret = True
+          if d.get("schema") != "murus.schedule.v1":
+              print("::error::schema de calendrier inconnu : %s" % d.get("schema"))
+              pret = False
+          if d.get("validated_by_magos") is not True:
+              print("::warning::calendrier NON SIGNE — publication impossible (validated_by_magos != true)")
+              pret = False
+          creneaux = d.get("creneaux") or []
+          if not creneaux:
+              print("::error::calendrier vide")
+              pret = False
+          for c in creneaux:
+              if c.get("privacyStatus") != "private":
+                  print("::error::%s n'est pas en privacyStatus=private" % c.get("id"))
+                  pret = False
+              if not c.get("publishAt"):
+                  print("::error::%s sans publishAt" % c.get("id"))
+                  pret = False
+          print("calendrier : %d creneaux | signe=%s | pret=%s"
+                % (len(creneaux), d.get("validated_by_magos"), pret))
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write("pret=%s\n" % ("true" if pret else "false"))
+          PYEOF
+
+  planifier:
+    name: planifier — tirage 4-10 h, graine au ledger
+    needs: verifier
+    if: inputs.mode == 'planifier'
     runs-on: ubuntu-latest
     steps:
-      - name: Refus declare
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: livrable-*
+          path: FR_B_CREATION/SF_17_PROGRAMMA/IN
+          merge-multiple: true
+      - name: 6. TIRAGE DU CALENDRIER
+        env:
+          SEED: ${{ inputs.seed }}
         run: |
-          echo "::error::SF_17_PROGRAMMA n'est pas encore implemente — voir TRACKING/PLAN_V2.md etape 7 (programma.py + T25/T26/T27/T28)"
-          exit 1
+          DUMMY=""
+          if [ -z "$(ls -A FR_B_CREATION/SF_17_PROGRAMMA/IN 2>/dev/null)" ]; then
+            echo "::warning::aucun livrable telecharge — on planifie sur le manifeste du dernier rendu"
+            mkdir -p FR_B_CREATION/SF_17_PROGRAMMA/IN
+          fi
+          ARGS=""
+          if [ -n "${SEED}" ]; then ARGS="--seed ${SEED}"; fi
+          python FR_B_CREATION/SF_17_PROGRAMMA/CODEBASE/programma.py \
+            --mode plan --pack REVIEW/pack_stage.json \
+            --livrables FR_B_CREATION/SF_17_PROGRAMMA/IN \
+            --out REVIEW/schedule.json \
+            --provenance REVIEW/schedule.provenance.json \
+            --ledger TRACKING/SCHEDULE_LEDGER.jsonl ${ARGS}
+      - name: Publier le calendrier
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-schedule
+          path: |
+            REVIEW/schedule.json
+            REVIEW/schedule.provenance.json
+            TRACKING/SCHEDULE_LEDGER.jsonl
+          if-no-files-found: error
+
+  publier:
+    name: publier — uniquement sur calendrier signe
+    needs: verifier
+    if: inputs.mode == 'publier' && needs.verifier.outputs.pret == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: livrable-*
+          path: FR_B_CREATION/SF_17_PROGRAMMA/IN
+          merge-multiple: true
+      - name: 7. PUBLICATION (dry-run par defaut)
+        env:
+          PUBLIER: ${{ inputs.publier }}
+          YT_OAUTH_CLIENT_ID: ${{ secrets.YT_OAUTH_CLIENT_ID }}
+          YT_OAUTH_CLIENT_SECRET: ${{ secrets.YT_OAUTH_CLIENT_SECRET }}
+          YT_OAUTH_REFRESH_TOKEN: ${{ secrets.YT_OAUTH_REFRESH_TOKEN }}
+        run: |
+          FLAG="--dry-run"
+          if [ "${PUBLIER}" = "true" ]; then FLAG=""; fi
+          python FR_B_CREATION/SF_17_PROGRAMMA/CODEBASE/programma.py \
+            --mode publish --schedule REVIEW/schedule.json ${FLAG} \
+            --request-out /tmp/requete_youtube.json \
+            --ledger /tmp/publication_ledger.jsonl
+          cat /tmp/requete_youtube.json 2>/dev/null || true
+      - name: Publier la preuve de publication
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-publication
+          path: |
+            /tmp/requete_youtube.json
+            /tmp/publication_ledger.jsonl
+          if-no-files-found: warn

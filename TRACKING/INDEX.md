@@ -17,6 +17,7 @@
 | `PARCOURS_REEL.md` | **Le parcours réellement exécuté** (EN + FR) : les 7 étapes, les 5 workflows, les portes, les chiffres du run `45113267319`, et les limites avouées. |
 | `PLAN_V2.md` | Plan d'implementation de la branche `v2` : 10 etapes, conditions de refus, oracles T20–T29. |
 | `../CDC/MURUS_SANGUINIS_CDC_V2.html` | Le cahier des charges V2, lu dans le depot et non dans une conversation. |
+| `PARCOURS_V2.md` | Ce que la branche `v2` a réellement exécuté : moteur vive (run `45206542668`), titres re-jugés, calendrier 4–10 h, et ce qui reste ATTENDU. |
 | `ERRATA.md` | Les erreurs déjà payées : ne pas les repayer (nommage, YAML, lecteur noir, provenance). |
 | `LES_EXCEPTIONS.md` | Toute dérogation à la doctrine, nommée, avec son grep (EXC-M1 → EXC-M12). |
 | `../ARCHIVUM/demande/README.md` | Le mécanisme de demande : le projet demande, l'opérateur répond, le projet trace. |

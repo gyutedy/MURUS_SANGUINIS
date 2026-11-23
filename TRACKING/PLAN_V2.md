@@ -29,6 +29,24 @@ its real code (`app.py`, 707 lines), not against the CDC prose.
 
 Merge to `main` stays forbidden until T20–T29 are green.
 
+## État d'exécution (mesuré, tenu à jour)
+
+| étape | pièce | état | preuve |
+|-------|-------|------|--------|
+| 0 | socle, vendor, CDC, plan | **FAIT** | `a9d71b5`, test t30 |
+| 1 | `VENDOR.md` (provenance, exclusions, interface réelle) | **FAIT** | `VENDOR.md`, t30 |
+| 2 | `vive_runner.py` | **FAIT** | run `45206542668` : 5/5 clips, `PORTE VIVE` ok, T20/T20b verts |
+| 3 | mapping codex → moteur | **FAIT** | T21 vert ; écarts nommés dans `vive_runner.ECARTS_CONNUS` |
+| 4 | purgue identique sur la voie vive | **FAIT** | T22 vert ; `CAMOUFLAGE A01 : qa_pass true (h264)` |
+| 5 | `elocution.py` + `v2_elocution.yml` | **FAIT (hors ligne)** | T23/T24 verts ; crédits réels ATTENDU (T29) |
+| 6 | `programma.py` (calendrier 4–10 h) | **FAIT (hors ligne)** | T25/T26 verts |
+| 7 | `v2_publish.yml` (dry-run) | **FAIT (hors ligne)** | T27 vert |
+| 8 | idempotence | **FAIT (hors ligne)** | T28 vert |
+| 9 | siège mesuré + docs | **PARTIEL** | `TRACKING/PARCOURS_V2.md` écrit ; T29 (crédits, unités, upload réel) **ATTENDU** |
+
+Ce qui n'a pas tourné est marqué ATTENDU : aucun chiffre de crédit NVIDIA, aucune
+unité YouTube débitée, aucun `publishAt` confirmé par la plateforme n'est annoncé.
+
 ## FR — plan d'implémentation détaillé
 
 ### Décisions déjà prises (ne se rediscutent pas)

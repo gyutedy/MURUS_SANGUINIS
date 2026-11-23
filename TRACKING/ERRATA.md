@@ -256,3 +256,20 @@ du codex décide du cue (`pop-in` = un mot), les segments sont découpés en mot
 minutage déclaré `interpolated`, et la transcription demande les vrais temps par mot
 (`measured`), qui ont toujours priorité.
 
+### E-21 — Une matrice vide rendait zéro clip, en silence
+Le workflow de la voie vive déclarait `assets` et `vod` en `inputs`. Sur un
+déclencheur `push`, `inputs` est **vide** : la matrice devenait `{"clip": []}`,
+aucun job n'était créé, et le job `assemble` échouait seul — un run « vert »
+à zéro clip aurait été possible si `assemble` avait été tolérant. Les deux
+valeurs ont maintenant un défaut explicite, et une matrice vide est un **refus**
+(`::error::aucune fenetre demandee`). Leçon : un générateur de matrice vide doit
+refuser, jamais produire une liste vide.
+
+### E-22 — Le titre de publication était jugé comme un titre à l'image
+`title_forge.validate` exige un marqueur d'enjeu (`no_stake`). C'est juste pour le
+titre **gravé** ; c'est faux pour la ligne de description, qui est factuelle. Le
+filtre refusait donc des titres de publication légitimes et poussait tout en repli
+gabarit. L'enjeu est désormais exigé sur le titre de clip, et retiré du jugement du
+`metadata_title` (`accepter(..., enjeu=False)`). Le validateur reste le seul juge :
+on ne l'affaiblit pas, on applique la bonne règle au bon champ.
+

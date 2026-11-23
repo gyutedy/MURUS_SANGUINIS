@@ -8,6 +8,7 @@ refus, doctrine, ordre des étages.
 """
 from __future__ import annotations
 
+import datetime as dt
 import json
 import socket
 import subprocess
@@ -224,22 +225,226 @@ def test_t22_purgue_identique():
     assert "ffprobe" in src, "le runner ne mesure pas ce qu'il produit (durée)"
 
 
-# ────────────────────────── T23..T29 : ATTENDU ─────────────────────────
+# ──────────────────────── T23 — les titres sont re-juges ───────────────
 
-def test_t23_t29_attendus_declares():
-    """Les oracles non encore exécutés sont DÉCLARÉS ATTENDU, jamais présentés verts.
+def _elocution(args):
+    cli = ROOT / "FR_A_CERVEAU/SF_06_LIBELLUS/CODEBASE/elocution.py"
+    r = subprocess.run([PY, str(cli), "--pack", "REVIEW/pack_stage.json", *args],
+                       capture_output=True, text=True, timeout=180, cwd=str(ROOT))
+    return r.returncode, (r.stdout or "") + (r.stderr or "")
 
-    Le CDC V2 écrit noir sur blanc que ses résultats de test sont « ATTENDU,
-    jamais exécutés ». Une porte qui prétend passer sans avoir tourné est le
-    défaut le plus coûteux du projet : il est interdit ici.
+
+def test_t23_titres_rejuges():
+    """T23 : le LLM propose, les gabarits du depot disposent.
+
+    Une proposition refusee par title_forge.validate / s1_context ne peut pas
+    devenir un titre livre, meme si c'est la deuxieme ou la troisieme reponse du
+    modele. Ici la premiere reponse est un appel a l'action : elle doit tomber.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        replay = Path(tmp) / "replay.json"
+        replay.write_text(json.dumps({"A01": [
+            json.dumps({"titre": "abonne-toi maintenant", "metadata_title": "Abonne-toi vite"}),
+            json.dumps({"titre": "everyone lied about the money",
+                        "metadata_title": "Preme knew the money was gone"}),
+        ]}), encoding="utf-8")
+        out = Path(tmp) / "eloc.json"
+        rc, sortie = _elocution(["--assets", "A01", "--reponses", str(replay),
+                                 "--delais", "0,0,0", "--out", str(out)])
+        assert rc == 0, "elocution doit rendre 0 meme quand elle rejette : %s" % sortie
+        d = json.loads(out.read_text(encoding="utf-8"))
+        t = d["titres"][0]
+        assert t["source"] == "elocution", "un titre refuse par les gabarits a ete accepte"
+        assert t["essais"] == 2, "le refus n'a pas declenche de nouvelle tentative"
+        assert t["verdicts"][0]["accepte"] is False, "l'appel a l'action n'a pas ete refuse"
+        assert "abonne" in json.dumps(t["verdicts"][0], ensure_ascii=False).lower(), \
+            "le refus ne nomme pas la cause"
+
+        sys.path.insert(0, str(ROOT / "FR_A_CERVEAU/MARK1"))
+        from libs import title_forge
+        cfg = {"title_max_chars": 60, "title_min_words": 4, "title_max_words": 8}
+        violations = title_forge.validate(t["titre"], cfg, "en")
+        assert not violations, "le titre accepte est en fait invalide : %s" % violations
+
+
+# ──────────────────────── T24 — repli propre sans cle ───────────────────
+
+def test_t24_repli_sans_cle():
+    """T24 : sans cle, ou avec un modele qui ne rend rien d'utilisable, le siege avance.
+
+    Un siege ne s'arrete pas parce qu'un titre n'a pas pu etre reformule : apres
+    trois tentatives, le gabarit deterministe reprend la main et le repli est
+    ecrit. Ce qui est interdit, c'est un repli silencieux.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        replay = Path(tmp) / "replay.json"
+        replay.write_text(json.dumps({"A01": ["pas du json", "{", "rate"]}), encoding="utf-8")
+        out = Path(tmp) / "eloc.json"
+        led = Path(tmp) / "ledger.jsonl"
+        rc, sortie = _elocution(["--assets", "A01", "--reponses", str(replay),
+                                 "--delais", "0,0,0", "--out", str(out), "--ledger", str(led)])
+        assert rc == 0, "un titre manque ne doit jamais faire echouer le siege : %s" % sortie
+        d = json.loads(out.read_text(encoding="utf-8"))
+        t = d["titres"][0]
+        assert t["elocution_fallback"] is True, "le repli n'est pas declare"
+        assert t["essais"] == 3, "les 3 tentatives n'ont pas ete faites (%s)" % t["essais"]
+        assert t["titre"], "le repli gabarit n'a pas rendu de titre"
+        assert d["replis"] == 1 and d["elocutions"] == 0, "le compte de replis est faux"
+        assert led.is_file() and "replis" in led.read_text(encoding="utf-8"), \
+            "le repli n'est pas trace au ledger"
+
+    src = (ROOT / "FR_A_CERVEAU/SF_06_LIBELLUS/CODEBASE/elocution.py").read_text(encoding="utf-8")
+    assert 'os.environ.get("NVIDIA_API_KEY"' in src, "la cle NVIDIA n'est pas lue dans l'environnement"
+    assert "NVIDIA_API_KEY=" not in src, "une valeur de cle est ecrite dans le fichier"
+
+
+# ──────────────────── T25/T26 — le calendrier 4 h–10 h ──────────────────
+
+def _programma(args):
+    cli = ROOT / "FR_B_CREATION/SF_17_PROGRAMMA/CODEBASE/programma.py"
+    r = subprocess.run([PY, str(cli), *args], capture_output=True, text=True,
+                       timeout=180, cwd=str(ROOT))
+    return r.returncode, (r.stdout or "") + (r.stderr or "")
+
+
+def _livrables(tmp, n=9):
+    d = Path(tmp) / "IN"
+    d.mkdir(parents=True, exist_ok=True)
+    for i in range(1, n + 1):
+        (d / ("pur_A%02d_LIVRABLE.mp4" % i)).write_bytes(b"x" * 16)
+    return str(d)
+
+
+def test_t25_calendrier_bornes():
+    """T25 : chaque creneau est tire, et aucun ne sort de [4 h, 10 h].
+
+    Un calendrier regulier est le premier signal d'un compte automatise : c'est
+    exactement ce que la V2 doit eviter.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "schedule.json"
+        prov = Path(tmp) / "prov.json"
+        rc, sortie = _programma(["--mode", "plan", "--pack", "REVIEW/pack_stage.json",
+                                 "--livrables", _livrables(tmp), "--out", str(out),
+                                 "--provenance", str(prov), "--seed", "20261123",
+                                 "--start", "2026-11-24T00:00:00Z"])
+        assert rc == 0, sortie
+        d = json.loads(out.read_text(encoding="utf-8"))
+        assert d["nb_creneaux"] == 9, "9 livrables doivent donner 9 creneaux"
+        assert d["validated_by_magos"] is False, "le projet ne signe pas son propre calendrier"
+        precedent, intervalles = None, []
+        for c in d["creneaux"]:
+            quand = c["publishAt"]
+            if precedent:
+                t0 = dt.datetime.strptime(precedent, "%Y-%m-%dT%H:%M:%SZ")
+                t1 = dt.datetime.strptime(quand, "%Y-%m-%dT%H:%M:%SZ")
+                ecart = (t1 - t0).total_seconds() / 3600.0
+                intervalles.append(ecart)
+                assert 4.0 - 1e-6 <= ecart <= 10.0 + 1e-6, \
+                    "creneau hors bornes : %.2f h entre %s et %s" % (ecart, precedent, quand)
+            precedent = quand
+            assert c["privacyStatus"] == "private", "un creneau n'est pas en prive"
+        assert len(intervalles) == 8, "il manque des intervalles"
+        assert len(set(round(i, 2) for i in intervalles)) > 3, \
+            "les intervalles sont trop reguliers : ce n'est pas un tirage"
+        assert prov.is_file(), "aucune provenance pour le calendrier"
+
+
+def test_t26_calendrier_deterministe():
+    """T26 : la meme graine rend le meme calendrier — sinon le passe est indatable."""
+    with tempfile.TemporaryDirectory() as tmp:
+        liv = _livrables(tmp)
+        a, b, c = Path(tmp) / "a.json", Path(tmp) / "b.json", Path(tmp) / "c.json"
+        for cible, seed in ((a, "777"), (b, "777"), (c, "778")):
+            rc, sortie = _programma(["--mode", "plan", "--pack", "REVIEW/pack_stage.json",
+                                     "--livrables", liv, "--out", str(cible),
+                                     "--seed", seed, "--start", "2026-11-24T00:00:00Z"])
+            assert rc == 0, sortie
+        assert a.read_text(encoding="utf-8") == b.read_text(encoding="utf-8"), \
+            "meme graine, calendriers differents : le tirage n'est pas reproductible"
+        assert a.read_text(encoding="utf-8") != c.read_text(encoding="utf-8"), \
+            "deux graines differentes rendent le meme calendrier : la graine ne sert a rien"
+        d = json.loads(a.read_text(encoding="utf-8"))
+        assert d["seed"] == 777, "la graine n'est pas ecrite dans le calendrier"
+
+
+# ───────────────── T27/T28 — publication programmee et idempotence ──────
+
+def test_t27_publication_dry_run():
+    """T27 : la requete envoyee porte private + publishAt, et rien ne part sans signature."""
+    with tempfile.TemporaryDirectory() as tmp:
+        liv = _livrables(tmp)
+        cal = Path(tmp) / "schedule.json"
+        rc, sortie = _programma(["--mode", "plan", "--pack", "REVIEW/pack_stage.json",
+                                 "--livrables", liv, "--out", str(cal), "--seed", "42",
+                                 "--start", "2026-11-24T00:00:00Z"])
+        assert rc == 0, sortie
+
+        rc, sortie = _programma(["--mode", "publish", "--schedule", str(cal), "--dry-run"])
+        assert rc == 3, "un calendrier non signe doit refuser avec le code 3 (rc=%s)" % rc
+        assert "validated_by_magos" in sortie, "le refus ne nomme pas la cause"
+
+        d = json.loads(cal.read_text(encoding="utf-8"))
+        d["validated_by_magos"] = True
+        d["creneaux"][0]["publishAt"] = "2026-11-01T00:00:00Z"
+        cal.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
+        req = Path(tmp) / "requete.json"
+        rc, sortie = _programma(["--mode", "publish", "--schedule", str(cal), "--dry-run",
+                                 "--request-out", str(req)])
+        assert rc == 0, sortie
+        r = json.loads(req.read_text(encoding="utf-8"))
+        assert r["body"]["status"]["privacyStatus"] == "private", "la video ne serait pas privee"
+        assert r["body"]["status"]["publishAt"], "aucun publishAt natif : la programmation serait fausse"
+        assert r["part"] == "snippet,status", "la requete ne porte pas les bons champs"
+        assert json.loads(sortie.splitlines()[-1])["resultats"][0]["statut"] == "dry_run", \
+            "un dry-run ne doit rien publier"
+
+
+def test_t28_idempotence():
+    """T28 : deux passages sur le meme creneau ne produisent qu'une publication.
+
+    Le doublon est le defaut le plus couteux d'un calendrier : il double le
+    contenu, il declenche les filtres anti-spam, et il ne se repare pas.
+    """
+    sys.path.insert(0, str(ROOT / "FR_B_CREATION/SF_17_PROGRAMMA/CODEBASE"))
+    import programma as pg
+
+    creneau = {"id": "A01", "fichier": "/tmp/inexistant.mp4",
+               "titre": "everyone lied about the money",
+               "publishAt": "2026-12-01T10:00:00Z", "tags": ["murus", "murus:A01"]}
+
+    src = (ROOT / "FR_B_CREATION/SF_17_PROGRAMMA/CODEBASE/programma.py").read_text(encoding="utf-8")
+    assert "def deja_publie" in src, "aucune verification d'existence avant insertion"
+    assert src.index("deja_publie(jeton") < src.index("uploadType=resumable"), \
+        "l'insertion part avant la verification : un doublon est possible"
+
+    original = pg.deja_publie
+    pg.deja_publie = lambda jeton, titre, tag: "VIDEO-EXISTANTE"
+    try:
+        res = pg.publier(creneau, "jeton-factice", False, None)
+    finally:
+        pg.deja_publie = original
+    assert res["statut"] == "deja_publie", "un clip existant a ete republie"
+    assert res["video_id"] == "VIDEO-EXISTANTE", "l'identifiant existant n'est pas rendu"
+    assert "quota" in src and "backoff" in src.lower(), "le recul de quota n'est pas gere"
+    assert "reculs" in src, "le backoff n'est pas declare avec ses paliers"
+
+
+def test_t29_siege_mesure_attendu():
+    """T29 : le siege V2 mesure n'a pas encore tourne, et le plan le dit.
+
+    Un oracle qui n'a pas tourne ne se presente pas vert. Ce test interdit la
+    seule faute qui rendrait tout le reste inutile : annoncer un chiffre qu'on
+    n'a pas mesure.
     """
     plan = PLAN.read_text(encoding="utf-8")
     for oracle in ("T20", "T21", "T22", "T23", "T24", "T25", "T26", "T27", "T28", "T29"):
         assert oracle in plan, "oracle absent du plan opposable : %s" % oracle
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "ATTENDU" in readme, "le README présente des oracles non exécutés comme acquis"
+    assert "ATTENDU" in readme, "le README presente des oracles non executes comme acquis"
     for etape in range(2, 10):
-        assert "Étape %d" % etape in plan, "étape %d absente du plan" % etape
+        formes = ("Étape %d" % etape, "Etape %d" % etape, "étape %d" % etape)
+        assert any(f in plan for f in formes), "etape %d absente du plan" % etape
 
 
 def _main():

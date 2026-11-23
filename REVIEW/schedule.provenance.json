@@ -1,0 +1,19 @@
+{
+  "schema": "murus.schedule.provenance.v1",
+  "generateur": "FR_B_CREATION/SF_17_PROGRAMMA/CODEBASE/programma.py",
+  "graine": 42,
+  "tirages_secondes": [
+    0,
+    14940.4,
+    20340.7,
+    19221.5,
+    30307.7,
+    29016.7,
+    33671.2,
+    16277.8,
+    23513.4
+  ],
+  "sha256_calendrier": "d9fd82111bf38e789c606528935af1f6d1f0d3465a0432a43ecc2a9737bf347c",
+  "signature_requise": true,
+  "note": "sans validated_by_magos: true, la publication refuse (code 3)"
+}

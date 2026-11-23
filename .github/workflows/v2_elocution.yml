@@ -1,20 +1,117 @@
-name: MURUS V2 — elocution (NON IMPLEMENTE)
+name: MURUS V2 — elocution (SF_06, seconde passe des titres)
 
-# PLACEHOLDER DECLARE — PLAN_V2.md etape 5.
-# La passe d'elocution NVIDIA (SF_06, second temps) n'est pas encore ecrite.
-# Le workflow refuse bruyamment avec le motif exact.
+# PLAN_V2 etape 5. La selection est deja faite (M1, cap 15) : ce workflow ne
+# touche qu'a la FORMULATION des titres. Chaque titre propose par le modele
+# repasse les gabarits du depot ; un titre refuse n'est jamais accepte, et un
+# echec du modele ne fait jamais echouer le siege (repli gabarit, trace).
+#
+# Cle : secret NVIDIA_API_KEY. Absente => repli gabarit pour tous les titres,
+# et le rapport le dit (cle_presente=false, replis=N). Aucun secret en clair ici.
 
 on:
   workflow_dispatch:
+    inputs:
+      assets:
+        description: "Fenetres a reformuler (vide = toutes)"
+        required: false
+        default: ""
+      tentatives:
+        description: "Tentatives par titre avant repli"
+        required: false
+        default: "3"
+  push:
+    paths:
+      - "FR_A_CERVEAU/SF_06_LIBELLUS/CODEBASE/elocution.py"
+      - ".github/workflows/v2_elocution.yml"
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: v2-elocution-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  non_implemente:
+  elocution:
+    name: elocution — proposer, faire re-juger, declencher le repli si besoin
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - name: Refus declare
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: La cle est-elle posee ? (on le dit, on ne le suppose pas)
         run: |
-          echo "::error::elocution.py n'est pas encore implemente — voir TRACKING/PLAN_V2.md etape 5 (T23/T24)"
-          exit 1
+          if [ -z "${NVIDIA_API_KEY}" ]; then
+            echo "::warning::NVIDIA_API_KEY absente — repli gabarit, aucun titre ne sera reformule"
+          else
+            echo "NVIDIA_API_KEY presente (${#NVIDIA_API_KEY} caracteres) — mode elocution"
+          fi
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+
+      - name: 5. ELOCUTION (proposition + re-jugement par les gabarits)
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          ASSETS: ${{ inputs.assets }}
+          TENTATIVES: ${{ inputs.tentatives }}
+        run: |
+          TENT="${TENTATIVES:-3}"
+          ARGS=""
+          if [ -n "${ASSETS}" ]; then ARGS="--assets ${ASSETS}"; fi
+          python FR_A_CERVEAU/SF_06_LIBELLUS/CODEBASE/elocution.py \
+            --pack REVIEW/pack_stage.json \
+            --out REVIEW/elocution.json \
+            --tentatives "${TENT}" \
+            --ledger TRACKING/ELOCUTION_LEDGER.jsonl \
+            ${ARGS}
+
+      - name: 5b. PORTE ELOCUTION — aucun titre non valide ne sort
+        run: |
+          python - <<'PYEOF'
+          import json, sys
+          d = json.load(open("REVIEW/elocution.json", encoding="utf-8"))
+          motifs = []
+          for t in d["titres"]:
+              if t["source"] == "elocution":
+                  dernier = [v for v in t["verdicts"] if "accepte" in v][-1:]
+                  if not dernier or dernier[0].get("accepte") is not True:
+                      motifs.append("%s accepte sans verdict positif" % t["id"])
+              if not t.get("titre"):
+                  motifs.append("%s sorti sans titre" % t["id"])
+              if t["source"] == "elocution" and t["elocution_fallback"]:
+                  motifs.append("%s marque elocution ET repli" % t["id"])
+          if motifs:
+              for m in motifs:
+                  print("::error::PORTE ELOCUTION REFUS : %s" % m)
+              raise SystemExit(1)
+          print("PORTE ELOCUTION : %d titres, %d reformules, %d replis"
+                % (d["assets"], d["elocutions"], d["replis"]))
+          PYEOF
+
+      - name: Publier la preuve
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-elocution
+          path: |
+            REVIEW/elocution.json
+            TRACKING/ELOCUTION_LEDGER.jsonl
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Committer la preuve (jamais bloquant — E-14)
+        continue-on-error: true
+        run: |
+          git config user.name "murus-v2"
+          git config user.email "murus-v2@users.noreply.github.com"
+          git add -f REVIEW/elocution.json TRACKING/ELOCUTION_LEDGER.jsonl
+          if git diff --cached --quiet; then echo "rien de neuf"; exit 0; fi
+          git commit -m "V2 elocution: titres reformules et re-juges par les gabarits"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase --autostash && git push; then echo "pousse"; exit 0; fi
+            sleep $((i * 5))
+          done
+          echo "::warning::preuve non poussee (course git) — l'artefact reste la verite"

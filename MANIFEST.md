@@ -100,4 +100,7 @@ Créée depuis `main` (= V1, 28 portes vertes). Aucun fichier de V1 n'est suppri
 | `.github/workflows/v2_publish.yml` | cron de publication (dry-run par défaut) | CRÉÉ (V2) |
 | `.github/workflows/v2_elocution.yml` | passe d'élocution dans le siège | CRÉÉ (V2) |
 | `tests/test_murus_v2.py` | T20–T29, un oracle par test | CRÉÉ (V2) |
+| `FR_A_CERVEAU/SF_05_VOX/CODEBASE/transcrire_vod.py` | transcription du siège en fan-out Modal (8 VM), repli CPU déclaré | CRÉÉ (V2) |
+| `MODAL/transcribe.py#transcribe_chunk` | fonction Modal appelée en parallèle, mots déjà datés en temps VOD | CRÉÉ (V2) |
+| `TRACKING/PARCOURS_V2.md` | ce que la branche `v2` a réellement exécuté, chiffres et portes (EN + FR) | CRÉÉ (V2) |
 
