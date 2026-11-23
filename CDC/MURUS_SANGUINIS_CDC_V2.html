@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MURUS SANGUINIS V2 — Cahier des charges auto-suffisant (l'assemblage : deux moteurs, une voix, un calendrier)</title>
+<style>
+:root{--ink:#12161c;--ink2:#2d3540;--muted:#5d6a7a;--line:#d8dee6;--bg:#fbfcfd;--steel:#3c5a7a;--steel-l:#eaf0f6;--gold:#9a7b2f;--gold-l:#fbf5e6;--red:#a83232;--red-l:#fbeeee;--green:#2f6b4f;--green-l:#ecf6f1;--orange:#b06a1a;--orange-l:#fdf3e4;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px 120px}
+header.hero{background:linear-gradient(160deg,#101720,#2a1520 55%,#3a1420);color:#f5eef0;padding:54px 28px 46px;border-bottom:3px solid var(--gold)}
+header.hero h1{margin:0 0 10px;font-size:29px;letter-spacing:.4px}header.hero p{margin:4px 0;color:#d8c2c8;max-width:880px}
+nav.toc{background:var(--steel-l);border:1px solid var(--line);border-radius:10px;padding:14px 22px;margin:26px 0;font-size:14px}
+nav.toc a{color:var(--steel);text-decoration:none;margin-right:14px;white-space:nowrap}
+h2{font-size:22px;margin:44px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--gold)}
+h3{font-size:17px;margin:26px 0 8px;color:var(--steel)}
+h4{font-size:15px;margin:20px 0 6px;color:var(--ink2)}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px}
+th{background:var(--steel-l);text-align:left;padding:8px 10px;border:1px solid var(--line)}
+td{padding:8px 10px;border:1px solid var(--line);vertical-align:top}
+code{font-family:var(--mono);font-size:13px;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f141a;color:#dce5ee;padding:18px;border-radius:10px;overflow-x:auto;font:12px/1.5 var(--mono);border:1px solid #2a3642;margin:14px 0}
+.codewrap{margin:14px 0;border-radius:10px;overflow:hidden;border:1px solid #2a3642}
+.codehead{display:flex;justify-content:space-between;background:#1d2a37;color:#cfd9e4;font:12px var(--mono);padding:7px 14px}
+.codewrap pre{border:0;border-radius:0;margin:0}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;vertical-align:middle}
+.v{background:var(--green-l);color:var(--green);border:1px solid #b7d8c8}
+.d{background:var(--orange-l);color:var(--orange);border:1px solid #e2c68a}
+.nv{background:var(--red-l);color:var(--red);border:1px solid #e0a8a8}
+.i{background:#ece7f6;color:#5a4a8a;border:1px solid #c9bfe8}
+.pi{background:#e3efe6;color:#2f6b4f;border:1px solid #a9d3b7;font-family:var(--mono)}
+.cr{background:#fdeee0;color:#b06a1a;border:1px solid #e2c68a;font-family:var(--mono)}
+.box{border-left:5px solid var(--steel);padding:12px 16px;margin:18px 0;font-size:14.5px;background:var(--steel-l)}
+.okbox{border-left:5px solid var(--green);padding:12px 16px;margin:18px 0;font-size:14.5px;background:var(--green-l)}
+.warn{border-left:5px solid var(--orange);padding:12px 16px;margin:18px 0;font-size:14.5px;background:var(--orange-l)}
+.stop{border-left:5px solid var(--red);padding:12px 16px;margin:18px 0;font-size:14.5px;background:var(--red-l)}
+ul,ol{margin:10px 0;padding-left:24px}li{margin:5px 0}
+.diagram{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto;font:12px/1.5 var(--mono);white-space:pre}
+footer{margin-top:60px;border-top:2px solid var(--gold);padding-top:14px;font-size:13px;color:var(--muted)}
+a{color:var(--steel)}
+@media print{body{background:#fff}}
+</style>
+</head>
+<body>
+<header class="hero">
+<h1>MURUS SANGUINIS V2 — l'assemblage : deux moteurs, une voix, un calendrier</h1>
+<p>Cahier des charges <strong>auto-suffisant</strong> de la branche <code>v2</code>, écrit sur le modèle du CDC V1 (mêmes passes, même rigueur). Un agent de codage récupère ce document, sait pour CHAQUE fichier du dépôt s'il doit le <span class="tag pi">PILLER</span> (de quelle source exacte) ou le <span class="tag cr">CRÉER</span> (avec quel contenu), lance les tests, pousse — et l'outil produit des clips VOD <em>et</em> LIVE, puis les publie en mode programmé.</p>
+<p>V1 = <code>main</code> (28 portes, parcours réel exécuté : pack <code>70f120a8</code>, 9 clips demandés, 9 livrés, all_qa_pass, PORTE V7 : True — <code>TRACKING/PARCOURS_REEL.md</code>) <span class="tag v">VÉRIFIÉ</span>. La V2 N'EFFACE rien de main : elle ajoute trois pouvoirs au mur.</p>
+<p>NAVIGATION = ON &nbsp;·&nbsp; Généré le 2026-11-23 &nbsp;·&nbsp; Branche : <code>v2</code> &nbsp;·&nbsp; Tests V2 : <strong>ATTENDU, jamais exécutés</strong> (à remplacer par la sortie réelle à la première exécution)</p>
+</header>
+<div class="wrap">
+
+<nav class="toc">
+<a href="#p0">Passe 0</a><a href="#p1">Passe 1</a><a href="#p2">Passe 2</a><a href="#p3">Passe 3</a><a href="#p4">Passe 4</a><a href="#p5">Passe 5</a>
+<a href="#nom">Le nom</a><a href="#def">Sous-frégate</a><a href="#archi">Architecture</a><a href="#sfr">Sous-frégates</a><a href="#moteurs">Les deux moteurs</a>
+<a href="#parcours">Parcours</a><a href="#tree">Arborescence tree/F</a><a href="#direct">Mode DIRECT</a><a href="#code">Code</a><a href="#tests">Tests e2e</a>
+<a href="#install">Installation</a><a href="#proto">Protocole</a><a href="#risques">Risques</a><a href="#philo">Philosophie</a><a href="#reflexion">Réflexion</a><a href="#liens">Liens</a>
+</nav>
+
+<h2 id="p0">PASSE 0 — Cadrage falsifiable</h2>
+<p><strong>Affirmation testable :</strong> (a) un flux LIVE produit des clips en temps réel via la <strong>voie vive</strong> (moteur greffé NeonClipping, MIT <span class="tag v">VÉRIFIÉ</span>), headless sur GitHub Actions, un job par clip, sans machine locale, sans Ollama ; (b) chaque titre passe par une chaîne en deux temps — moteur à règles de MURUS puis <strong>passe d'élocution</strong> par API NVIDIA (gratuit, crédits plafonnés) — et la sortie repasse le validateur de règles ; (c) les livrables acceptés à V7 sont publiés sur YouTube par <strong>SF_17_PROGRAMMA</strong> en mode programmé (intervalle 4–10 h tiré UNE fois par siège, <code>publishAt</code> natif, API officielle gratuite) ; (d) TikTok est RETIRÉ de la V2 ; (e) SF_14/SF_15 restent sans gate et s'appliquent aux DEUX moteurs.</p>
+<p><strong>Comment le réfuter :</strong> un clip vive avec un tag suspect résiduel après SF_15, un titre d'élocution accepté sans passer le validateur, ou une publication hors fenêtre 4–10 h ⇒ l'affirmation tombe.</p>
+<p><strong>Cap d'abandon :</strong> inchangé — 45 clips mesurés avant verdict, revenu net ÷ heure &lt; 0 ⇒ le projet s'arrête.</p>
+
+<h2 id="p1">PASSE 1 — Carte des lieux : les QUATRE sources (trois pillées en V1 + une en V2)</h2>
+<table>
+<tr><th>Source</th><th>Lien (ouvert en session)</th><th>Ce qu'on en pille</th><th>Ce qu'on n'en prend PAS</th></tr>
+<tr><td><strong>PERTURABO</strong> (le cerveau)<br><code>pari-forge-perturabo-xs4c</code></td><td><a href="https://github.com/gyutedy/PERTURABO/tree/pari-forge-perturabo-xs4c/MONDES_FORGES/CLIPPING">dépôt</a></td><td>F00_CAPTEURS, F01_SCOUT, F02_TYRANT_CAMP, ANGLESMITH, F06_TRACKER, ORCHESTRATOR + gates.py, ARCHIVUM, CONTRACTS, et MARK1 entier (sélection déterministe, ledger, tokens, VEXILLUM, s1_context).</td><td>L'opinion LLM dans le verdict (décision D2 : le LLM écrit, il ne choisit pas).</td></tr>
+<tr><td><strong>LACRIMAE</strong> (le bras armé)<br><code>sanguinala-v1</code></td><td><a href="https://github.com/gyutedy/LACRIMAE-FULL/tree/sanguinala-v1">dépôt</a></td><td>F03_PREVIEW, F03_POSTPROD (glow GL1/GL2, caption ASS, LUT, fade, ordre PP2), F01_LOOK, F02_MONTAGE, F05 CAMOUFLAGE, F06_LUTHER, REVIEW/, BRIDGE/, SHARED/, tools/, run_all.py.</td><td>F04_HEISENBERG (HORS FLUX V1, VÉRIFIÉ dans son README).</td></tr>
+<tr><td><strong>SKILL</strong> (le détecteur)<br><code>gta6-clipper-windows</code></td><td><a href="https://github.com/vossashtonai/gta6-clipper-windows">dépôt</a></td><td>La mécanique de détection : loudness RMS + vitesse du chat, buffer glissant live (segments 60 s, fenêtres 5 min) — déjà dans <code>SF_04_SELECTIO/CODEBASE/detect/</code>.</td><td>Sa cible implicite (les fans présents) : le test non-averti vient de S1.</td></tr>
+<tr><td><strong>NEONCLIPPING</strong> (le moteur de vitesse) — NOUVEAU V2<br><code>iamajmeena/neonclipping</code></td><td><a href="https://github.com/iamajmeena/neonclipping">dépôt</a> — vivant, dernier commit <code>0525004</code> du <strong>2026-11-22</strong> <span class="tag v">VÉRIFIÉ</span> (cloné en session), <strong>licence MIT</strong> <span class="tag v">VÉRIFIÉ</span></td><td>Le chemin rapide : téléchargement AUDIO SEUL, scoring loudness/mouvement sans LLM, détection facecam YuNet (<code>facecam_detect.py</code>, modèle <code>models/face_detection_yunet_2023mar.onnx</code>), découpe des seules sections choisies, encodage (<code>encoders.py</code>), live (<code>live/live_clip.py</code>, <code>live_session.py</code>), jobs parallèles (<code>jobs.py</code>).</td><td>Son export final (« on purpose » il ne purge rien) : la purge reste SF_14/SF_15. Ses hooks LLM (<code>hooks.py</code>, <code>llm.py</code>) : les titres restent à SF_06. Son scheduling local : c'est SF_17 qui programme.</td></tr>
+</table>
+<div class="box"><strong>Les decks GTA (captures de la session)</strong> ne contiennent pas de code : c'est de la DOCTRINE business (calendrier de lancement, échelle de monétisation 0–500 / 5k / 10k vues, learning loop <code>log.csv</code>, hygiène de compte). Ils sont absorbés comme contrat — voir §Protocole et SF_16/SF_17. Le dashboard de la capture est un mockup <span class="tag nv">NON VÉRIFIÉ</span> comme outil réel ; ses données (timeline, scoring, earnings) existent déjà dans nos sorties (ledger, rapports, readings).</div>
+
+<h2 id="p2">PASSE 2 — Preuves (toutes lues en session, 2026-11-20 → 2026-11-23)</h2>
+<table>
+<tr><th>#</th><th>Affirmation</th><th>Étiquette</th><th>Preuve</th></tr>
+<tr><td>1</td><td>Le dépôt MURUS_SANGUINIS existe, vivant : 28 portes en CI, parcours réel exécuté (pack 70f120a8, 9/9 clips, all_qa_pass, V7 True), LICENSE présent, LICENSE à la racine.</td><td><span class="tag v">VÉRIFIÉ</span></td><td><a href="https://github.com/gyutedy/MURUS_SANGUINIS">README + clone en session</a> ; arbre réel : <code>murus.py</code>, <code>run_all.py</code>, <code>FR_A_CERVEAU/</code> (SF_01→SF_09 + MARK1 + GATES), <code>FR_B_CREATION/</code> (SF_10→SF_16 + GATES), 9 workflows <code>.github/workflows/</code>, <code>tests/test_murus.py</code> (28), <code>tests/pillés/</code>.</td></tr>
+<tr><td>2</td><td>NeonClipping : vivant, dernier commit 2026-11-22 (0525004), licence MIT (Copyright 2026 Ajay K Meena and NeonClipping contributors), 187 checks auto-déclarés.</td><td><span class="tag v">VÉRIFIÉ</span> (commit/licence) · <span class="tag d">AFFIRMÉ PAR AUTEUR</span> (187 checks, non réexécutés)</td><td>Clone en session : <code>LICENSE</code>, <code>git log -1</code> ; <code>tests/REPORT.md</code>.</td></tr>
+<tr><td>3</td><td>NeonClipping fonctionne sans LLM : « without it clips are picked by the audio/motion score ».</td><td><span class="tag v">VÉRIFIÉ</span></td><td>README officiel, ouverte en session.</td></tr>
+<tr><td>4</td><td>Chemin rapide NeonClipping : audio seul (79 Mo pour 85 min), transcripts gratuits word-timed YouTube (json3), scoring loudness baseline glissante, puis téléchargement des seules sections choisies.</td><td><span class="tag v">VÉRIFIÉ</span> (mécanisme) · <span class="tag d">AFFIRMÉ PAR AUTEUR</span> (chiffres)</td><td>README officielle ; code réel : <code>highlights.py</code>, <code>smart.py</code>, <code>captions_yt.py</code>, <code>ytdl.py</code>.</td></tr>
+<tr><td>5</td><td>NeonClipping ne purge PAS les métadonnées à l'export (s'arrête au MP4 « on purpose ») — pas d'équivalent SF_14/SF_15.</td><td><span class="tag v">VÉRIFIÉ</span></td><td>README (honest limits + export) ; absence de toute purge dans <code>encoders.py</code> confronté au code réel de <code>lac_f05_camouflage.py</code>.</td></tr>
+<tr><td>6</td><td><strong>CORRECTION vs débat précédent :</strong> les uploads YouTube de projets API non vérifiés ne sont PAS verrouillés en privé. Le verrou « privé » (StackOverflow, 2020) est RÉFUTÉ par la page officielle actuelle.</td><td><span class="tag nv">RÉFUTÉ</span> (l'ancien verrou) · <span class="tag v">VÉRIFIÉ</span> (l'état actuel)</td><td><a href="https://developers.google.com/youtube/data/reference/rest/v3/videos/insert">videos.insert</a> : « Videos uploaded from unverified API projects are not restricted to private viewing mode. » — ouverte en session 2026-11-23.</td></tr>
+<tr><td>7</td><td>YouTube Data API v3 est GRATUITE en argent : <code>videos.insert</code> coûte 1 unité avec un SEAU DÉDIÉ de 100 appels/jour ; 10 000 unités/jour pour les autres endpoints ; <code>thumbnails.set</code> = 50 unités ; reset à minuit PT ; audit SEULEMENT pour dépasser le défaut.</td><td><span class="tag v">VÉRIFIÉ</span></td><td><a href="https://developers.google.com/youtube/data/determine_quota_cost">determine_quota_cost</a> (maj 2026-11-12) + <a href="https://developers.google.com/youtube/data/guides/quota_and_compliance_audits">quota_and_compliance_audits</a>, ouvertes en session.</td></tr>
+<tr><td>8</td><td>TikTok : client non audité = posts restreints SELF_ONLY, plafond ~5 utilisateurs/24 h, audit obligatoire ; le WATERMARK est explicitement interdit (« deleted content or disabled accounts »).</td><td><span class="tag v">VÉRIFIÉ</span></td><td><a href="https://developers.tiktok.com/doc/content-sharing-guidelines">content-sharing-guidelines</a>, ouverte en session.</td></tr>
+<tr><td>9</td><td>Instagram : publication officielle possible (Graph API Content Publishing) mais compte Business/Creator obligatoire, plafond 100 posts API / 24 h glissants ; le scheduling natif Reels est un conflit de sources.</td><td><span class="tag v">VÉRIFIÉ</span> (compte + plafond) · <span class="tag d">NON VÉRIFIÉ</span> (scheduling Reels)</td><td><a href="https://developers.facebook.com/documentation/instagram-platform/content-publishing">content-publishing</a>, ouverte en session.</td></tr>
+<tr><td>10</td><td>X : « pay-per-usage pricing, no subscriptions » ; media upload non couvert par le tier gratuit.</td><td><span class="tag v">VÉRIFIÉ</span> (modèle) · <span class="tag d">AFFIRMÉ PAR AUTEUR</span> (prix unitaires)</td><td><a href="https://docs.x.com/x-api/introduction">docs.x.com</a>, ouverte en session.</td></tr>
+<tr><td>11</td><td>NVIDIA NIM (build.nvidia.com) : accès gratuit par clé API ; mais crédits PLAFONNÉS — 1 000 à l'inscription, jusqu'à 5 000 sur demande, ~40 req/min.</td><td><span class="tag v">VÉRIFIÉ</span> (accès + clé) · <span class="tag d">AFFIRMÉ PAR AUTEUR</span> (chiffres de crédits)</td><td><a href="https://build.nvidia.com/">build.nvidia.com</a> + <a href="https://build.nvidia.com/settings/api-keys">api-keys</a> ; chiffres : <a href="https://forums.developer.nvidia.com/t/nim-api-credits/305703">forums NVIDIA</a>.</td></tr>
+<tr><td>12</td><td>La doctrine V1 reste intégralement valide : le cerveau ne touche jamais une vidéo ; une gate précède chaque sous-frégate ; le run s'arrête à la première porte en échec ; un job par clip en matrice Actions ; l'opérateur n'édite jamais un fichier en plein siège ; anti-remplissage (6 qui remplissent les conditions ⇒ 6 rendus, pas 15).</td><td><span class="tag v">VÉRIFIÉ</span></td><td>README main + <code>TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md</code> + <code>ARCHIVUM/demande/README.md</code> — clonés et lus en session.</td></tr>
+<tr><td>13</td><td>Les 16 noms de sous-frégates V1, le nom MURUS SANGUINIS, la porte P1 et V7.</td><td><span class="tag i">INVENTÉ</span> (validé en session 2026-11-20)</td><td>CDC V1, validé par le Warsmith.</td></tr>
+<tr><td>14</td><td>Les 10 tests V2 (T20–T29) ont été exécutés avec succès.</td><td><span class="tag nv">ATTENDU</span></td><td>Ils ne l'ont JAMAIS été. À la première exécution, remplacer par la sortie réelle et consigner dans <code>TRACKING/MURUS_LOG.md</code>.</td></tr>
+</table>
+
+<h2 id="p3">PASSE 3 — Indépendance des sources</h2>
+<ul>
+<li><strong>Origine 1</strong> — dépôt PERTURABO@pari-forge-perturabo-xs4c (cloné et lu en session).</li>
+<li><strong>Origine 2</strong> — dépôt LACRIMAE-FULL@sanguinala-v1 (cloné et lu en session).</li>
+<li><strong>Origine 3</strong> — dépôt vossashtonai/gta6-clipper-windows (mécanique citée via sa transcription de présentation, fournie en session).</li>
+<li><strong>Origine 4</strong> — dépôt iamajmeena/neonclipping (cloné en session 2026-11-23 ; NI fork de 1–3, ni des leurs : code indépendant, vérifié par ses propres fichiers).</li>
+<li><strong>Origine 5</strong> — documents du Warsmith (cahier-ikigai-v1.html, MARK1_CDC_V2_CLIPPING.html, MARK1_V1_V2_CHANGES.md, CDC V1 de MURUS, transcriptions).</li>
+<li><strong>Origines 6–9</strong> — pages officielles indépendantes : Google Developers (2 pages), TikTok Developers, Meta for Developers, docs.x.com, build.nvidia.com + forums NVIDIA.</li>
+</ul>
+<p><span class="tag d">NON VÉRIFIÉ</span> : le comportement d'exécution réel de NeonClipping sur un VOD long (jamais lancé en session — la preuve viendra du T20) ; le scheduling Reels d'Instagram (conflit de sources, tranchera le premier siège SF_17).</p>
+
+<h2 id="p4">PASSE 4 — Attaque du plan</h2>
+<table>
+<tr><th>Attaque</th><th>Réponse</th></tr>
+<tr><td>« Greffer NeonClipping casse la doctrine : son UI est locale, son export est sale. »</td><td>On ne greffe NI l'UI NI l'export. Le moteur entre en <code>SF_12_FABRICA/vive/</code> en mode headless (uvicorn en fond + POST <code>/make</code>), et TOUT passe derrière les mêmes portes ; l'export du moteur est TOUJOURS ré-entrant dans SF_14_CAMOUFLAGE → SF_15_LUTHER. La valeur du moteur greffé (vitesse) est conservée ; sa faiblesse (métadonnées) est corrigée par ce que nous seuls avons.</td></tr>
+<tr><td>« Deux moteurs = deux sources de vérité. »</td><td>Non : le cerveau reste l'unique source de décision (le pack). Les deux moteurs sont des CONSOMMATEURS du pack, équivalents devant la porte G1. Un moteur qui refuse le pack ne décide rien — il échoue et le run s'arrête.</td></tr>
+<tr><td>« Le LLM d'élocution va glisser dans le verdict de sélection. »</td><td>Impossible par construction : <code>elocution.py</code> vit dans SF_06 (métadonnées), APRÈS la porte M1 (sélection) et le cap 15. Sa sortie repasse le validateur de gabarits — un titre hors doctrine est rejeté, jamais accepté. L'exception réseau est nommée dans <code>LES_EXCEPTIONS.md</code> avec ses grep.</td></tr>
+<tr><td>« La publication programmée va bannir le compte. »</td><td>Elle est PLUS sûre que la publication manuelle : API officielle (jamais de scraping), intervalle 4–10 h irrégulier (jamais de cluster), <code>privacyStatus=private</code> + <code>publishAt</code> natif (la plateforme gère le déclenchement), idempotence par <code>videos.list</code> (jamais de doublon). Et TikTok — la seule plateforme qui interdit le watermark — est retirée.</td></tr>
+<tr><td>« 1 000 crédits NVIDIA, c'est trop peu. »</td><td>Borné par conception : ≤ 15 titres/siège + ≤ 3 reprises/titre, repli gabarit pur en bout de course. Un siège n'échoue JAMAIS pour un titre. La consommation réelle est écrite au ledger au premier siège (chiffre interdit sans les 5 éléments d'ici là).</td></tr>
+<tr><td>« Poster des clips = argent facile » / « ROAD TO $1M »</td><td><span class="tag nv">RÉFUTÉ</span> d'office (loi de puissance, queue d'échecs). Taux de base (R11) : la majorité des pages de clipping ne rapportent rien ; les chiffres des decks sont [AFFIRMÉ PAR AUTEUR]. Seuil d'abonnement inchangé : 45 clips.</td></tr>
+</table>
+
+<h2 id="p5">PASSE 5 — Verdict</h2>
+<p><strong>Solide :</strong> chaque composant V2 existe quelque part et tourne — le moteur vive est le code réel d'un dépôt vivant (commit 2026-11-22) sous licence MIT ; l'élocution suit le pattern d'exception déjà éprouvé de MARK1 ; la programmation repose sur une API officielle documentée et gratuite. <strong>Incertain :</strong> le temps réel par clip live sur un runner Actions sans GPU (à mesurer au T20) ; la consommation réelle de crédits NVIDIA (à mesurer au T29) ; le scheduling Reels. <strong>Réfuté d'office :</strong> le verrou privé YouTube (2020) — contredit par la référence officielle actuelle ; « la fusion sera rapide » — elle exige le runbook §Installation à la lettre.</p>
+
+<h2 id="nom">Le nom canonique — MURUS SANGUINIS (inchangé)</h2>
+<p><span class="tag i">INVENTÉ</span> <strong>validé par le Warsmith, session 2026-11-20.</strong> MURUS = le mur de siège, doctrine Iron Warriors (« Their specialty is siege warfare and the reduction of fortified positions », <a href="https://wh40k.lexicanum.com/wiki/Iron_Warriors">Lexicanum</a>) — le cerveau réduit méthodiquement les forteresses-plateformes, une porte = une brèche validée. SANGUINIS = le sang de Sanguinius, doctrine Blood Angels (« the inheritors of Sanguinius… they bring death from above », <a href="https://warhammer40k.fandom.com/wiki/Blood_Angels">Fandom</a>) — la création frappe avec la grâce des deux codex. Cohérence de famille : PERTURABO, LACRIMAE, branche <code>sanguinala-v1</code> existent déjà. La V2 ne renomme RIEN : elle arme le chapitre existant.</p>
+
+<h2 id="def">Qu'est-ce qu'une sous-frégate ? — la loi, étendue à 17</h2>
+<p><span class="tag v">VÉRIFIÉ</span> Définition du réel (<code>MARK1/README.md:7-9</code>, <code>PLAN_V3.md:270</code>) : un dossier unique avec <code>CODEBASE/</code> + <code>OUT/</code>, un artefact de sortie unique et nommé, et une GATE qui la PRÉCÈDE. <span class="tag d">DÉDUIT</span> La V2 conserve la loi et l'étend à <strong>17 sous-frégates</strong> : les deux exceptions SANS gate (SF_14, SF_15) restent ce qu'elles étaient — post-rendu automatique, elles ne rendent rien elles-mêmes, leur preuve est leur rapport — et SF_17_PROGRAMMA reçoit la SEIZIÈME... non, la QUINZIÈME porte humaine (V8) : l'opérateur valide le calendrier AVANT que le cron ne publie quoi que ce soit.</p>
+<h2 id="archi">Architecture — les deux frégates, 17 sous-frégates, 15 portes humaines</h2>
+<div class="diagram">
+MURUS SANGUINIS V2 (branche v2) — tout ce qui existe en main est CONSERVÉ ; ci-dessous les ajouts en gras.
+════════════════════════════════════════════════════════════════════════
+
+FR_A_CERVEAU (ne touche JAMAIS une vidéo — packs JSON dans EXPORT/)
+  [M0]  SF_01_VIGILIA    capteurs + directive          → directive_parsed
+  [V1]  SF_02_VERDICTUM  GO/NO-GO + océan bleu         → verdict
+  [V2]  SF_03_ANGULI     N angles non-avertis          → angles
+  [M1]  SF_04_SELECTIO   détection × S1, TOP 15 cap 15 → selection.json
+  [M5]  SF_05_VOX        transcription mot-à-mot       → transcript
+  [M2]  SF_06_LIBELLUS   métadonnées — DEUX temps :
+             1) titres.py   moteur à règles (12 gabarits, PILLÉ)
+             2) elocution.py  NOUVEAU V2 — passe d'élocution NVIDIA,
+                sortie re-jugée par le validateur de règles
+  [M3]  SF_07_VEXILLUM   watermark reçu (png/jpeg/jpg, sans opacité)
+  [P1]  SF_08_PURGATIO   zéro clé morte
+  [M4]  SF_09_PORTAS     pack → EXPORT/ + ledger
+                                    │ pack JSON
+                                    ▼
+FR_B_CREATION (ne prend JAMAIS une décision — exécute les codex)
+  ┌─ VOIE PREMIUM (VOD, ≤ 15 clips/session, qualité) ─────────────┐
+  │ [V5] SF_10_SPECULUM  preview LOOK → codex_render.json         │
+  │ [V6] SF_11_LUMEN     preview GLOW 1 frame → codex_postprod    │
+  │ [G1] SF_12_FABRICA   rendu piloté par les 2 codex             │
+  │ [PP2] SF_13_POLITURA glow → caption → lut → fade              │
+  └─ VOIE VIVE (LIVE, vitesse — NOUVEAU V2) ──────────────────────┘
+     [G1] SF_12_FABRICA(mode=vive)  moteur NeonClipping headless
+          (sans Ollama, sans UI ; titres = ceux du pack)
+  ── post-rendu, SANS GATE, IDENTIQUE pour les DEUX voies ──
+     (—) SF_14_CAMOUFLAGE   purge métadonnées + loudnorm
+     (—) SF_15_LUTHER       normalisation YouTube + QA
+  [V7]  SF_16_MISSIO     soumission C3 &lt; 1 h + tracker
+  [V8]  SF_17_PROGRAMMA  NOUVEAU V2 — calendrier 4–10 h tiré UNE fois
+                          → schedule.json signé → cron Actions →
+                          YouTube videos.insert + publishAt
+</div>
+<p class="small">Les 15 portes humaines : M0, V1, V2, M1, M5, M2, M3, P1, M4 (cerveau) · V5, V6, G1, PP2 (création premium) · V7, V8. Les deux exceptions sans gate restent SF_14 et SF_15 [VÉRIFIÉ, README main]. La seule frontière entre frégates : le pack JSON dans EXPORT/ et les deux codex dans REVIEW/ [VÉRIFIÉ, README main].</p>
+
+<h2 id="sfr">Les 17 sous-frégates — noms canoniques, gates, pillage (V1 inchangée + V2 en gras)</h2>
+<h3>FR_A_CERVEAU (SF_01 → SF_09)</h3>
+<table>
+<tr><th>#</th><th>Nom canonique</th><th>Gate</th><th>Pillé de (preuve réelle)</th><th>Artefact OUT/</th></tr>
+<tr><td>SF_01</td><td><strong>SF_01_VIGILIA</strong></td><td><code>M0</code></td><td>F00_CAPTEURS (capteurs.py + libs f00_*) + M00A_DIRECTIVA [VÉRIFIÉ, arbre réel du dépôt : <code>SF_01_VIGILIA/CODEBASE/capteurs.py</code>, <code>directiva.py</code>, <code>libs/whop_scanner.py</code>, <code>market_discovery.py</code>…]</td><td><code>directive_parsed</code></td></tr>
+<tr><td>SF_02</td><td><strong>SF_02_VERDICTUM</strong></td><td><code>V1</code></td><td>F01_SCOUT (scout.py, libs recon/enrich/scribe) + F02_TYRANT_CAMP (tyrant_camp.py, libs blue_ocean_finder/fit_scorer) [VÉRIFIÉ, arbre réel]</td><td>verdict GO/NO-GO</td></tr>
+<tr><td>SF_03</td><td><strong>SF_03_ANGULI</strong></td><td><code>V2</code></td><td>ANGLESMITH (anglesmith.py, libs angle_forger/learnings_weight) [VÉRIFIÉ, arbre réel]</td><td>angles forgés</td></tr>
+<tr><td>SF_04</td><td><strong>SF_04_SELECTIO</strong></td><td><code>M1</code></td><td>M00B_SELECTOR (selector.py) + MARK1 libs/s1_context.py + SKILL (detect/chat_pulse.py, detect/live.py) [VÉRIFIÉ, arbre réel]</td><td><code>selection.json</code></td></tr>
+<tr><td>SF_05</td><td><strong>SF_05_VOX</strong></td><td><code>M5</code></td><td>M00F_VOX (vox.py) [VÉRIFIÉ, arbre réel] ; plus MODAL/transcribe.py en option GPU</td><td><code>transcript.json</code></td></tr>
+<tr><td>SF_06</td><td><strong>SF_06_LIBELLUS</strong></td><td><code>M2</code></td><td>M00C_METADATA (metaforge.py, overlay.py) [VÉRIFIÉ, arbre réel]</td><td><code>metadata.json</code></td></tr>
+<tr><td>SF_07</td><td><strong>SF_07_VEXILLUM</strong></td><td><code>M3</code></td><td>M00D_VEXILLUM (vexillum.py) [VÉRIFIÉ, arbre réel] — reçoit .png/.jpeg/.jpg, sans gérer l'opacité</td><td><code>watermark.json</code> + fichier</td></tr>
+<tr><td>SF_08</td><td><strong>SF_08_PURGATIO</strong></td><td><code>P1</code></td><td><span class="tag cr">CRÉER V1</span> — mécanismes pillés : X1 anti-clés-mortes + normalizePurAntiDetection (purgatio.py réel dans le dépôt [VÉRIFIÉ])</td><td>pack épuré</td></tr>
+<tr><td>SF_09</td><td><strong>SF_09_PORTAS</strong></td><td><code>M4</code></td><td>M00E_PACKAGER (packager.py) [VÉRIFIÉ, arbre réel] — X1_EXPORT vérifie clip_token unique</td><td><code>production_pack_*.json</code> + ledger</td></tr>
+</table>
+<h3>FR_B_CREATION (SF_10 → SF_17)</h3>
+<table>
+<tr><th>#</th><th>Nom canonique</th><th>Gate</th><th>Pillé de / créé (preuve réelle)</th><th>Artefact OUT/</th></tr>
+<tr><td>SF_10</td><td><strong>SF_10_SPECULUM</strong></td><td><code>V5</code></td><td>LACRIMAE F03_PREVIEW (App.jsx, codexExport.js, bridgeClipper.js, antiDetection.js, _purPackComposition.jsx) [VÉRIFIÉ, arbre réel]</td><td><code>REVIEW/codex_render.json</code></td></tr>
+<tr><td>SF_11</td><td><strong>SF_11_LUMEN</strong></td><td><code>V6</code></td><td>LACRIMAE F03_POSTPROD/glow (preview_glow.py, modal_glow.py) + tools/codex.py [VÉRIFIÉ, arbre réel]</td><td><code>REVIEW/codex_postprod.json</code></td></tr>
+<tr><td>SF_12</td><td><strong>SF_12_FABRICA</strong> — <strong>DEUX moteurs, voir §moteurs</strong></td><td><code>G1</code></td><td>look/ = LACRIMAE F01_LOOK (render_pictor.mjs, PurLook.jsx) · montage/ = LACRIMAE F02_MONTAGE · <strong>vive/ = CRÉER V2 (wrapper) + vendor NeonClipping</strong> [VÉRIFIÉ, arbre réel]</td><td>clips rendus</td></tr>
+<tr><td>SF_13</td><td><strong>SF_13_POLITURA</strong></td><td><code>PP2</code></td><td>LACRIMAE F03_POSTPROD (postprod.py, ass_render.py, caption/TRAVAIL, lut/) + PREVIEW2 créée V1 [VÉRIFIÉ, arbre réel]</td><td>clips finis + <code>postprod_report.json</code></td></tr>
+<tr><td>SF_14</td><td><strong>SF_14_CAMOUFLAGE</strong> — SANS gate</td><td>—</td><td>LACRIMAE F05 (lac_f05_camouflage.py) [VÉRIFIÉ, arbre réel]</td><td>MP4 camouflé + rapport <code>dev10-v2.camouflage.v1</code></td></tr>
+<tr><td>SF_15</td><td><strong>SF_15_LUTHER</strong> — SANS gate</td><td>—</td><td>LACRIMAE F06_LUTHER (lac_f06_luther.py) [VÉRIFIÉ, arbre réel]</td><td>MP4 livrable + rapport <code>dev10-v2.luther.v1</code></td></tr>
+<tr><td>SF_16</td><td><strong>SF_16_MISSIO</strong></td><td><code>V7</code></td><td>PERTURABO F06_TRACKER (tracker.py, libs readings_validator/learnings_aggregator/channel_performance_updater) [VÉRIFIÉ, arbre réel]</td><td><code>submissions.json</code> + readings</td></tr>
+<tr><td><strong>SF_17</strong></td><td><strong>SF_17_PROGRAMMA</strong> — publication programmée</td><td><code>V8</code></td><td><span class="tag cr">CRÉER V2</span> — API officielle YouTube (videos.insert + publishAt), pattern cron pillé de l'Oracle PERTURABO (cron 5 min, workflow_dispatch) [VÉRIFIÉ, README_V2.md]</td><td><code>schedule.json</code> signé + publications + ledger</td></tr>
+</table>
+
+<h2 id="moteurs">Les DEUX moteurs — rôles, interfaces, fichiers, oracles</h2>
+<p>Les deux moteurs sont des CONSOMMATEURS du même pack, équivalents devant la même porte G1. Un moteur ne décide rien : s'il refuse le pack, le run s'arrête [doctrine : le run s'arrête à la première porte en échec, VÉRIFIÉ main].</p>
+<table>
+<tr><th></th><th>MOTEUR PREMIUM (SF_12 look + montage)</th><th>MOTEUR VIVE (SF_12 vive) — NOUVEAU V2</th></tr>
+<tr><td><strong>Rôle</strong></td><td>Qualité Sanguinius : rendu Remotion piloté par les deux codex signés, postprod complète. VOD, ≤ 15 clips/session, un job par clip.</td><td>Vitesse : live et volume. Réencode et coupe en minutes sans GPU, sans LLM, sans UI — titres et paramètres viennent du pack et du dernier codex signé.</td></tr>
+<tr><td><strong>Entrée (interface)</strong></td><td><code>REVIEW/codex_render.json</code> + <code>codex_postprod.json</code> (signés, validated_by_magos) + pack staged (<code>REVIEW/pack_stage.json</code>) [VÉRIFIÉ, arbre réel].</td><td>Le MÊME pack + les MÊMES codex — le wrapper mappe <code>render.style</code> et le style caption du codex vers le preset NeonClipping le plus proche ; l'écart est NOMMÉ dans le rapport (jamais silencieux).</td></tr>
+<tr><td><strong>Fichiers (réels)</strong></td><td><code>SF_12_FABRICA/look/CODEBASE/render_pictor.mjs</code>, <code>src/PurLook.jsx</code>, <code>Root.jsx</code> ; <code>montage/CODEBASE/montage.py</code> [VÉRIFIÉ, arbre réel] — PILLÉS LACRIMAE F01_LOOK / F02_MONTAGE.</td><td><code>SF_12_FABRICA/vive/vive_runner.py</code> (<span class="tag cr">CRÉER V2</span> : uvicorn headless + POST /make + collecte OUT/) ; <code>vive/vendor/neonclipping/</code> (<span class="tag pi">PILLER</span> intégral, MIT, commit 0525004 : <code>app.py</code>, <code>highlights.py</code>, <code>smart.py</code>, <code>encoders.py</code>, <code>facecam_detect.py</code> + <code>models/face_detection_yunet_2023mar.onnx</code>, <code>live/live_clip.py</code>, <code>live_session.py</code>, <code>jobs.py</code>, <code>ytdl.py</code>) [VÉRIFIÉ, arbre réel du clone].</td></tr>
+<tr><td><strong>Sortie</strong></td><td>MP4s dans <code>SF_12/look/OUT/</code> → SF_13.</td><td>MP4s dans <code>vive/OUT/</code> → SF_13 (passe allégée, passes non appliquées nommées).</td></tr>
+<tr><td><strong>Test + oracle</strong></td><td><strong>T20-premium</strong> (déjà vert en main : parcours réel 9/9). Source de vérité : <code>TRACKING/PARCOURS_REEL.md</code> [VÉRIFIÉ].</td><td><strong>T20-vive</strong> : IN = 1 VOD courte + pack ; ATTENDU = 5 clips rendus, zéro appel Ollama, zéro navigateur, titres bit-identiques au pack ; SOURCE = <code>vive/OUT/</code> + log /make. <strong>T22</strong> : ces clips passent SF_14/SF_15 avec <code>qa_pass: true</code>.</td></tr>
+<tr><td><strong>Sur Actions</strong></td><td>Déjà en place : 9 workflows <code>.github/workflows/</code> [VÉRIFIÉ, arbre réel].</td><td>Runner sans GPU : pas de NVENC, faster-whisper CPU ; la voie vive est légère (audio seul, sections choisies) donc CPU du runner suffit — temps réel par clip MESURÉ au premier siège, écrit ici [NON VÉRIFIÉ d'ici là].</td></tr>
+</table>
+<div class="okbox"><strong>La ligne de partage des deux moteurs</strong> : le VOD exige la grâce (codex signés, qualité) ; le live exige la vitesse (le clip qui attend une heure est un clip mort — C3). Ce qui ne se partage JAMAIS : SF_14_CAMOUFLAGE et SF_15_LUTHER s'appliquent aux DEUX — la purge est la valeur que le moteur greffé n'a pas, on ne la lui confie pas.</div>
+
+<h2 id="parcours">Parcours utilisateur final — les 15 gates + les 2 exceptions</h2>
+<div class="diagram">
+OPÉRATEUR                GATE      SOUS-FRÉGATE OUVERTE
+─────────────────────────────────────────────────────────────────────
+ 1. Dépose campagne      M0        SF_01_VIGILIA
+ 2. Lit le verdict       V1        SF_02_VERDICTUM   NON-GO = stop total
+ 3. Lit les angles       V2        SF_03_ANGULI
+ 4. Valide le TOP 15     M1        SF_04_SELECTIO    RIEN n'a touché une vidéo
+ 5. Lit transcripts      M5        SF_05_VOX
+ 6. Valide métadonnées   M2        SF_06_LIBELLUS    (titres → élocution → validateur)
+ 7. Dépose watermark     M3        SF_07_VEXILLUM
+ 8. Pack épuré           P1        SF_08_PURGATIO
+ 9. Valide l'export      M4/X1     SF_09_PORTAS      pack + ledger — cerveau fini
+─────────────────────────────────────────────────────────────────────
+ VOD  10. Preview LOOK   V5        SF_10_SPECULUM    → codex_render signé
+      11. Preview GLOW   V6        SF_11_LUMEN       → codex_postprod signé
+      12. Rendu          G1        SF_12_FABRICA(premium)
+LIVE 10'. UNE validation  M1'      (TOP 15 direct, codex réutilisés)
+      12'. Moteur vive   G1        SF_12_FABRICA(vive)
+─────────────────────────────────────────────────────────────────────
+ 13. (—) SANS GATE       —         SF_13_POLITURA (porte PP2) puis
+                                   SF_14_CAMOUFLAGE → SF_15_LUTHER
+ 14. Livraison           V7        SF_16_MISSIO      qa_pass exigé
+ 15. Calendrier          V8        SF_17_PROGRAMMA   l'opérateur valide le
+                                                     schedule.json signé
+ 16. (cron Actions)      —         publications aux créneaux 4–10 h
+</div>
+
+<h2 id="tree">Arborescence complète tree/F — CHAQUE fichier est étiqueté PILLER (source exacte) ou CRÉER</h2>
+<p>C'est l'inventaire RÉEL du dépôt (cloné en session) + le vendor V2. Rien n'est inventé, rien n'est sans étiquette.</p>
+<pre>
+MURUS_SANGUINIS/.github/workflows/murus_e2e.yml   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/.github/workflows/murus_preview_1.yml   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/.github/workflows/murus_preview_2.yml   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/.github/workflows/murus_preview_v5.yml   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/.github/workflows/murus_rendu.yml   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/.github/workflows/murus_siege.yml   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/.github/workflows/murus_tests.yml   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/.github/workflows/murus_transcribe.yml   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/.github/workflows/murus_v7.yml   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/.gitignore   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/campaign_directive.example.json   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/campaign_directive.fixture.json   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/campaign_directive.json   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/campaign_directive_parser.py   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/directive.md   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/directive_preme.md   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/meme_v2_input.example.json   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/operator_declarations.json   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/reference_clip.json   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/reference_skeleton.json   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/watermarks/.gitkeep   ⟨CRÉER · V1 — assets du Warsmith (png/jpeg/jpg)⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/watermarks/README.md   ⟨CRÉER · V1 — assets du Warsmith (png/jpeg/jpg)⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/watermarks/aishahsofey.jpeg   ⟨CRÉER · V1 — assets du Warsmith (png/jpeg/jpg)⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/watermarks/aishahsofey_1.jpeg   ⟨CRÉER · V1 — assets du Warsmith (png/jpeg/jpg)⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/watermarks/aishahsofey_1.png   ⟨CRÉER · V1 — assets du Warsmith (png/jpeg/jpg)⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/watermarks/preme.png   ⟨CRÉER · V1 — assets du Warsmith (png/jpeg/jpg)⟩
+MURUS_SANGUINIS/ARCHIVUM/campaign/watermarks/watermark_rules.json   ⟨CRÉER · V1 — assets du Warsmith (png/jpeg/jpg)⟩
+MURUS_SANGUINIS/ARCHIVUM/demande/README.md   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/demande/answers.json   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/demande/pending/nb_clips.json   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/demande/pending/selection.json   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/montage/transcripts/.gitkeep   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/ARCHIVUM/montage/transcripts/v2909800627_transcript.json   ⟨CRÉER · V1 — directives, demandes, runtime⟩
+MURUS_SANGUINIS/BRIDGE/CODEBASE/.gitkeep   ⟨CRÉER · V1 — pont pack → LACRIMAE (pattern BRIDGE LACRIMAE)⟩
+MURUS_SANGUINIS/BRIDGE/CODEBASE/lac_adapter_mark1.py   ⟨CRÉER · V1 — pont pack → LACRIMAE (pattern BRIDGE LACRIMAE)⟩
+MURUS_SANGUINIS/BRIDGE/CODEBASE/lac_bridge_forge.py   ⟨CRÉER · V1 — pont pack → LACRIMAE (pattern BRIDGE LACRIMAE)⟩
+MURUS_SANGUINIS/BRIDGE/IN/.gitkeep   ⟨CRÉER · V1 — pont pack → LACRIMAE (pattern BRIDGE LACRIMAE)⟩
+MURUS_SANGUINIS/BRIDGE/IN/production_pack_pur_e99bd523_A01.json   ⟨CRÉER · V1 — pont pack → LACRIMAE (pattern BRIDGE LACRIMAE)⟩
+MURUS_SANGUINIS/BRIDGE/OUT/.gitkeep   ⟨CRÉER · V1 — pont pack → LACRIMAE (pattern BRIDGE LACRIMAE)⟩
+MURUS_SANGUINIS/BRIDGE/README.md   ⟨CRÉER · V1 — pont pack → LACRIMAE (pattern BRIDGE LACRIMAE)⟩
+MURUS_SANGUINIS/CDC/MURUS_SANGUINIS_CDC_V2.html   ⟨CRÉER · V2 — ce document (branche v2)⟩
+MURUS_SANGUINIS/CONTRACTS/clipping_rules.md   ⟨PILLER · CLIPPING/CONTRACTS⟩
+MURUS_SANGUINIS/CONTRACTS/copywriting_doctrine.md   ⟨PILLER · CLIPPING/CONTRACTS⟩
+MURUS_SANGUINIS/CONTRACTS/production_pack_schema.json   ⟨PILLER · CLIPPING/CONTRACTS⟩
+MURUS_SANGUINIS/CONTRACTS/whop_rules.md   ⟨PILLER · CLIPPING/CONTRACTS⟩
+MURUS_SANGUINIS/EXPORT/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/EXPORT/ledger.csv   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/EXPORT/sieges/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/GATES/demande.py   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/GATES/faisabilite_overlay.py   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/GATES/gates.py   ⟨PILLER · MARK1 libs/gates.py (étendu aux 15 portes)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/GATES/orchestrator_gates_reference.py   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/CDC/MARK1_CDC_V1_CLIPPING.html   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/CDC/MARK1_CDC_V2_CLIPPING.html   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00A_DIRECTIVA/CODEBASE/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00A_DIRECTIVA/CODEBASE/directiva.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00A_DIRECTIVA/OUT/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00B_SELECTOR/CODEBASE/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00B_SELECTOR/CODEBASE/selector.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00B_SELECTOR/OUT/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00C_METADATA/CODEBASE/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00C_METADATA/CODEBASE/metaforge.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00C_METADATA/CODEBASE/overlay.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00C_METADATA/OUT/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00D_VEXILLUM/CODEBASE/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00D_VEXILLUM/CODEBASE/vexillum.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00D_VEXILLUM/OUT/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00E_PACKAGER/CODEBASE/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00E_PACKAGER/CODEBASE/packager.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00E_PACKAGER/OUT/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00F_VOX/CODEBASE/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00F_VOX/CODEBASE/vox.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/M00F_VOX/OUT/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/OUT/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/README.md   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/TRACKING/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/TRACKING/JOURNAL_SIEGES.md   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/TRACKING/LES_EXCEPTIONS.md   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/TRACKING/MARK1_LOG.md   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/TRACKING/MARK1_V1_V2_CHANGES.md   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/TRACKING/PLAN_V3.md   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/config/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/config/selection.json   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/__init__.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/campaign.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/compliance.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/economy.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/env.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/gates.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/lang/en.json   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/ledger.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/s1_context.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/siege_log.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/title_forge.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/tokens.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/libs/transcript.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/mark1.py   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/packs/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/tests/.gitkeep   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/tests/fixtures/transcript_sample.json   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/MARK1/tests/fixtures/transcript_words_sample.json   ⟨PILLER · PERTURABO CLIPPING/MARK1⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/ORACLE/answers.json   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/TRACKING.md   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/capteurs.py   ⟨PILLER · PERTURABO F00_CAPTEURS/capteurs.py⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/directiva.py   ⟨PILLER · MARK1 M00A_DIRECTIVA/directiva.py⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/.gitkeep   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/campaign_context_scanner.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/clipping_ecosystem_scanner.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/demon_scanner.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/f00_premium_synth.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/f00_reddit_ingestor.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/f00_rss_ingestor.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/f00_suggestions_ingestor.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/f00_trends_ingestor.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/f00_virality_scorer.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/f00_youtube_ingestor.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/market_discovery.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/premium_evidence_guard.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/prospection_director.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/research_profile.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/whop_scanner.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/libs/youtube_channel_scraper.py   ⟨PILLER · PERTURABO F00_CAPTEURS/libs⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/requirements_capteurs.txt   ⟨PILLER · PERTURABO F00_CAPTEURS⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/tests/test_market_discovery.py   ⟨PILLER · PERTURABO F00_CAPTEURS tests⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/tests/test_prospection_director.py   ⟨PILLER · PERTURABO F00_CAPTEURS tests⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/CODEBASE/tests/test_research_profile.py   ⟨PILLER · PERTURABO F00_CAPTEURS tests⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/IN/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/OUT/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_01_VIGILIA/TRACKING/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/.gitkeep   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/TRACKING.md   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/anglesmith.py   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/libs/.gitkeep   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/libs/angle_forger.py   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/libs/blue_ocean_finder.py   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/libs/enrich.py   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/libs/fit_scorer.py   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/libs/learnings_weight.py   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/libs/recon.py   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/libs/scribe.py   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/libs/skeleton_extractor.py   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/requirements_c01.txt   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/requirements_c02.txt   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/scout.py   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/CODEBASE/tyrant_camp.py   ⟨PILLER · PERTURABO F01_SCOUT + F02_TYRANT_CAMP + ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/IN/.gitkeep   ⟨CRÉER · V1 — runtime de siège⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/IN/brief.json   ⟨CRÉER · V1 — runtime de siège⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/IN/scout_prompt.json   ⟨CRÉER · V1 — runtime de siège⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/OUT/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_02_VERDICTUM/TRACKING/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_03_ANGULI/CODEBASE/anglesmith.py   ⟨PILLER · PERTURABO ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_03_ANGULI/CODEBASE/libs/angle_forger.py   ⟨PILLER · PERTURABO ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_03_ANGULI/CODEBASE/libs/learnings_weight.py   ⟨PILLER · PERTURABO ANGLESMITH⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_03_ANGULI/OUT/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_04_SELECTIO/CODEBASE/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_04_SELECTIO/CODEBASE/detect/chat_pulse.py   ⟨PILLER · SKILL gta6-clipper-windows (radar chat + live)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_04_SELECTIO/CODEBASE/detect/live.py   ⟨PILLER · SKILL gta6-clipper-windows (radar chat + live)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_04_SELECTIO/CODEBASE/s1_context.py   ⟨PILLER · MARK1 libs/s1_context.py⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_04_SELECTIO/CODEBASE/selector.py   ⟨PILLER · MARK1 M00B_SELECTOR/selector.py⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_04_SELECTIO/OUT/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_05_VOX/CODEBASE/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_05_VOX/CODEBASE/vox.py   ⟨PILLER · MARK1 M00F_VOX/vox.py⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_05_VOX/OUT/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_06_LIBELLUS/CODEBASE/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_06_LIBELLUS/CODEBASE/metaforge.py   ⟨PILLER · MARK1 M00C_METADATA/metaforge.py⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_06_LIBELLUS/CODEBASE/overlay.py   ⟨PILLER · MARK1 M00C_METADATA/overlay.py⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_06_LIBELLUS/OUT/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_07_VEXILLUM/CODEBASE/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_07_VEXILLUM/CODEBASE/vexillum.py   ⟨PILLER · MARK1 M00D_VEXILLUM/vexillum.py⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_07_VEXILLUM/OUT/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_08_PURGATIO/CODEBASE/purgatio.py   ⟨CRÉER · V1 — mécanismes pillés : X1 anti-clés-mortes + normalizePurAntiDetection⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_08_PURGATIO/OUT/.gitkeep   ⟨CRÉER · V1 — mécanismes pillés : X1 anti-clés-mortes + normalizePurAntiDetection⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_08_PURGATIO/README.md   ⟨CRÉER · V1 — mécanismes pillés : X1 anti-clés-mortes + normalizePurAntiDetection⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_09_PORTAS/CODEBASE/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_09_PORTAS/CODEBASE/packager.py   ⟨PILLER · MARK1 M00E_PACKAGER/packager.py⟩
+MURUS_SANGUINIS/FR_A_CERVEAU/SF_09_PORTAS/OUT/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_B_CREATION/GATES/gates_b.py   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/FR_B_CREATION/REVIEW/SCHEMAS/codex_postprod.schema.json   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_B_CREATION/REVIEW/SCHEMAS/codex_render.schema.json   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/.gitignore   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/.gitkeep   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/index.html   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/package-lock.json   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/package.json   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/public/fonts/Montserrat-ExtraBold.ttf   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/src/App.jsx   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/src/main.jsx   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/src/preview/_purPackComposition.jsx   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/src/preview/antiDetection.js   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/src/preview/bridgeClipper.js   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/src/preview/codexExport.js   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/tests/codexExport.test.mjs   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/tests/overlayTitle.test.mjs   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/CODEBASE/vite.config.js   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/IN/.gitkeep   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_10_SPECULUM/README.md   ⟨PILLER · LACRIMAE F03_PREVIEW⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/CODEBASE/README.md   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/CODEBASE/modal_glow.py   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/CODEBASE/preview_glow.py   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/CODEBASE/tests/test_glow.py   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/OUT/.gitkeep   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/REVIEW/SCHEMAS/codex_postprod.schema.json   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/REVIEW/SCHEMAS/codex_render.schema.json   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/tools/.gitkeep   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/tools/README.md   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/tools/codex.py   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/tools/convert_pur_pack.mjs   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/tools/ffmpeg_bin.py   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/tools/pur_aggregate.py   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_11_LUMEN/tools/test_codex.py   ⟨PILLER · LACRIMAE F03_POSTPROD/glow + tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/.gitignore   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/.gitkeep   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/README_DEPS.md   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/package-lock.json   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/package.json   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/public/.gitkeep   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/public/fonts/Montserrat-ExtraBold.ttf   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/public/sfx/.gitkeep   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/remotion.config.js   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/render_pictor.mjs   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/src/PurLook.jsx   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/src/Root.jsx   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/CODEBASE/src/index.jsx   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/IN/.gitkeep   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/OUT/.gitkeep   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/README.md   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/look/tests/test_pictor_look.py   ⟨PILLER · LACRIMAE F01_LOOK⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/montage/CODEBASE/montage.py   ⟨PILLER · LACRIMAE F02_MONTAGE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/montage/IN/.gitkeep   ⟨PILLER · LACRIMAE F02_MONTAGE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/montage/OUT/.gitkeep   ⟨PILLER · LACRIMAE F02_MONTAGE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/montage/README.md   ⟨PILLER · LACRIMAE F02_MONTAGE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/IN/.gitkeep   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/OUT/.gitkeep   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/PREVIEW/CODEBASE/.gitignore   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/PREVIEW/CODEBASE/.gitkeep   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/PREVIEW/CODEBASE/index.html   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/PREVIEW/CODEBASE/package-lock.json   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/PREVIEW/CODEBASE/package.json   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/PREVIEW/CODEBASE/public/fonts/Montserrat-ExtraBold.ttf   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/PREVIEW/CODEBASE/src/App.jsx   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/PREVIEW/CODEBASE/src/main.jsx   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/PREVIEW/CODEBASE/src/styleSchema.js   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/PREVIEW/CODEBASE/vite.config.js   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/README.md   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/CODEBASE/.gitkeep   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/CODEBASE/blender_caption.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/CODEBASE/caption_schema.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/CODEBASE/fonts/Montserrat-ExtraBold.ttf   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/CODEBASE/modal_app.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/CODEBASE/overlay.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/CODEBASE/styles/s1.json   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/CODEBASE/whisper_transcribe.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/tests/.gitkeep   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/tests/fixtures/transcript_sample.json   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/tests/test_blender_args.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/TRAVAIL/tests/test_caption_schema.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/ass_render.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/transcript_slice.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/glow/README.md   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/glow/modal_glow.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/glow/preview_glow.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/glow/tests/test_glow.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/lut/lut_apply.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/lut/profiles/atom_ic_profiles.json   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/postprod.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/tests/test_caption_ass.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/CODEBASE/tests/test_postprod.py   ⟨PILLER · LACRIMAE F03_POSTPROD/CODEBASE⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/PREVIEW/glow/.gitkeep   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/PREVIEW2/index.html   ⟨CRÉER · V1 — preview 2 dédiée⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/PREVIEW2/package.json   ⟨CRÉER · V1 — preview 2 dédiée⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/PREVIEW2/public/fonts/Montserrat-ExtraBold.ttf   ⟨CRÉER · V1 — preview 2 dédiée⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/PREVIEW2/src/App.jsx   ⟨CRÉER · V1 — preview 2 dédiée⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/PREVIEW2/src/Panels.jsx   ⟨CRÉER · V1 — preview 2 dédiée⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/PREVIEW2/src/codex.js   ⟨CRÉER · V1 — preview 2 dédiée⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/PREVIEW2/src/main.jsx   ⟨CRÉER · V1 — preview 2 dédiée⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/PREVIEW2/vite.config.js   ⟨CRÉER · V1 — preview 2 dédiée⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/README.md   ⟨PILLER · LACRIMAE F03_POSTPROD/README (adapté)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/tools/.gitkeep   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/tools/README.md   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/tools/codex.py   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/tools/convert_pur_pack.mjs   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/tools/ffmpeg_bin.py   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/tools/pur_aggregate.py   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_13_POLITURA/tools/test_codex.py   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_14_CAMOUFLAGE/CODEBASE/.gitkeep   ⟨PILLER · LACRIMAE F05/CODEBASE/lac_f05_camouflage.py⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_14_CAMOUFLAGE/CODEBASE/lac_f05_camouflage.py   ⟨PILLER · LACRIMAE F05/CODEBASE/lac_f05_camouflage.py⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_14_CAMOUFLAGE/IN/.gitkeep   ⟨PILLER · LACRIMAE F05/CODEBASE/lac_f05_camouflage.py⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_14_CAMOUFLAGE/OUT/.gitkeep   ⟨PILLER · LACRIMAE F05/CODEBASE/lac_f05_camouflage.py⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_14_CAMOUFLAGE/README.md   ⟨PILLER · LACRIMAE F05/CODEBASE/lac_f05_camouflage.py⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_15_LUTHER/CODEBASE/.gitkeep   ⟨PILLER · LACRIMAE F06_LUTHER/CODEBASE/lac_f06_luther.py⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_15_LUTHER/CODEBASE/lac_f06_luther.py   ⟨PILLER · LACRIMAE F06_LUTHER/CODEBASE/lac_f06_luther.py⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_15_LUTHER/IN/.gitkeep   ⟨PILLER · LACRIMAE F06_LUTHER/CODEBASE/lac_f06_luther.py⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_15_LUTHER/OUT/.gitkeep   ⟨PILLER · LACRIMAE F06_LUTHER/CODEBASE/lac_f06_luther.py⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_15_LUTHER/README.md   ⟨PILLER · LACRIMAE F06_LUTHER/CODEBASE/lac_f06_luther.py⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/.gitkeep   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/CODEBASE/.gitkeep   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/CODEBASE/TRACKING.md   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/CODEBASE/libs/.gitkeep   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/CODEBASE/libs/channel_performance_updater.py   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/CODEBASE/libs/learnings_aggregator.py   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/CODEBASE/libs/readings_validator.py   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/CODEBASE/requirements_c06.txt   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/CODEBASE/tracker.py   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/IN/.gitkeep   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/OUT/.gitkeep   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_16_MISSIO/TRACKING/.gitkeep   ⟨PILLER · PERTURABO F06_TRACKER⟩
+MURUS_SANGUINIS/FR_B_CREATION/tools/.gitkeep   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/tools/README.md   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/tools/codex.py   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/tools/convert_pur_pack.mjs   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/tools/ffmpeg_bin.py   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/tools/pur_aggregate.py   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/FR_B_CREATION/tools/recuperer_clip.py   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/FR_B_CREATION/tools/test_codex.py   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/LICENSE   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/MANIFEST.md   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/MODAL/DEPLOYER.md   ⟨CRÉER · V1 — GPU optionnel⟩
+MURUS_SANGUINIS/MODAL/requirements.txt   ⟨CRÉER · V1 — GPU optionnel⟩
+MURUS_SANGUINIS/MODAL/transcribe.py   ⟨CRÉER · V1 — GPU optionnel⟩
+MURUS_SANGUINIS/README.md   ⟨CRÉER · V1 — racine (README, LICENSE, MANIFEST, gitignore)⟩
+MURUS_SANGUINIS/REVIEW/README.md   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/SCHEMAS/codex_postprod.schema.json   ⟨CRÉER · V1 — dérivé de codexExport.js⟩
+MURUS_SANGUINIS/REVIEW/SCHEMAS/codex_render.schema.json   ⟨CRÉER · V1 — dérivé de codexExport.js⟩
+MURUS_SANGUINIS/REVIEW/codex_postprod.draft.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/codex_postprod.example.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/codex_postprod.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/codex_postprod.provenance.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/codex_render.example.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/codex_render.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/codex_render.provenance.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/pack_stage.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/frame_A01.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/frame_A02.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/frame_A03.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/frame_A04.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/frame_A05.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/frame_A06.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/frame_A07.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/frame_A08.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/frame_A09.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/glow_A01.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/glow_A02.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/glow_A03.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/glow_A04.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/glow_A05.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/glow_A06.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/glow_A07.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/glow_A08.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/glow_A09.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/index.html   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/params_A01.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/params_A02.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/params_A03.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/params_A04.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/params_A05.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/params_A06.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/params_A07.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/params_A08.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/preview2/params_A09.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/render/camouflage_batch_report.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/render/luther_batch_report.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/render/render_report.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/review-preview1.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/review-preview2.png   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/REVIEW/submissions.json   ⟨CRÉER · V1 — runtime codex signés + frames previews⟩
+MURUS_SANGUINIS/SHARED/IN/.gitkeep   ⟨PILLER · LACRIMAE SHARED (squelette)⟩
+MURUS_SANGUINIS/SHARED/README.md   ⟨PILLER · LACRIMAE SHARED (squelette)⟩
+MURUS_SANGUINIS/TRACKING/CODEX_SIGNES.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/TRACKING/DOCTRINE_ANTI_REMPLISSAGE.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/TRACKING/DOCTRINE_BILINGUE.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/TRACKING/ERRATA.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/TRACKING/INDEX.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/TRACKING/LES_EXCEPTIONS.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/TRACKING/MURUS_LOG.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/TRACKING/PARCOURS_REEL.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/TRACKING/PREVIEW2_SPEC.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/TRACKING/PREVIEWS_ROLES.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/TRACKING/SELECTION_15_PREME.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/TRACKING/SIEGE_PREME.md   ⟨CRÉER · V1/V2 — journaux et doctrines⟩
+MURUS_SANGUINIS/config/selection.json   ⟨PILLER · MARK1 config/selection.json (étendu)⟩
+MURUS_SANGUINIS/murus.py   ⟨CRÉER · V1 — lanceur, pattern gates MARK1⟩
+MURUS_SANGUINIS/run_all.py   ⟨CRÉER · V1 — pattern pillé LACRIMAE run_all.py⟩
+MURUS_SANGUINIS/tests/pillés/test_glow.py   ⟨PILLER · MARK1 tests/test_mark1.py + LACRIMAE tests/test_glow.py⟩
+MURUS_SANGUINIS/tests/pillés/test_mark1.py   ⟨PILLER · MARK1 tests/test_mark1.py + LACRIMAE tests/test_glow.py⟩
+MURUS_SANGUINIS/tests/test_murus.py   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/tests/ui_preview1.mjs   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/tests/ui_preview2.mjs   ⟨CRÉER · V1⟩
+MURUS_SANGUINIS/tools/.gitkeep   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/tools/README.md   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/tools/codex.py   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/tools/convert_pur_pack.mjs   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/tools/ffmpeg_bin.py   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/tools/pur_aggregate.py   ⟨PILLER · LACRIMAE tools⟩
+MURUS_SANGUINIS/tools/test_codex.py   ⟨PILLER · LACRIMAE tools⟩
+
+### VENDOR V2 — moteur de la voie vive (importé tel quel, MIT) ###
+
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/.gitattributes   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/.github/ISSUE_TEMPLATE/config.yml   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/.github/ISSUE_TEMPLATE/problem.yml   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/.github/workflows/test.yml   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/.gitignore   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/CHANGELOG.md   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/LICENSE   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/NeonClipping-Setup.bat   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/README.md   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/SECURITY.md   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/action.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/aiparts.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/app.js   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/app.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/brands.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/bundles.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/camfx.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/captions.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/captions_yt.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/compat.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/cover.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/creators.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/curation.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/.nojekyll   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/DEVELOPMENT-HANDOFF.md   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/NEONCLIPPING-AGENT-SETUP-PROMPT.txt   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/NeonClipping-Guide-EN-HI.pdf   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/demo-poster.jpg   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/demo.gif   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/demo.mp4   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/guide/build_guide.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/guide/format.jpg   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/guide/guide.html   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/guide/home.jpg   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/guide/results.jpg   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/guide/style.css   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/index.html   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/neonclipping-ui.jpg   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/docs/saved-clip-editor.jpg   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/donate.json   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/encoders.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/excite.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/extras.js   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/facecam_detect.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/highlights.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/hooks.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/index.html   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/install.ps1   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/install.sh   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/jobs.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/languages.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/layouts.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/learn.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/live/README.txt   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/live/live_clip.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/live_session.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/llm.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/mobile.html   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/models/face_detection_yunet_2023mar.onnx   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/phone.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/previews.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/reedit.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/report.js   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/report.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/requirements.txt   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/run.ps1   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/run.sh   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/smart.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/standalone.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/style.css   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/styling.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/subtitles.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/supporters.json   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/REPORT.md   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/e2e.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/e2e_features.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/e2e_live.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/e2e_make.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/e2e_phone.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/e2e_site.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/e2e_style.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/fixes.json   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/make_report.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/report.json   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_aiparts.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_brands.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_bundles.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_camfx.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_captions.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_curation.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_facecam.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_focus.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_hooks.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_jobs.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_learning.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_live.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_llm.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_long_hook_compat.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_output_formats.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_phone.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_reedit.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_report.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_source_quality.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_subtitle_tracks.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_subtitles.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_transcripts.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_trim_encoders_languages.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_updater.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_vision.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tests/test_ytdl.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tools/report-worker/README.md   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tools/report-worker/worker.js   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/tools/report-worker/wrangler.toml   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/transcripts.js   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/transcripts.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/translit.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/updater.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/vision.js   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/vision.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/watchdog.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+MURUS_SANGUINIS/FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping/ytdl.py   ⟨PILLER · NeonClipping upstream, MIT, commit 0525004 du 2026-11-22 (vivant, vérifié)⟩
+</pre>
+
+
+<h2 id="direct">Mode DIRECT / LIVE — profil du même outil</h2>
+<ul>
+<li>Couche d'entrée : radar chat <code>v2-live</code> (chat_pulse) sur buffer glissant — le pipeline « candidats → scoring → gate → trail.json produit des fichiers au même schéma que le mode VOD » [VÉRIFIÉ, PERTURABO README_V2].</li>
+<li>Vitesse : UNE validation humaine au TOP 15 ; SF_10/SF_11 remplacées par la réutilisation des derniers codex signés ; <strong>V2 : le rendu passe par le moteur vive (NeonClipping headless)</strong>, ffmpeg pur, matrice un-job-par-clip.</li>
+<li>SF_14/SF_15 tournent quand même — un live se purge aussi.</li>
+<li>Déclenchement : Oracle (cron Helix 5 min) + <code>workflow_dispatch</code> [VÉRIFIÉ, PERTURABO README_V2 : « le Warsmith valide, le radar se lève »] — même pattern pour SF_17.</li>
+</ul>
+
+<h2 id="code">Code — les trois pièces NOUVELLES de la V2 (tout le reste est pillé, voir tree/F)</h2>
+<p>Le code réel pillé garde ses CLIs d'origine — ne pas les réécrire : <code>lac_f05_camouflage.py --input|--batch</code>, <code>lac_f06_luther.py --input|--output|--batch|--date</code>, <code>preview_glow.py --frame --out --mode --sigma --opacity</code>, <code>murus.py --profile vod|direct</code>, <code>run_all.py</code> [VÉRIFIÉ, dépôt main]. La V2 n'écrit que : <code>elocution.py</code>, <code>vive_runner.py</code>, <code>programma.py</code> + 2 workflows.</p>
+
+<div class="codewrap"><div class="codehead"><span>SF_06_LIBELLUS/CODEBASE/elocution.py — passe d'élocution (le LLM écrit, jamais choisi)</span><span>CRÉER V2 · stdlib + urllib</span></div>
+<pre>
+#!/usr/bin/env python3
+"""elocution.py — 2e temps de SF_06_LIBELLUS. La méthode écrit la trame
+(titres.py, 12 gabarits), la grâce polit les mots (API NVIDIA NIM),
+le validateur de règles re-juge TOUTE sortie. Un titre que le gabarit
+refuse est rejeté. Le verdict de sélection (M1) est déjà FERME :
+ce module ne peut pas influer dessus — il tourne APRÈS M1."""
+import json, os, time, urllib.request
+from pathlib import Path
+
+NIM_URL = "https://integrate.api.nvidia.com/v1/chat/completions"  # OpenAI-compatible
+MODEL   = os.environ.get("MURUS_ELOCUTION_MODEL", "meta/llama-3.2-3b-instruct")
+
+# Règles copywriting non-averti [source : CONTRACTS/copywriting_doctrine.md,
+# doctrine existante du dépôt — le prompt n'invente pas les règles, il les cite]
+PROMPT = """Reecris ce titre de clip pour quelqu'un qui ne connait PAS le streamer.
+Regles non negociables :
+1. Aucun nom propre (ni streamer, ni jeu) dans le hook.
+2. Une question ouverte ou une promesse concrete en premiere ligne.
+3. Un chiffre concret plutot qu'un adjectif.
+4. La promesse est payee avant la 3e seconde de lecture.
+5. Ne change PAS l'ordre d'information du titre (structure = loi).
+6. Maximum 60 caracteres. Retourne UNIQUEMENT le titre reecrit.
+Titre a reecrire :
+"""
+
+def elocuter(titre: str, retries: int = 3) -> dict:
+    cle = os.environ["NVIDIA_API_KEY"]           # secret GitHub, jamais en clair
+    corps = json.dumps({"model": MODEL, "messages": [
+        {"role": "user", "content": PROMPT + titre}]}).encode()
+    for i in range(retries):
+        try:
+            req = urllib.request.Request(NIM_URL, data=corps, headers={
+                "Authorization": f"Bearer {cle}", "Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                candidat = json.loads(r.read())["choices"][0]["message"]["content"].strip()
+            if valide(candidat):                 # LE GABARIT RE-JUGE — la loi tient
+                return {"titre": candidat, "origine": "elocution", "essais": i + 1}
+        except Exception as e:
+            time.sleep([60, 300, 1500][i])       # backoff 1 min / 5 min / 25 min
+            if i == retries - 1: dernier = str(e)
+    # Repli gabarit pur : un siege n'echoue JAMAIS pour un titre
+    return {"titre": titre, "origine": "gabarit", "elocution_fallback": True,
+            "raison": dernier if 'dernier' in dir() else "refuse par le validateur"}
+
+def valide(t: str) -> bool:
+    return 0 &lt; len(t) &lt;= 60 and t != PROMPT.strip() and "\n" not in t
+# Le validateur COMPLET est celui de titres.py (les 12 gabarits) : il est
+# appele par le corps du module M2 reel — ici, seule la frontiere est montree.
+
+if __name__ == "__main__":
+    import sys
+    pack = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+    for a in pack["assets"]:
+        a["metadata"]["overlay_title"] = elocuter(a["metadata"]["overlay_title"])
+    Path(sys.argv[2]).write_text(json.dumps(pack, indent=2), encoding="utf-8")
+</pre></div>
+<p class="small">Exception réseau n°3, à inscrire dans TRACKING/LES_EXCEPTIONS.md (les deux premières : overlay.py, vox.py [VÉRIFIÉ, MARK1/README]) — avec les grep qui la vérifient. La consommation de crédits NVIDIA est écrite au ledger à chaque appel.</p>
+
+<div class="codewrap"><div class="codehead"><span>SF_12_FABRICA/vive/vive_runner.py — le moteur greffé en headless, derrière G1</span><span>CRÉER V2</span></div>
+<pre>
+#!/usr/bin/env python3
+"""vive_runner.py — voie vive : NeonClipping headless sur GitHub Actions.
+Le moteur ne DECIDE rien : il recoit le pack (deja valide par G1),
+ne telecharge QUE les sections du pack, rend, et passe la main a
+SF_13. Sans Ollama (score audio/mouvement, VÉRIFIÉ README), sans
+navigateur, sans UI. Les titres viennent de SF_06 — jamais de lui."""
+import json, os, signal, subprocess, sys, time
+from pathlib import Path
+from urllib import request
+
+VENDOR  = Path(__file__).resolve().parent / "vendor" / "neonclipping"
+PORT    = 8770                                     # port officiel NeonClipping
+
+def attendre(url: str, essais: int = 60) -> None:
+    for _ in range(essais):
+        try:
+            request.urlopen(url, timeout=2); return
+        except Exception: time.sleep(2)
+    raise RuntimeError("moteur vive : demarrage timeout")
+
+def rendre(pack: Path, out: Path) -> int:
+    out.mkdir(parents=True, exist_ok=True)
+    serveur = subprocess.Popen(                      # headless, sans UI
+        [sys.executable, str(VENDOR / "app.py"), "--port", str(PORT)],
+        cwd=VENDOR, stdout=subprocess.DEVNULL)
+    try:
+        attendre(f"http://127.0.0.1:{PORT}/")
+        for asset in json.loads(pack.read_text(encoding="utf-8"))["assets"]:
+            corps = json.dumps({                     # les sections VIENNENT DU PACK
+                "url": asset["source"]["url"],
+                "start": asset["start"], "end": asset["end"],
+                "title": asset["metadata"]["overlay_title"],  # titre = loi du pack
+                "mode": "fast",                      # sans Ollama — VÉRIFIÉ README
+                "caption_style": STYLE_DEPUIS_CODEX, # mapping codex → preset
+            }).encode()
+            req = request.Request(f"http://127.0.0.1:{PORT}/make", data=corps,
+                                  headers={"Content-Type": "application/json"})
+            request.urlopen(req, timeout=3600)
+    finally:
+        serveur.send_signal(signal.SIGTERM)
+    # collecte : data/ du moteur → OUT/ — puis SF_13 (passe allegee,
+    # passes non appliquees NOMMEES) puis SF_14/SF_15 SANS exception.
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(rendre(Path(sys.argv[1]), Path(sys.argv[2])))
+</pre></div>
+
+<div class="codewrap"><div class="codehead"><span>SF_17_PROGRAMMA/CODEBASE/programma.py — le calendrier signé et le publishAt natif</span><span>CRÉER V2 · stdlib + google-api-python-client</span></div>
+<pre>
+#!/usr/bin/env python3
+"""programma.py — SF_17_PROGRAMMA. La patience organisée.
+V8 : l'operateur valide schedule.json AVANT que le cron ne publie.
+Tirage UNE fois par siege, intervalle uniforme [4h, 10h], graine
+ecrite au ledger (auditable — le ledger juge, y compris le hasard).
+Plateforme V2 : YouTube UNIQUEMENT (API officielle, gratuite :
+videos.insert = 1 unite, seau 100/jour ; thumbnails.set = 50).
+TikTok RETIRE (watermark interdit, decision Warsmith 2026-11-23)."""
+import json, os, random
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from googleapiclient.discovery import build          # YouTube Data API v3
+
+MIN_H, MAX_H = 4, 10                                 # bornes du Warsmith
+
+def tirer(nb_clips: int, graine: str) -> list:
+    rng = random.Random(graine)                      # deterministe : T26
+    t, creneaux = datetime.now(timezone.utc), []
+    for _ in range(nb_clips):
+        t = t + timedelta(hours=rng.uniform(MIN_H, MAX_H))
+        creneaux.append(t.isoformat())
+    return creneaux                                  # jamais de cluster :
+                                                     # chaque intervalle est tire
+
+def publier(clip: Path, titre: str, creneau_iso: str) -> dict:
+    yt = build("youtube", "v3", developerKey=None,
+               credentials=oauth_depuis_secrets())   # secrets GitHub uniquement
+    corps = {
+        "snippet": {"title": titre, "categoryId": "20"},
+        "status": {"privacyStatus": "private",       # programme = prive + publishAt
+                   "publishAt": creneau_iso,
+                   "selfDeclaredMadeForKids": False},
+    }
+    # Idempotence (T28) : avant insert, videos.list cherche titre+date.
+    deja = yt.videos().list(part="snippet", q=titre, type="video").execute()
+    if deja.get("items"):
+        return {"statut": "deja_publie", "id": deja["items"][0]["id"]["videoId"]}
+    media = googleapiclient_http.MediaFileUpload(clip, chunksize=-1, resumable=True)
+    rep = yt.videos().insert(part="snippet,status", body=corps,
+                             media_body=media).execute()
+    yt.thumbnails().set(videoId=rep["id"],      # 50 unites — T29 l'ecrit au ledger
+                        media_body=...)              # miniature du pack
+    return {"statut": "programme", "id": rep["id"], "creneau": creneau_iso}
+# Backoff 403 quotaExceeded : 1h → 4h → 12h puis failed_publish, JAMAIS de
+# re-tirage du calendrier. Le cron Actions (schedule: hourly) appelle
+# publier() pour les creneaux dus, ecrit le ledger, s'arrete.
+</pre></div>
+
+<div class="codewrap"><div class="codehead"><span>.github/workflows/v2_publish.yml — le cron qui publie (pattern Oracle pillé de PERTURABO)</span><span>CRÉER V2</span></div>
+<pre>
+name: murus-v2-programma
+on:
+  schedule: [{cron: "0 * * * *"}]        # horaire — pattern Oracle, cron 5 min
+  workflow_dispatch: {}                  # + declenchement manuel (V8 apres validation)
+permissions: {contents: read}
+jobs:
+  publier:
+    runs-on: ubuntu-latest               # Rien ne tourne sur la machine opérateur [main]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install google-api-python-client google-auth
+      - run: python FR_B_CREATION/SF_17_PROGRAMMA/CODEBASE/programma.py \
+                 --due-only --schedule EXPORT/schedule.json --ledger EXPORT/ledger.csv
+        env:                              # secrets, jamais de clé en clair (T-doctrine)
+          YT_OAUTH_CLIENT_ID: ${{ secrets.YT_OAUTH_CLIENT_ID }}
+          YT_OAUTH_CLIENT_SECRET: ${{ secrets.YT_OAUTH_CLIENT_SECRET }}
+          YT_OAUTH_REFRESH_TOKEN: ${{ secrets.YT_OAUTH_REFRESH_TOKEN }}
+</pre></div>
+
+<h2 id="tests">Tests e2e V2 — 10 tests (T20–T29), oracles réels, statut ATTENDU</h2>
+<p><span class="tag nv">ATTENDU</span> Jamais exécutés. À la première exécution : remplacer par la sortie réelle, consigner dans <code>TRACKING/MURUS_LOG.md</code>. Chaque test porte son oracle : entrée, sortie attendue, source de vérité.</p>
+<table>
+<tr><th>#</th><th>Test</th><th>Entrée</th><th>Sortie ATTENDUE (oracle)</th><th>Source de vérité</th></tr>
+<tr><td>T20</td><td>Voie vive headless</td><td>1 VOD courte + pack 5 assets</td><td>5 clips rendus sans Ollama, sans navigateur, un job par clip ; titres bit-identiques au pack</td><td><code>vive/OUT/</code> + log <code>/make</code></td></tr>
+<tr><td>T21</td><td>Mapping codex → presets</td><td>codex_render.json signé</td><td>preset choisi le plus proche ; tout écart NOMMÉ dans le rapport (jamais silencieux)</td><td><code>vive/report.json</code></td></tr>
+<tr><td>T22</td><td>Anti-ban sur la voie vive</td><td>les 5 clips vive</td><td><code>qa_pass: true</code>, <code>suspicious_tags_after: []</code> après SF_14+SF_15</td><td><code>REVIEW/render/luther_batch_report.json</code> (fichier réel en main)</td></tr>
+<tr><td>T23</td><td>Élocution conforme</td><td>20 hooks réécrits</td><td>20/20 passent le validateur des gabarits ; 0 nom propre dans le hook ; ordre d'information intact</td><td>validateur <code>titres.py</code> (title_forge pillé)</td></tr>
+<tr><td>T24</td><td>Élocution en repli</td><td>clé NVIDIA invalide</td><td>3 reprises (1/5/25 min) ⇒ <code>elocution_fallback: true</code>, gabarit pur, le siège continue, ledger trace le repli</td><td><code>metadata.json</code> + ledger</td></tr>
+<tr><td>T25</td><td>Calendrier dans les bornes</td><td>9 clips acceptés à V7</td><td>9 créneaux ; chaque intervalle ∈ [4 h, 10 h] ; aucun cluster</td><td><code>schedule.json</code> signé</td></tr>
+<tr><td>T26</td><td>Déterminisme du tirage</td><td>même graine ×2</td><td>schedule.json identique ; la graine est écrite au ledger</td><td>ledger + schedule.json</td></tr>
+<tr><td>T27</td><td>publishAt correct</td><td>schedule validé à V8</td><td>chaque créneau &gt; maintenant + 4 h ; <code>privacyStatus=private</code> + <code>publishAt</code> présents (dry-run capture la requête)</td><td>trace dry-run du job</td></tr>
+<tr><td>T28</td><td>Idempotence publication</td><td>cron exécuté ×2</td><td>zéro doublon : <code>videos.list</code> trouvé ⇒ skip ; 1 ligne ledger par clip</td><td>ledger + YouTube Studio</td></tr>
+<tr><td>T29</td><td>Quota et crédits mesurés</td><td>siège complet</td><td>le rapport écrit unités YouTube (pire cas &lt; 900/10 000 [DÉDUIT, table officielle]) ET crédits NVIDIA réels — chacun avec les 5 éléments</td><td>rapport du siège + ledger</td></tr>
+</table>
+<p><strong>Tests de doctrine (T0, manuels, déjà en main)</strong> : <code>grep -rni "ffmpeg\|libx264" FR_A_CERVEAU/</code> → 0 ligne ; <code>grep -rni "opacity" FR_A_CERVEAU/SF_07_VEXILLUM/</code> → 0 ligne ; <strong>nouveau T0-V2</strong> : <code>grep -rE "NVIDIA_API_KEY|REFRESH" --include="*.py"</code> → uniquement <code>os.environ</code> ; <code>grep -rni "ollama" SF_12_FABRICA/vive/vive_runner.py</code> → 0 ligne.</p>
+
+<h2 id="install">Installation — de la branche v2 à la première publication programmée</h2>
+<ol>
+<li><code>git checkout -b v2</code> depuis <code>main</code> (28 portes vertes) ; ce CDC vit dans <code>CDC/MURUS_SANGUINIS_CDC_V2.html</code> ; merge vers main interdit tant que T20–T29 ne sont pas verts.</li>
+<li><strong>Vendor du moteur vive</strong> : <code>git clone https://github.com/iamajmeena/neonclipping FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping</code> — conserver <code>LICENSE</code> (MIT) et les mentions (R15). Vivant vérifié : commit 0525004 du 2026-11-22.</li>
+<li>Écrire <code>elocution.py</code>, <code>vive_runner.py</code>, <code>programma.py</code> (§Code), inscrire l'exception réseau n°3 dans <code>TRACKING/LES_EXCEPTIONS.md</code> avec ses grep.</li>
+<li>Écrire <code>v2_publish.yml</code> + le workflow élocution (appelé dans le siège après M2).</li>
+<li><strong>Secrets GitHub</strong> (jamais en clair) : <code>NVIDIA_API_KEY</code> (build.nvidia.com → Generate API Key) ; <code>YT_OAUTH_CLIENT_ID / SECRET / REFRESH_TOKEN</code> (Google Cloud : activer YouTube Data API v3, client OAuth desktop, flow one-time via workflow <code>workflow_dispatch</code> jetable à supprimer après).</li>
+<li>Écrire <code>tests/test_murus_v2.py</code> (T20–T29), exécuter, remplacer ATTENDU par la sortie réelle.</li>
+<li>Tests de doctrine T0 verts (y compris T0-V2).</li>
+<li><strong>Premier siège V2</strong> : un live court, voie vive, 5 clips ; mesurer temps réel par clip, crédits NVIDIA consommés, unités YouTube — écrire les chiffres réels (5 éléments) dans ce document, puis le calendrier 4–10 h, puis la première publication programmée.</li>
+</ol>
+
+<h2 id="proto">Protocole de mesure — inchangé, outillé par le playbook des decks</h2>
+<ul>
+<li><strong>45 clips avant verdict</strong> (15 × 3 sessions, postés en 2 semaines) ; seuil d'abandon : revenu net ÷ heure &lt; 0.</li>
+<li><strong>Learning loop des decks GTA, absorbée dans SF_16</strong> : <code>log.csv</code> avec colonnes nommées (post_id, date_post, hook_used, format, length_sec, followers_at_post, saves, comments, views_1h, views_24h) ; revue nightly (top 3 / bottom 3) ; UNE variable changée à la fois — ce sont leurs règles [AFFIRMÉ PAR AUTEUR, decks], notre exécution.</li>
+<li><strong>Échelle de monétisation des decks</strong> (0–500 / 5k+ / 10k+ vues, Whop, programmes plateformes) : traitée comme hypothèse de travail [AFFIRMÉ PAR AUTEUR], jamais comme preuve — le ledger tranchera.</li>
+<li>Chiffres interdits sans les 5 éléments (valeur + unité + période + population + source exacte).</li>
+</ul>
+
+<h2 id="risques">Risques</h2>
+<table>
+<tr><th>Risque</th><th>Gravité</th><th>Atténuation (dans l'architecture)</th></tr>
+<tr><td>Le moteur vive exporte un MP4 avec métadonnées suspectes</td><td>haute</td><td>SF_14 + SF_15 s'appliquent SANS exception aux DEUX voies ; T22 ; V7 refuse <code>qa_pass: false</code>.</td></tr>
+<tr><td>Le LLM d'élocution glisse dans la sélection</td><td>haute</td><td>Positionnel : SF_06 est APRÈS M1 (cap 15) ; sa sortie repasse le validateur ; exception nommée + grep ; T24.</td></tr>
+<tr><td>Publication bannie par la plateforme</td><td>haute</td><td>API officielle uniquement (jamais de scraping, jamais d'API non officielle — le soldat ennemi n'entre pas de l'intérieur) ; intervalle 4–10 h irrégulier ; TikTok retiré (watermark interdit) ; idempotence anti-doublon.</td></tr>
+<tr><td>Runner Actions sans GPU trop lent pour le live</td><td>moyenne</td><td>La voie vive est légère (audio seul, sections choisies) ; temps réel mesuré au T20 ; MODAL GPU déjà en option de vitesse [VÉRIFIÉ, main : MODAL/transcribe.py].</td></tr>
+<tr><td>Crédits NVIDIA épuisés en plein siège</td><td>moyenne</td><td>≤ 15 titres/siège + ≤ 3 reprises, repli gabarit pur ; la méthode ne dépend jamais de la grâce ; consommation écrite au ledger (T29).</td></tr>
+<tr><td>Quota YouTube dépassé (multi-sièges le même jour)</td><td>basse</td><td>Pire cas d'un siège &lt; 900/10 000 unités et 15/100 uploads [DÉDUIT] ; backoff gravé, jamais de re-tirage.</td></tr>
+<tr><td>Vendor NeonClipping abandonné en amont (R10/R18)</td><td>moyenne</td><td>Dernier commit 2026-11-22 [VÉRIFIÉ, vivant] ; le vendor est FIGÉ dans le dépôt (fonctionne sans upstream) ; signal R13 à chaque revue de branche.</td></tr>
+<tr><td>Biais de survie (on ne compte que les succès)</td><td>haute</td><td>45 clips, échecs cherchés (R10), decks traités comme hypothèses.</td></tr>
+</table>
+
+<h2 id="philo">Philosophie — le mur, la rampe, la voix, l'heure</h2>
+<p><strong>Le mur</strong> est la méthode : quatorze portes, chaque brèche validée avant d'y engager la suivante — l'héritage Iron Warriors, la guerre de siège contre les forteresses-plateformes. <strong>La rampe</strong> est la vitesse : le live ne pardonne pas l'attente, et le moteur greffé (volé à l'ennemi, sous licence MIT) frappe vite — mais derrière les mêmes portes, et il ne touchera jamais aux métadonnées : la patience du camouflage reste la nôtre. <strong>La voix</strong> est la grâce : la méthode écrit la trame, Sanguinius polit les mots — le modèle NVIDIA ne choisit jamais ce qui sera dit, il dit plus humainement ce que les règles ont déjà décidé, et ce qu'il dit repasse devant le juge qui a fait le mur. <strong>L'heure</strong> est la patience organisée : un siège qui frappe à intervalle fixe apprend à la forteresse à parer ; l'intervalle 4–10 h tiré une fois, signé, auditable, est imprévisible pour l'ennemi et vérifiable pour le ledger. Le cerveau réfléchit, le bras frappe, la voix séduit, le calendrier choisit l'heure — et le ledger juge tout, y compris le hasard.</p>
+<p><strong>La traçabilité comme seule valeur</strong> reste la loi des lois : un dépôt « incroyable » non vérifié vaut zéro ; un moteur modeste, cloné, exécuté et mesuré vaut de l'argent. Ce document ne cite que ce qui a été ouvert — chaque fichier du tree/F trace vers son origine, chaque test porte son oracle, chaque chiffre non mesuré porte ATTENDU.</p>
+
+<h2 id="reflexion">Réflexion — pourquoi CETTE architecture</h2>
+<ul>
+<li><strong>Pourquoi deux moteurs et pas un :</strong> le VOD et le live ont des exigences opposées (grâce vs vitesse) et les deux moteurs existent, testés chacun dans son domaine. Les fusionner en un seul serait réécrire l'un ou affaiblir l'autre. Les faire consommer le même pack, derrière la même porte, les met sous la même loi — c'est moins cher qu'une réécriture et plus sûr qu'un outil parallèle non gouverné.</li>
+<li><strong>Pourquoi le moteur greffé est vendor et pas fork :</strong> un fork vit de l'amont ; un vendor figé fonctionne sans lui. La survie des forges (R18) impose l'indépendance : NeonClipping peut mourir demain, la voie vive continue de rendre.</li>
+<li><strong>Pourquoi l'élocution est dans SF_06 et pas une sous-frégate :</strong> parce qu'elle ne produit pas d'artefact — elle transforme celui de la sous-frégate. Une sous-frégate sans artefact propre serait une porte en trop, ce que la loi interdit (une gate qui n'ouvre pas de sous-frégate est une clé morte).</li>
+<li><strong>Pourquoi SF_17 est la dernière du chapitre :</strong> parce qu'elle consomme tout ce qui la précède — les clips validés de V7 et le calendrier validé de V8. Publier avant d'avoir des clips conformes serait confondre la guerre avec sa propagande.</li>
+<li><strong>Ce qui reste incertain</strong> <span class="tag d">NON VÉRIFIÉ</span> : le temps réel par clip live sur runner sans GPU ; la consommation réelle de crédits NVIDIA ; le scheduling Reels d'Instagram. Tout est mesuré au premier siège et écrit ici — rien n'est tranché par la réflexion, seulement par le monde.</li>
+</ul>
+
+<h2 id="liens">Liens — tout ce que l'agent doit ouvrir</h2>
+<ul>
+<li>Dépôt du chapitre : <a href="https://github.com/gyutedy/MURUS_SANGUINIS">github.com/gyutedy/MURUS_SANGUINIS</a> (main = V1, 28 portes, PARCOURS_REEL.md)</li>
+<li>Moteur greffé : <a href="https://github.com/iamajmeena/neonclipping">github.com/iamajmeena/neonclipping</a> (MIT, commit 0525004 du 2026-11-22)</li>
+<li>Sources pillées : <a href="https://github.com/gyutedy/PERTURABO/tree/pari-forge-perturabo-xs4c/MONDES_FORGES/CLIPPING">PERTURABO@pari-forge-perturabo-xs4c</a> · <a href="https://github.com/gyutedy/LACRIMAE-FULL/tree/sanguinala-v1">LACRIMAE-FULL@sanguinala-v1</a> · <a href="https://github.com/vossashtonai/gta6-clipper-windows">gta6-clipper-windows</a></li>
+<li>Plateformes : <a href="https://developers.google.com/youtube/data/determine_quota_cost">YouTube quota (officiel)</a> · <a href="https://developers.google.com/youtube/data/reference/rest/v3/videos/insert">videos.insert (officiel)</a> · <a href="https://developers.tiktok.com/doc/content-sharing-guidelines">TikTok (retiré)</a> · <a href="https://developers.facebook.com/documentation/instagram-platform/content-publishing">Instagram</a> · <a href="https://docs.x.com/x-api/introduction">X</a></li>
+<li>Modèles : <a href="https://build.nvidia.com/">build.nvidia.com</a> · <a href="https://forums.developer.nvidia.com/t/nim-api-credits/305703">crédits NIM (forums)</a></li>
+<li>Lore : <a href="https://wh40k.lexicanum.com/wiki/Iron_Warriors">Iron Warriors — Lexicanum</a> · <a href="https://warhammer40k.fandom.com/wiki/Blood_Angels">Blood Angels — Fandom</a></li>
+</ul>
+
+<footer>MURUS SANGUINIS CDC V2 — branche v2, généré le 2026-11-23, calqué sur la structure du CDC V1 (mêmes passes). Inventaire tree/F = état RÉEL du dépôt cloné en session + vendor V2. Tests V2 : ATTENDU. Correctifs vs débat de session : le verrou privé YouTube est RÉFUTÉ par la page officielle videos.insert ; TikTok est retiré ; le hasard du calendrier est tiré UNE fois par siège (graine au ledger). Le ledger juge tout, y compris lui-même.</footer>
+
+</div>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

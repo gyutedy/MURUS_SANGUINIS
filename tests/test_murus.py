@@ -700,3 +700,58 @@ def test_t29_parcours_reel_grave():
     assert "16 tests" not in readme, "le README annonce encore 16 tests"
     assert "la transcription GPU passe par **Modal**" not in readme,         "le README pretend encore que tout passe par Modal GPU"
 
+
+def test_t30_v2_socle():
+    """Le socle V2 existe, il est labellise, et rien n'y est anonyme.
+
+    Le CDC V2 exige un tree/F ou chaque fichier est PILLE ou CREE. Ce test
+    verifie le socle : la branche porte les placeholders des trois pieces
+    nouvelles, le vendor du moteur vive avec sa licence, le CDC et le plan.
+    """
+    vendor = ROOT / "FR_B_CREATION/SF_12_FABRICA/vive/vendor/neonclipping"
+    assert vendor.is_dir(), "le vendor du moteur vive est absent"
+    licence = vendor / "LICENSE"
+    assert licence.is_file(), "le vendor a perdu sa LICENSE (R15)"
+    assert "Permission is hereby granted" in licence.read_text(encoding="utf-8", errors="replace"), \
+        "la LICENSE du vendor n'est pas une licence MIT"
+    modele = vendor / "models/face_detection_yunet_2023mar.onnx"
+    assert modele.is_file() and modele.stat().st_size > 100_000, "le modele YuNet est absent du vendor"
+    for requis in ("app.py", "encoders.py", "highlights.py", "smart.py", "ytdl.py",
+                   "live/live_clip.py", "live_session.py", "jobs.py"):
+        assert (vendor / requis).is_file(), "fichier du moteur manquant : %s" % requis
+
+    # les trois pieces nouvelles + leurs points d'entree (vides au socle, remplis ensuite)
+    for place in ("FR_A_CERVEAU/SF_06_LIBELLUS/CODEBASE/elocution.py",
+                  "FR_B_CREATION/SF_12_FABRICA/vive/vive_runner.py",
+                  "FR_B_CREATION/SF_17_PROGRAMMA/CODEBASE/programma.py",
+                  "FR_B_CREATION/SF_17_PROGRAMMA/README.md",
+                  ".github/workflows/v2_publish.yml",
+                  ".github/workflows/v2_elocution.yml",
+                  "tests/test_murus_v2.py"):
+        assert (ROOT / place).exists(), "placeholder du socle V2 absent : %s" % place
+    for dossier in ("FR_B_CREATION/SF_17_PROGRAMMA/IN", "FR_B_CREATION/SF_17_PROGRAMMA/OUT",
+                    "FR_B_CREATION/SF_12_FABRICA/vive/OUT", "FR_B_CREATION/SF_12_FABRICA/vive/REVIEW"):
+        assert (ROOT / dossier).is_dir(), "dossier du socle V2 absent : %s" % dossier
+
+    # le CDC V2 et le plan vivent dans le depot, pas dans une conversation
+    assert (ROOT / "CDC/MURUS_SANGUINIS_CDC_V2.html").is_file(), "le CDC V2 n'est pas dans le depot"
+    plan = ROOT / "TRACKING/PLAN_V2.md"
+    assert plan.is_file(), "le plan d'implementation V2 est absent"
+    plan_txt = plan.read_text(encoding="utf-8")
+    assert "## EN" in plan_txt and "## FR" in plan_txt, "PLAN_V2.md doit etre bilingue (EXC-M8)"
+
+    # le vendor est trace : origine, commit, licence, exclusions declarees
+    vdoc = ROOT / "FR_B_CREATION/SF_12_FABRICA/vive/VENDOR.md"
+    assert vdoc.is_file(), "VENDOR.md absent : le vendored code n'est pas trace"
+    v = vdoc.read_text(encoding="utf-8")
+    assert "0525004" in v, "le commit d'origine du vendor n'est pas ecrit"
+    assert "MIT" in v, "la licence du vendor n'est pas declaree"
+    assert "exclu" in v.lower(), "les fichiers exclus du vendor ne sont pas declares"
+
+    # le plan engage un ordre, pas une intention
+    for etape in ("Etape 0", "Etape 1", "Etape 2", "Etape 3", "Etape 4",
+                  "Etape 5", "Etape 6", "Etape 7", "Etape 8", "Etape 9"):
+        assert etape in plan_txt, "etape absente du plan : %s" % etape
+    for oracle in ("T20", "T21", "T22", "T23", "T24", "T25", "T26", "T27", "T28", "T29"):
+        assert oracle in plan_txt, "oracle absent du plan : %s" % oracle
+
