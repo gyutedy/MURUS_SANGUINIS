@@ -194,12 +194,14 @@ def main(argv=None):
     ap.add_argument("--out", required=True)
     ap.add_argument("--model", default=os.environ.get("NVIDIA_MODEL", "meta/llama-3.1-70b-instruct"))
     ap.add_argument("--tentatives", type=int, default=3)
-    ap.add_argument("--delais", default="60,300,1500",
+    ap.add_argument("--delais", default="5,30,120",
                     help="secondes entre tentatives (1re, 2e, 3e) — 0,0,0 pour un test")
     ap.add_argument("--reponses", help="replay hors ligne des réponses du modèle (tests, T23/T24)")
     ap.add_argument("--ledger", default=None)
     ap.add_argument("--assets", default=None)
     ap.add_argument("--langue", default="en")
+    ap.add_argument("--budget-secondes", type=float, default=600.0,
+                    help="au-dela, les assets restants passent en repli gabarit (declare)")
     args = ap.parse_args(argv)
 
     pack = charger_pack(args.pack)
@@ -225,11 +227,15 @@ def main(argv=None):
     delais = [float(x) for x in str(args.delais).split(",") if x.strip() != ""]
     resultats, replis, jetons = [], 0, 0
 
+    debut_total = time.monotonic()
+    budget_epuise = False
     for asset in assets:
+        if args.budget_secondes and (time.monotonic() - debut_total) > args.budget_secondes:
+            budget_epuise = True
         prompt = prompt_de(asset, sujet, args.langue)
         essais, verdicts, choisi, source, usage_total = 0, [], None, "gabarit", 0
 
-        while essais < max(1, args.tentatives):
+        while essais < max(1, args.tentatives) and not budget_epuise:
             essais += 1
             try:
                 if replay is not None:
@@ -296,6 +302,8 @@ def main(argv=None):
         "assets": len(assets),
         "elocutions": len(resultats) - replis,
         "replis": replis,
+        "budget_epuise": budget_epuise,
+        "secondes_totales": round(time.monotonic() - debut_total, 1),
         "jetons_total": jetons,
         "regle": "le LLM ne décide jamais : sa sortie est re-jugée par les gabarits du dépôt",
         "titres": resultats,
