@@ -1,0 +1,64 @@
+{
+  "schema_version": "dev10-v2.luther.v1",
+  "mode": "batch_multi_videos",
+  "video_count": 9,
+  "processed": 9,
+  "failed": [],
+  "all_qa_pass": true,
+  "videos": [
+    {
+      "input": "pur_A01_cam.mp4",
+      "output": "short_master.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": []
+    },
+    {
+      "input": "pur_A02_cam.mp4",
+      "output": "short_master.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": []
+    },
+    {
+      "input": "pur_A03_cam.mp4",
+      "output": "short_master.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": []
+    },
+    {
+      "input": "pur_A04_cam.mp4",
+      "output": "short_master.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": []
+    },
+    {
+      "input": "pur_A05_cam.mp4",
+      "output": "short_master.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": []
+    },
+    {
+      "input": "pur_A06_cam.mp4",
+      "output": "short_master.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": []
+    },
+    {
+      "input": "pur_A07_cam.mp4",
+      "output": "short_master.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": []
+    },
+    {
+      "input": "pur_A08_cam.mp4",
+      "output": "short_master.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": []
+    },
+    {
+      "input": "pur_A09_cam.mp4",
+      "output": "short_master.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": []
+    }
+  ]
+}

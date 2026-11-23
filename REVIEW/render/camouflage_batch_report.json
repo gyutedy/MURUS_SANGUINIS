@@ -1,0 +1,82 @@
+{
+  "schema_version": "dev10-v2.camouflage.v1",
+  "mode": "batch_multi_videos",
+  "video_count": 9,
+  "processed": 9,
+  "failed": [],
+  "all_qa_pass": true,
+  "videos": [
+    {
+      "input": "pur_A01.mp4",
+      "output": "short_camouflaged.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": [
+        "encoder=Lavc62.11.100 libx264"
+      ]
+    },
+    {
+      "input": "pur_A02.mp4",
+      "output": "short_camouflaged.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": [
+        "encoder=Lavc62.11.100 libx264"
+      ]
+    },
+    {
+      "input": "pur_A03.mp4",
+      "output": "short_camouflaged.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": [
+        "encoder=Lavc62.11.100 libx264"
+      ]
+    },
+    {
+      "input": "pur_A04.mp4",
+      "output": "short_camouflaged.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": [
+        "encoder=Lavc62.11.100 libx264"
+      ]
+    },
+    {
+      "input": "pur_A05.mp4",
+      "output": "short_camouflaged.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": [
+        "encoder=Lavc62.11.100 libx264"
+      ]
+    },
+    {
+      "input": "pur_A06.mp4",
+      "output": "short_camouflaged.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": [
+        "encoder=Lavc62.11.100 libx264"
+      ]
+    },
+    {
+      "input": "pur_A07.mp4",
+      "output": "short_camouflaged.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": [
+        "encoder=Lavc62.11.100 libx264"
+      ]
+    },
+    {
+      "input": "pur_A08.mp4",
+      "output": "short_camouflaged.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": [
+        "encoder=Lavc62.11.100 libx264"
+      ]
+    },
+    {
+      "input": "pur_A09.mp4",
+      "output": "short_camouflaged.mp4",
+      "qa_pass": true,
+      "suspicious_tags_after": [
+        "encoder=Lavc62.11.100 libx264"
+      ]
+    }
+  ]
+}
