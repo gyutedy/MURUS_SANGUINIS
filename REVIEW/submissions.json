@@ -1,0 +1,273 @@
+{
+  "schema_version": "murus.submissions.v1",
+  "created_at": "2026-11-23T05:49:14Z",
+  "pack_token": "70f120a8",
+  "run_de_rendu": "45113267319",
+  "compte": "clip_main",
+  "nb_demande": 9,
+  "nb_livrable": 9,
+  "regle": "le projet ne poste jamais : chaque clip attend la main de l'operateur",
+  "clips": [
+    {
+      "clip": "A01",
+      "fichier": "pur_A01_LIVRABLE.mp4",
+      "octets": 20608039,
+      "sha256": "c6507b380928cc7b4e1f236896a2efa1a826d17527f48fbd3deafec3a0aa6e92",
+      "etages": [
+        "postprod",
+        "camouflage",
+        "luther"
+      ],
+      "checklist": {
+        "items": [
+          {
+            "id": "poster_le_clip",
+            "fait": false
+          },
+          {
+            "id": "soumettre_whop_sous_1h",
+            "deadline_min": 60,
+            "fait": false
+          },
+          {
+            "id": "releve_vues_1h_24h",
+            "fait": false
+          }
+        ]
+      },
+      "statut": "a_poster"
+    },
+    {
+      "clip": "A02",
+      "fichier": "pur_A02_LIVRABLE.mp4",
+      "octets": 20488533,
+      "sha256": "cd61b523ad9edb7b437653a158415fbfa1066ac14438083d02ef62edc9f77152",
+      "etages": [
+        "postprod",
+        "camouflage",
+        "luther"
+      ],
+      "checklist": {
+        "items": [
+          {
+            "id": "poster_le_clip",
+            "fait": false
+          },
+          {
+            "id": "soumettre_whop_sous_1h",
+            "deadline_min": 60,
+            "fait": false
+          },
+          {
+            "id": "releve_vues_1h_24h",
+            "fait": false
+          }
+        ]
+      },
+      "statut": "a_poster"
+    },
+    {
+      "clip": "A03",
+      "fichier": "pur_A03_LIVRABLE.mp4",
+      "octets": 21105036,
+      "sha256": "30e8a8c73cbbc97c0e2dfdd217ab1b86e79559634905fe722e9b97b1f1845b47",
+      "etages": [
+        "postprod",
+        "camouflage",
+        "luther"
+      ],
+      "checklist": {
+        "items": [
+          {
+            "id": "poster_le_clip",
+            "fait": false
+          },
+          {
+            "id": "soumettre_whop_sous_1h",
+            "deadline_min": 60,
+            "fait": false
+          },
+          {
+            "id": "releve_vues_1h_24h",
+            "fait": false
+          }
+        ]
+      },
+      "statut": "a_poster"
+    },
+    {
+      "clip": "A04",
+      "fichier": "pur_A04_LIVRABLE.mp4",
+      "octets": 21309917,
+      "sha256": "0f1ebc28aa936c04673fdfe468c05b09b9f238d1fa9d348f2a3d10b9fe0aa403",
+      "etages": [
+        "postprod",
+        "camouflage",
+        "luther"
+      ],
+      "checklist": {
+        "items": [
+          {
+            "id": "poster_le_clip",
+            "fait": false
+          },
+          {
+            "id": "soumettre_whop_sous_1h",
+            "deadline_min": 60,
+            "fait": false
+          },
+          {
+            "id": "releve_vues_1h_24h",
+            "fait": false
+          }
+        ]
+      },
+      "statut": "a_poster"
+    },
+    {
+      "clip": "A05",
+      "fichier": "pur_A05_LIVRABLE.mp4",
+      "octets": 21911535,
+      "sha256": "b64fd621a6d64314666c7c3b4985f5d358f13a07136bb57955da4231eb4010fe",
+      "etages": [
+        "postprod",
+        "camouflage",
+        "luther"
+      ],
+      "checklist": {
+        "items": [
+          {
+            "id": "poster_le_clip",
+            "fait": false
+          },
+          {
+            "id": "soumettre_whop_sous_1h",
+            "deadline_min": 60,
+            "fait": false
+          },
+          {
+            "id": "releve_vues_1h_24h",
+            "fait": false
+          }
+        ]
+      },
+      "statut": "a_poster"
+    },
+    {
+      "clip": "A06",
+      "fichier": "pur_A06_LIVRABLE.mp4",
+      "octets": 22995602,
+      "sha256": "127b2aaebf5b07937f5f0f5645c222dd19e3d6cbc120f65df4cbe828af3639fc",
+      "etages": [
+        "postprod",
+        "camouflage",
+        "luther"
+      ],
+      "checklist": {
+        "items": [
+          {
+            "id": "poster_le_clip",
+            "fait": false
+          },
+          {
+            "id": "soumettre_whop_sous_1h",
+            "deadline_min": 60,
+            "fait": false
+          },
+          {
+            "id": "releve_vues_1h_24h",
+            "fait": false
+          }
+        ]
+      },
+      "statut": "a_poster"
+    },
+    {
+      "clip": "A07",
+      "fichier": "pur_A07_LIVRABLE.mp4",
+      "octets": 16808822,
+      "sha256": "d8b95bd9584031dc84e5bdf2ad02dcae8f1bf188e0dcc73a43ca76f0259beb87",
+      "etages": [
+        "postprod",
+        "camouflage",
+        "luther"
+      ],
+      "checklist": {
+        "items": [
+          {
+            "id": "poster_le_clip",
+            "fait": false
+          },
+          {
+            "id": "soumettre_whop_sous_1h",
+            "deadline_min": 60,
+            "fait": false
+          },
+          {
+            "id": "releve_vues_1h_24h",
+            "fait": false
+          }
+        ]
+      },
+      "statut": "a_poster"
+    },
+    {
+      "clip": "A08",
+      "fichier": "pur_A08_LIVRABLE.mp4",
+      "octets": 16427494,
+      "sha256": "8c08a73eb2a1ea89db6a6ef45802d22fa7d7f7e64aa5cd60e05ba48ee1bfaf9d",
+      "etages": [
+        "postprod",
+        "camouflage",
+        "luther"
+      ],
+      "checklist": {
+        "items": [
+          {
+            "id": "poster_le_clip",
+            "fait": false
+          },
+          {
+            "id": "soumettre_whop_sous_1h",
+            "deadline_min": 60,
+            "fait": false
+          },
+          {
+            "id": "releve_vues_1h_24h",
+            "fait": false
+          }
+        ]
+      },
+      "statut": "a_poster"
+    },
+    {
+      "clip": "A09",
+      "fichier": "pur_A09_LIVRABLE.mp4",
+      "octets": 18694968,
+      "sha256": "db09bebf7c57dfa3e30e6a4b8eee49ba3bdfcb1b9dd7e8738f960c204c70e5b6",
+      "etages": [
+        "postprod",
+        "camouflage",
+        "luther"
+      ],
+      "checklist": {
+        "items": [
+          {
+            "id": "poster_le_clip",
+            "fait": false
+          },
+          {
+            "id": "soumettre_whop_sous_1h",
+            "deadline_min": 60,
+            "fait": false
+          },
+          {
+            "id": "releve_vues_1h_24h",
+            "fait": false
+          }
+        ]
+      },
+      "statut": "a_poster"
+    }
+  ]
+}
