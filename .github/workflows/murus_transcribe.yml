@@ -16,6 +16,14 @@ on:
         required: false
         type: string
         default: '15'
+      whisper_gpu:
+        description: 'Moteur des VM : T4 (GPU, exige un moyen de paiement Modal) ou none (CPU)'
+        required: false
+        type: choice
+        default: 'none'
+        options:
+          - none
+          - T4
 
 jobs:
   transcribe:
@@ -39,11 +47,13 @@ jobs:
         env:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          WHISPER_GPU: ${{ inputs.whisper_gpu }}
         run: |
           # Le service Modal vit dans le dépôt PERTURABO d'origine :
           # MONDES_FORGES/CLIPPING/F00_IRON_SENTINEL/F00B_VOX/MODAL/transcribe.py
           # Il est copié ici : MODAL/transcribe.py (racine du dépôt).
           set +e
+          echo "moteur demande : ${WHISPER_GPU:-none} (none = CPU, aucune facturation GPU)"
           modal deploy MODAL/transcribe.py 2>&1 | tee /tmp/modal_deploy.log
           RC=${PIPESTATUS[0]}
           if [ $RC -ne 0 ]; then
@@ -62,6 +72,7 @@ jobs:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
           VOD_URL: ${{ inputs.vod_url }}
+          WHISPER_GPU: ${{ inputs.whisper_gpu }}
         run: |
           VODID=$(echo "$VOD_URL" | grep -oE '[0-9]{6,}' | head -1)
           mkdir -p ARCHIVUM/montage/transcripts
