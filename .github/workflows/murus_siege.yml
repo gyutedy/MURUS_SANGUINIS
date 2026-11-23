@@ -168,8 +168,7 @@ jobs:
           git add ARCHIVUM/montage/transcripts
           if git diff --cached --quiet; then echo "transcript déjà présent, rien à committer"; exit 0; fi
           git commit -m "[SIÈGE] transcript VOD réel (faster-whisper CPU, GitHub Actions)"
-          git pull --rebase --autostash origin main
-          git push origin main
+          for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin main && exit 0; echo "push rejete, tentative $i"; sleep 6; done; echo "::warning::push impossible apres 5 tentatives"
 
   siege:
     runs-on: ubuntu-latest
@@ -582,8 +581,7 @@ jobs:
           git add REVIEW/pack_stage.json || true
           if git diff --cached --quiet; then echo "rapport inchangé"; exit 0; fi
           git commit -m "[SIÈGE] rapport réel sur la VOD opérateur"
-          git pull --rebase --autostash origin main
-          git push origin main
+          for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin main && exit 0; echo "push rejete, tentative $i"; sleep 6; done; echo "::warning::push impossible apres 5 tentatives"
 
       - name: Publier ce que le projet a écrit à l'opérateur (question + sélection)
         if: always()
@@ -597,7 +595,7 @@ jobs:
           if git diff --cached --quiet; then echo "aucune question à publier"; exit 0; fi
           git commit -m "[DEMANDE] question + sélection soumise à l'opérateur"
           git pull --rebase --autostash origin main
-          git push origin main || echo "::warning::push de la question impossible (voir logs)"
+          for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin main && exit 0; echo "push rejete, tentative $i"; sleep 6; done; echo "::warning::push impossible apres 5 tentatives"
 
       - name: Échec assumé — la porte a refusé ce qu'elle devait refuser
         if: env.SIEGE_RC != '0'

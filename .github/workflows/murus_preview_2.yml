@@ -357,7 +357,7 @@ jobs:
             echo "provenance inchangee"
           else
             git commit -m "[CI] provenance du codex postprod (sha256 relu)"
-            git push
+            for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin main && exit 0; echo "push rejete, tentative $i"; sleep 6; done; echo "::warning::push impossible apres 5 tentatives"
           fi
 
   ui_check:

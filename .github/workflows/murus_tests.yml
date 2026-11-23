@@ -54,4 +54,4 @@ jobs:
           git config user.email "murus@murus.sanguinis"
           git add TRACKING/MURUS_LOG.md
           git commit -m "[CI] sortie réelle des 16 tests e2e (remplace ATTENDU)" || echo "nothing to commit"
-          git push || echo "push failed (fork/PR)"
+          for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin main && exit 0; echo "push rejete, tentative $i"; sleep 6; done; echo "::warning::push impossible apres 5 tentatives" || echo "push failed (fork/PR)"
