@@ -106,7 +106,9 @@ def appeler(fn_name, app_name, charge, modele_cpu, langue):
             raise RuntimeError("MODAL_TOKEN_ID / MODAL_TOKEN_SECRET absents")
         fn = modal.Function.from_name(app_name, fn_name)
         args = [(c["octets"], c["debut"], langue) for c in charge]
-        resultats = list(fn.map(args))
+        # starmap, pas map : la fonction prend (data, offset, language), et
+        # `map` envoyerait le tuple entier dans `data` (bytes-like required).
+        resultats = list(fn.starmap(args))
         conteneurs = {r.get("container") for r in resultats if r.get("container")}
         return resultats, {
             "moteur": "modal-fanout",
