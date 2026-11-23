@@ -221,6 +221,30 @@ jobs:
             --report "/tmp/work/final/postprod_${ID}.json"
           ls -la /tmp/work/final || true
 
+      - name: 5b. PORTE SOUS-TITRES — un clip sans ses sous-titres est refuse
+        env:
+          ID: ${{ matrix.clip.id }}
+        run: |
+          python - << 'PYEOF'
+          import json, os
+          from pathlib import Path
+          ident = os.environ.get("ID", "?")
+          rapport = Path("/tmp/work/final/postprod_%s.json" % ident)
+          if not rapport.is_file():
+              print("::error::aucun rapport postprod pour %s" % ident)
+              raise SystemExit(1)
+          d = json.loads(rapport.read_text(encoding="utf-8"))
+          etapes = {s.get("step"): s for s in (d.get("steps") or [])}
+          cap = etapes.get("caption") or {}
+          if not cap.get("applied"):
+              print("::error::SANS SOUS-TITRES : %s — %s" % (ident, cap.get("reason") or cap.get("error") or "non applique"))
+              raise SystemExit(1)
+          if not d.get("caption_burned"):
+              print("::error::SANS SOUS-TITRES graves : %s" % ident)
+              raise SystemExit(1)
+          print("%s : sous-titres graves (%s, %s mots)" % (ident, cap.get("font") or "?", cap.get("words")))
+          PYEOF
+
       - name: 6. CAMOUFLAGE (SF_14) — reencodage H.264 yuv420p, faststart, loudnorm
         env:
           ID: ${{ matrix.clip.id }}

@@ -558,6 +558,14 @@ def test_t27_rendu_un_job_par_clip():
     # E-15 : OUT/ est gitignore, la preuve qa_pass doit etre copiee ailleurs et ajoutee en clair
     assert "REVIEW/render/luther_batch_report.json" in w, "la preuve qa_pass n'est pas copiee vers REVIEW/render"
     assert "git add -f REVIEW/render/render_report.json" in w, "les preuves ne sont pas ajoutees explicitement"
+    assert "PORTE SOUS-TITRES" in w, "aucune porte n'interdit un clip sans sous-titres"
+
+    # E-17 : la police est demandee par son nom lisible, le fichier a un autre nom
+    sys.path.insert(0, str(ROOT / "FR_B_CREATION" / "SF_13_POLITURA" / "CODEBASE" / "caption"))
+    import ass_render
+    for nom in ("Montserrat ExtraBold", "Montserrat-ExtraBold.ttf", "Montserrat-ExtraBold"):
+        fichier = ass_render.font_file({"font": nom})
+        assert fichier.is_file() and fichier.name == "Montserrat-ExtraBold.ttf",             "la police n'est pas resolue pour le nom %r (E-17)" % nom
 
 
     # EXC-M11 : plus aucun chemin F03_PREVIEW/... mort dans les CLIs utilisees

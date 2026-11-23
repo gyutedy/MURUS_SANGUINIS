@@ -243,14 +243,38 @@ def words_from_whisper(video: Path, model_name: str = "base") -> list[dict]:
 # ── rendu ────────────────────────────────────────────────────────────────────
 
 def font_file(style: dict) -> Path:
-    """La police doit voyager avec le depot : sinon libass retombe en silence."""
-    name = str(style.get("font") or "Montserrat-ExtraBold.ttf")
-    path = FONT_DIR / name
-    if not path.is_file():
-        raise CaptionError(
-            f"police absente du depot : {name} (attendu dans {FONT_DIR})"
-        )
-    return path
+    """La police doit voyager avec le depot : sinon libass retombe en silence.
+
+    E-17 : le codex porte le nom LISIBLE de la police (« Montserrat ExtraBold »),
+    le fichier porte le nom FICHIER (« Montserrat-ExtraBold.ttf »). Chercher
+    betement FONT_DIR / nom faisait echouer la gravure et les sous-titres
+    disparaissaient sans que personne ne le voie. On resout le nom vers le
+    fichier reel, sans jamais retomber sur une police systeme.
+    """
+    name = str(style.get("font") or "Montserrat-ExtraBold.ttf").strip()
+    candidates = []
+    if Path(name).suffix.lower() in (".ttf", ".otf"):
+        candidates.append(name)
+    base = Path(name).stem or name
+    variants = {
+        base,
+        base.replace(" ", "-"),
+        base.replace("-", " "),
+        base.replace(" ", ""),
+        base.replace(" ", "_"),
+        base.replace("-", ""),
+    }
+    for variant in sorted(variants):
+        for ext in (".ttf", ".otf"):
+            candidates.append(variant + ext)
+    for candidate in candidates:
+        path = FONT_DIR / candidate
+        if path.is_file():
+            return path
+    raise CaptionError(
+        f"police absente du depot : {name} (essaye : {', '.join(candidates[:6])}...) "
+        f"attendu dans {FONT_DIR}"
+    )
 
 
 def check_g4(style: dict) -> int:
