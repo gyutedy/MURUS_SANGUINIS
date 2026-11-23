@@ -582,6 +582,19 @@ def test_t27_rendu_un_job_par_clip():
         capture_output=True, text=True)
     assert refus.returncode == 1, "un silence doit etre refuse explicitement (code 1)"
 
+    # E-19 : pop-in = UN MOT a la fois, jamais une phrase
+    mots_reels = ts.slice_transcript(segments, 1376.2, 1406.2)
+    assert len(mots_reels) > 40, "la decoupe ne rend pas de mots fins : %d" % len(mots_reels)
+    import ass_render as ar
+    cues_pop = ar.cues_from_words(mots_reels, max_words=1)
+    trop = [c["text"] for c in cues_pop if len(c["text"].split()) > 1]
+    assert not trop, "pop-in doit graver un mot a la fois, trouve : %r" % trop[:3]
+    assert ar.__dict__ and "cues_from_words" in dir(ar)
+
+    # la source doit mesurer les temps par mot (sinon tout est interpole)
+    siege = (ROOT / ".github/workflows/murus_siege.yml").read_text(encoding="utf-8")
+    assert "word_timestamps=True" in siege, "la transcription ne mesure pas les temps par mot (E-19)"
+
     # E-17 : la police est demandee par son nom lisible, le fichier a un autre nom
     sys.path.insert(0, str(ROOT / "FR_B_CREATION" / "SF_13_POLITURA" / "CODEBASE" / "caption"))
     import ass_render

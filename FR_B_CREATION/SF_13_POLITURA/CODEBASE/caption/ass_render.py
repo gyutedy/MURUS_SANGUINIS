@@ -313,7 +313,12 @@ def render(
         words, source = words_from_transcript(Path(transcript)), f"transcript:{Path(transcript).name}"
     else:
         words, source = words_from_whisper(Path(video), model_name), f"whisper:{model_name}"
-    cues = cues_from_words(words)
+    # E-19 : la motion du codex decide de la taille du cue.
+    # pop-in = UN MOT a la fois (le mot apparait, puis le suivant) ; les autres
+    # motions gardent des cues courtes de 2 mots maximum. Une phrase entiere
+    # dans un sous-titre pop-in etait le defaut signale par l'operateur.
+    motion = str(style.get("motion") or "").strip().lower()
+    cues = cues_from_words(words, max_words=1 if motion == "pop-in" else 2)
     if not cues:
         raise CaptionError("aucun cue exploitable")
     canvas = style.get("canvas", "9:16")

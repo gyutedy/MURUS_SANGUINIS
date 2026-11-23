@@ -59,6 +59,30 @@ def _segments_from(brut: dict) -> list[dict]:
     return []
 
 
+def mots_interpoles(texte: str, t0: float, t1: float) -> list[dict]:
+    """Un segment sans temps par mot : on repartit sa duree entre ses mots.
+
+    E-19 : un sous-titre doit tomber MOT PAR MOT (motion pop-in, une unite a la
+    fois). La transcription du siege ne produisait que des segments de phrase ;
+    prendre le segment pour un mot donnait des blocs entiers, tantot longs
+    tantot courts. On repartit donc la duree du segment au prorata de la
+    longueur des mots — c'est declare `interpolated` dans la sortie, jamais
+    presente comme un temps mesure.
+    """
+    morceaux = [m for m in texte.split() if m]
+    if not morceaux:
+        return []
+    total = max(sum(len(m) + 1 for m in morceaux), 1)
+    duree = max(t1 - t0, 0.3)
+    mots, curseur = [], t0
+    for m in morceaux:
+        part = duree * (len(m) + 1) / total
+        mots.append({"word": m, "start": round(curseur, 3), "end": round(curseur + part, 3),
+                     "word_timing": "interpolated"})
+        curseur += part
+    return mots
+
+
 def slice_transcript(segments: list[dict], start: float, end: float) -> list[dict]:
     """Ne garde que la parole de la fenetre, et ramene les temps a zero."""
     if end <= start:
@@ -73,16 +97,32 @@ def slice_transcript(segments: list[dict], start: float, end: float) -> list[dic
         t0, t1 = float(t0), float(t1)
         if t1 <= start or t0 >= end:
             continue
+        dedans = seg.get("words")
+        if isinstance(dedans, list) and dedans:
+            # temps par mot REELS (transcription word_timestamps=True)
+            for w in dedans:
+                ws, we = w.get("start"), w.get("end")
+                if ws is None or we is None:
+                    continue
+                ws, we = float(ws), float(we)
+                if we <= start or ws >= end:
+                    continue
+                mot = str(w.get("word") or "").strip()
+                if not mot:
+                    continue
+                mots.append({"word": mot,
+                             "start": round(max(0.0, ws - start), 3),
+                             "end": round(min(end - start, max(we - start, 0.05)), 3),
+                             "word_timing": "measured"})
+            continue
         texte = str(seg.get("text") or seg.get("word") or "").strip()
         if not texte:
             continue
-        mots.append(
-            {
-                "word": texte,
-                "start": round(max(0.0, t0 - start), 3),
-                "end": round(min(end - start, max(t1 - start, 0.05)), 3),
-            }
-        )
+        for w in mots_interpoles(texte, max(t0, start), min(t1, end)):
+            w["start"] = round(max(0.0, w["start"] - start), 3)
+            w["end"] = round(min(end - start, max(w["end"] - start, 0.05)), 3)
+            if w["end"] > w["start"]:
+                mots.append(w)
     return mots
 
 
@@ -138,6 +178,7 @@ def main() -> int:
                 "clip": args.id,
                 "window": {"start": args.start, "end": args.end},
                 "relative_time": True,
+                "word_timing": sorted({m.get("word_timing", "interpolated") for m in mots}),
                 "words": mots,
             },
             ensure_ascii=False,
