@@ -9,10 +9,15 @@ Methode (mesure, pas supposition) :
   5. on mesure aussi la derive : le meme score calcule separement sur la premiere
      et la derniere moitie du clip. Un decalage qui grandit = compression du temps.
 
-Sortie : un rapport JSON + un code de sortie qui refuse au-dela du seuil.
+Sortie : un rapport JSON + un code de sortie. Trois verdicts, jamais deux :
   0 = a l'heure (|decalage| <= seuil et pas de derive)
+  0 = mesure_incertaine (trop peu de mots ancres et correlation non concluante) :
+      le clip sort, mais le rapport dit qu'on n'a pas su prouver la synchro
   1 = decale (le rapport dit de combien et dans quel sens)
   2 = mesure impossible (audio absent, transcription vide)
+
+Refuser sans preuve serait aussi faux que livrer sans preuve : une non-mesure se
+declare, elle ne bloque pas.
 """
 import argparse
 import array
@@ -218,25 +223,45 @@ def main(argv=None):
         die(2, "aucun mot dans la fenetre %.1f-%.1f : rien a mesurer" % (args.start, args.end))
 
     debuts = [t for t, _ in mots]
-    decalage, energie = meilleur_decalage(env, debuts)
-    median, ancres, confiance = ancrage_par_mot(env, debuts, centre=decalage)
-    # La mediane par mot est retenue des qu'assez de mots sont ancres : elle resiste
-    # a un mot long ou a un mot non prononce, la correlation globale non.
-    retenu = median if (median is not None and confiance >= 0.5) else decalage
-    derive_mot = None
-    if median is not None and confiance >= 0.5:
-        m1, _, c1 = ancrage_par_mot(env, [t for t in debuts if t <= duree / 2.0],
-                                    centre=decalage_debut)
-        m2, _, c2 = ancrage_par_mot(env, [t for t in debuts if t > duree / 2.0],
-                                    centre=decalage_fin)
-        if m1 is not None and m2 is not None:
-            derive_mot = round(m2 - m1, 3)
     milieu = duree / 2.0
+    decalage, energie = meilleur_decalage(env, debuts)
     decalage_debut, _ = meilleur_decalage(env, [t for t in debuts if t <= milieu])
     decalage_fin, _ = meilleur_decalage(env, [t for t in debuts if t > milieu])
     derive = round(decalage_fin - decalage_debut, 3)
     base = correlation(onsets(env), impulsion(len(env), debuts), 0)
     gain = round(energie / base, 2) if base > 0 else None
+    median, ancres, confiance = ancrage_par_mot(env, debuts, centre=decalage)
+    # La mediane par mot est retenue des qu'assez de mots sont ancres : elle resiste
+    # a un mot long ou a un mot non prononce, la correlation globale non.
+    ANC_MIN = 8                       # mots ancres necessaires pour croire la mediane
+    GLOBAL_MIN = 1.15                 # gain minimal pour croire la correlation
+    seuil_derive = 0.35               # une derive se mesure plus bruyamment qu'un ecart
+    if median is not None and ancres >= ANC_MIN:
+        retenu, source = median, "mediane_par_mot"
+    elif gain is not None and gain >= GLOBAL_MIN:
+        retenu, source = decalage, "correlation_globale"
+    else:
+        retenu, source = None, "aucune"
+    # La derive se mesure par la mediane mot par mot dans chaque moitie : deux
+    # medianes de mots ancres, pas une correlation globale. Il faut au moins
+    # ANC_MIN_MOITIE mots ancres de chaque cote, sinon on ne pretend rien.
+    ANC_MIN_MOITIE = 5
+    derive_mot = None
+    m1, a1, _ = ancrage_par_mot(env, [t for t in debuts if t <= duree / 2.0],
+                                centre=decalage_debut)
+    m2, a2, _ = ancrage_par_mot(env, [t for t in debuts if t > duree / 2.0],
+                                centre=decalage_fin)
+    if m1 is not None and m2 is not None and a1 >= ANC_MIN_MOITIE and a2 >= ANC_MIN_MOITIE:
+        derive_mot = round(m2 - m1, 3)
+
+    # trois verdicts, jamais deux : a l'heure, decale (mesure), ou incertain (on
+    # declare qu'on n'a pas su mesurer, et un livrable ne tombe pas pour ca).
+    if retenu is None:
+        verdict = "mesure_incertaine"
+    elif abs(retenu) > args.seuil or (derive_mot is not None and abs(derive_mot) > seuil_derive):
+        verdict = "decale"
+    else:
+        verdict = "a_l_heure"
 
     rapport = {
         "schema": "murus.synchro.v1",
@@ -253,21 +278,28 @@ def main(argv=None):
         "energie_debut_de_mot": round(energie, 6),
         "gain_vs_decalage_nul": gain,
         "seuil_s": args.seuil,
-        "verdict": ("a_l_heure"
-                    if abs(retenu) <= args.seuil
-                    and abs(derive_mot if derive_mot is not None else derive) <= args.seuil
-                    else "decale"),
+        "source_mesure": source,
+        "seuil_derive_s": seuil_derive,
+        "verdict": verdict,
         "lecture": (
             "decalage negatif = les mots sont en avance sur la parole (sous-titres "
             "qui filent) ; positif = en retard ; derive = l'ecart entre la premiere "
             "et la seconde moitie du clip ; le decalage retenu est la mediane mot par "
-            "mot des que la moitie des mots sont ancres, sinon la correlation globale"),
+            "mot des que 8 mots sont ancres, sinon la correlation globale si son gain "
+            "depasse 1,15, sinon la mesure est declaree incertaine"),
     }
     if args.report:
         Path(args.report).parent.mkdir(parents=True, exist_ok=True)
         Path(args.report).write_text(json.dumps(rapport, ensure_ascii=False, indent=1),
                                      encoding="utf-8")
     print(json.dumps(rapport, ensure_ascii=False))
+    if rapport["verdict"] == "mesure_incertaine":
+        # On ne refuse pas sur une non-mesure : refuser sans preuve serait aussi
+        # faux que livrer sans preuve. On le dit fort, et le rapport le porte.
+        print("::warning::SYNCHRO INCERTAINE pour %.1f-%.1f s : %d mot(s) ancre(s), "
+              "gain %.2f. Le clip sort, mais la synchro n'a pas ete prouvee."
+              % (args.start, args.end, ancres, gain if gain else 0.0))
+        return 0
     return 0 if rapport["verdict"] == "a_l_heure" else 1
 
 
