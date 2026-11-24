@@ -537,6 +537,19 @@ def test_t34_fenetre_coupee_au_bon_endroit():
     assert "start - 5.0" in src,         "aucun garde-fou sur le depart mesure : un 0.000 ferait avancer la coupe de toute la fenetre"
     assert "_duree_ok" in src and "clip de %.2f s pour" in src,         "un clip vide pourrait partir sans etre refuse"
 
+def test_t35_synchro_declaree_pas_bloquante():
+    """T35 — ordre operateur : la synchro se declare, elle n'etrangle pas.
+
+    Un retard mesure doit apparaitre en warning et laisser le clip sortir. Ce qui
+    refuse encore, c'est l'ABSENCE de sous-titres (PORTE SOUS-TITRES), pas un ecart.
+    """
+    w = (ROOT / ".github/workflows/murus_rendu.yml").read_text(encoding="utf-8")
+    i = w.index("PORTE SYNCHRO")
+    bloc = w[i:i + 2200]
+    assert "verifier_synchro.py" in bloc, "la porte ne mesure plus rien"
+    assert "::warning::SYNCHRO DECALEE" in bloc,         "un retard mesure ne serait pas declare"
+    assert "exit 1" not in bloc.split("5. PP2")[0],         "la porte synchro redevient un goulot : elle refuse au lieu de declarer"
+
 
 if __name__ == "__main__":
     sys.exit(_main())

@@ -273,3 +273,15 @@ gabarit. L'enjeu est désormais exigé sur le titre de clip, et retiré du jugem
 `metadata_title` (`accepter(..., enjeu=False)`). Le validateur reste le seul juge :
 on ne l'affaiblit pas, on applique la bonne règle au bon champ.
 
+## E-23 — La synchro se mesure et se declare, elle n'etrangle pas (2026-11-24)
+
+**FR** — Ordre de l'operateur : « je veux que le run soit vert meme avec des retards,
+c'est pas un goulot d'etranglement ». Consequence : `PORTE SYNCHRO` mesure et publie
+`decalage_retenu_s`, `derive_par_mot_s`, `mots_ancres`, `confiance`, `source_mesure`,
+puis **avertit sans refuser** (`::warning::SYNCHRO DECALEE …`). Ce qui refuse encore,
+c'est l'ABSENCE de sous-titres (`PORTE SOUS-TITRES`), pas un ecart de temps.
+Verrou : `tests/test_murus_v2.py::test_t35_synchro_declaree_pas_bloquante`.
+
+**EN** — Operator order: "I want the run green even with delays, it is not a
+bottleneck". So `PORTE SYNCHRO` measures and publishes the numbers, then **warns
+without refusing**. A missing subtitle still refuses; a measured delay never does.

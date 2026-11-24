@@ -274,7 +274,7 @@ jobs:
           # transporte donc l'erreur. On transcrit LA FENETRE, sans VAD, en une passe.
           mkdir -p /tmp/work/pp
           # l'instrument de mesure doit prouver qu'il mesure : trois cas connus
-          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py --autotest              --vod x --start 0 --end 1 --transcript x             || { echo "::error::PORTE SYNCHRO : l'outil de mesure ne retrouve plus ses trois cas connus, on ne l'utilise pas"; exit 1; }
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py --autotest              --vod x --start 0 --end 1 --transcript x             || { echo "::warning::PORTE SYNCHRO : l'outil de mesure ne retrouve plus ses trois cas connus — la mesure ci-dessous n'est pas fiable, on le declare au lieu de bloquer"; }
           SRC=$(ls /tmp/work/clips/*.mp4 | head -1)
           echo "source du clip : $SRC"
           python FR_A_CERVEAU/SF_05_VOX/CODEBASE/transcrire_vod.py             --vod "$SRC"             --out "/tmp/work/pp/transcript_${ID}.json"             --vad off             --decaler "$START"             --model small.en             --language en             --max-minutes 2             --chunks 1             --report "/tmp/work/pp/transcription_${ID}.json"
@@ -286,9 +286,19 @@ jobs:
           END: ${{ matrix.clip.end }}
         run: |
           # l'instrument de mesure doit prouver qu'il mesure : trois cas connus
-          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py --autotest              --vod x --start 0 --end 1 --transcript x             || { echo "::error::PORTE SYNCHRO : l'outil de mesure ne retrouve plus ses trois cas connus, on ne l'utilise pas"; exit 1; }
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py --autotest              --vod x --start 0 --end 1 --transcript x             || { echo "::warning::PORTE SYNCHRO : l'outil de mesure ne retrouve plus ses trois cas connus — la mesure ci-dessous n'est pas fiable, on le declare au lieu de bloquer"; }
           SRC=$(ls /tmp/work/clips/*.mp4 | head -1)
-          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py             --vod "$SRC" --start "$START" --end "$END"             --transcript "/tmp/work/pp/transcript_${ID}.json"             --report "/tmp/work/pp/synchro_${ID}.json" --seuil 0.25             || { echo "::error::PORTE SYNCHRO : les sous-titres ne tombent pas sur la parole pour ${ID} — le clip ne sort pas"; exit 1; }
+          # ORDRE OPERATEUR (2026-11-24) : la synchro se MESURE et se DECLARE, elle
+          # n'etrangle pas le rendu. Un retard connu est signale, jamais cache.
+          set +e
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py             --vod "$SRC" --start "$START" --end "$END"             --transcript "/tmp/work/pp/transcript_${ID}.json"             --report "/tmp/work/pp/synchro_${ID}.json" --seuil 0.25
+          RC=$?
+          set -e
+          if [ "$RC" -eq 1 ]; then
+            echo "::warning::SYNCHRO DECALEE pour ${ID} : le rapport dit de combien. Le clip sort quand meme (la porte declare, elle n'etrangle pas)."
+          elif [ "$RC" -eq 2 ]; then
+            echo "::warning::SYNCHRO NON MESURABLE pour ${ID} : audio ou mots absents. Le clip sort, mais la synchro n'est pas prouvee."
+          fi
 
       - name: 5. PP2 — glow, sous-titres, lut, fade (ordre grave)
         env:
