@@ -197,10 +197,11 @@ def segments_de(mots, pause=0.6, max_mots=12):
             "start": round(debut, 3),
             "duration": round(max(0.01, fin - debut), 3),
             "text": " ".join(g["text"] for g in groupe).strip(),
-            "words": [{"start": g["start"], "end": g["end"], "text": g["text"]} for g in groupe],
+            # "word" est la cle que lit la decoupe des sous-titres ; "text" reste
+            # pour les lecteurs de l'archive.
+            "words": [{"start": g["start"], "end": g["end"],
+                       "word": g["text"], "text": g["text"]} for g in groupe],
             "word_timing": "measured",
-        "vad": args.vad,
-        "decalage_applique_sec": args.decaler,
         })
     return sortie
 

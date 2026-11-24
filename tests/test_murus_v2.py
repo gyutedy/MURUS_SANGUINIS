@@ -501,3 +501,29 @@ def test_t32_synchro_des_sous_titres():
     assert "vad: bool = True" in modal_app, "le service Modal ne sait pas desactiver le VAD"
     assert "vad_filter=bool(vad)" in modal_app, "le service Modal ignore le drapeau vad"
 
+def test_t33_decoupe_locale_des_mots():
+    """T33 — une fonction ne doit pas dependre de la ligne de commande.
+
+    Panne du 2026-11-24 : deux champs (`vad`, `decalage_applique_sec`) avaient ete
+    inseres dans `segments_de()`, qui ne recoit pas `args` -> NameError dans le
+    rendu des 9 clips. Ce test execute la fonction avec des mots synthetiques.
+    """
+    import importlib.util
+
+    chemin = ROOT / "FR_A_CERVEAU/SF_05_VOX/CODEBASE/transcrire_vod.py"
+    spec = importlib.util.spec_from_file_location("transcrire_vod", chemin)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    mots = [{"start": 0.0, "end": 0.3, "word": "hello", "text": "hello"},
+            {"start": 0.35, "end": 0.7, "word": "world", "text": "world"}]
+    segs = mod.segments_de(mots)
+    assert segs, "aucun segment produit a partir de mots valides"
+    assert segs[0]["words"][0]["word"] == "hello",         "les segments ne portent pas la cle 'word' attendue par les sous-titres"
+
+    # le CLI doit exposer les deux drapeaux qui ont cause la panne
+    aide = subprocess.run([sys.executable, str(chemin), "--help"],
+                          capture_output=True, text=True).stdout
+    for drapeau in ("--vad", "--decaler", "--fenetres"):
+        assert drapeau in aide, "drapeau absent du CLI : %s" % drapeau
+
