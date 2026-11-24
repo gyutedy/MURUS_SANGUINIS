@@ -158,7 +158,9 @@ def fusionner(morceaux, resultats):
                 continue                       # doublon de recouvrement
             if fin <= debut:
                 fin = debut + 0.08
-            mots.append({"start": round(debut, 3), "end": round(fin, 3), "text": texte})
+            # format ARCHIVUM : "word" est la cle lue par transcript_slice
+            mots.append({"start": round(debut, 3), "end": round(fin, 3),
+                         "word": texte, "text": texte})
     mots.sort(key=lambda w: (w["start"], w["end"]))
     propres, dernier_end, dernier_txt = [], -1.0, None
     for w in mots:

@@ -549,7 +549,12 @@ def test_t27_rendu_un_job_par_clip():
     assert "gate_v7_refuses_sale_livrable" in w, "la porte V7 n'est jamais appelee"
 
     # double recuperation exigee par l'operateur : clip seul + zip des 9
-    assert "livrable-${{ matrix.clip.id }}" in w, "chaque clip n'est pas telechargeable seul"
+    # double recuperation exigee par l'operateur : clip seul + zip des 9.
+    # Le nom peut etre conditionnel (controle-* en derogation), mais il doit
+    # rester indexe sur l'id du clip.
+    assert "matrix.clip.id" in w and ("livrable" in w and "controle" in w),         "chaque clip n'est pas telechargeable seul"
+    # REGLE OPERATEUR : un rendu rend TOUS les assets signes, jamais un sous-ensemble
+    assert "derogation" in w and "jamais sur un sous-ensemble" in w,         "rien n'empeche un rendu partiel de passer pour un pack complet"
     assert "preme-pack-9-livrables" in w, "aucun zip unique des livrables"
     assert "render_report.json" in w and "git push" in w, "le rapport de rendu n'est pas commite"
     # E-14 : un rapport ne doit jamais bloquer la livraison
