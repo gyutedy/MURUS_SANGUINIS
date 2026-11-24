@@ -195,7 +195,9 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ffmpeg
-          python -m pip install --quiet --upgrade yt-dlp
+          # modal : sans lui, transcrire_vod.py ne peut pas joindre les VM et REFUSE
+          # (c'est ce qui a fait echouer les 9 clips du run 45386713663)
+          python -m pip install --quiet --upgrade yt-dlp modal
 
       - name: 1. Recuperer la fenetre de ce clip
         env:
@@ -328,7 +330,7 @@ jobs:
           ID: ${{ matrix.clip.id }}
         run: |
           python FR_B_CREATION/SF_15_LUTHER/CODEBASE/lac_f06_luther.py             --input "/tmp/work/cam/${ID}/pur_${ID}_cam.mp4"             --output "/tmp/work/livre/${ID}"
-          mv "/tmp/work/livre/${ID}/short_master.mp4" "/tmp/work/livre/${ID}/pur_${ID}_LIVRABLE.mp4"
+          mv "/tmp/work/livre/${ID}/short_master.mp4" "/tmp/work/livre/${ID}/LUTH_${ID}_final.mp4"
           ls -la "/tmp/work/livre/${ID}"
 
       - name: Publier les etapes intermediaires (diagnostic)
@@ -344,7 +346,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.CONTROLE == '1' && 'controle' || 'livrable' }}-${{ matrix.clip.id }}
+          name: ${{ env.CONTROLE == '1' && 'controle' || 'livrable-LUTH' }}-${{ matrix.clip.id }}
           path: /tmp/work/livre/${{ matrix.clip.id }}
           if-no-files-found: error
           retention-days: 30
@@ -511,7 +513,7 @@ jobs:
         with:
           name: preme-pack-9-livrables
           path: |
-            /tmp/all/livre/*/pur_*_LIVRABLE.mp4
+            /tmp/all/livre/*/LUTH_*_final.mp4
             REVIEW/render/render_report.json
           if-no-files-found: error
           retention-days: 30
