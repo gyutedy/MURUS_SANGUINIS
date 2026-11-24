@@ -1,0 +1,15 @@
+{
+  "schema": "murus.transcription_report.v1",
+  "source": "https://www.twitch.tv/videos/2909800627",
+  "audio_sec": 9310.83,
+  "chunks": 8,
+  "moteur": "modal-fanout",
+  "vm_demandees": 8,
+  "vm_utilisees": 8,
+  "secondes_transcription": 2778.3,
+  "secondes_totales": 2857.9,
+  "mots": 22928,
+  "segments": 2779,
+  "repli": null,
+  "transcript": "ARCHIVUM/montage/transcripts/v2909800627_transcript.json"
+}
