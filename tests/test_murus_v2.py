@@ -467,3 +467,37 @@ def _main():
 
 if __name__ == "__main__":
     sys.exit(_main())
+
+def test_t32_synchro_des_sous_titres():
+    """T32 — le decalage des sous-titres est mesure, et un clip decale ne sort pas.
+
+    Constat du 2026-11-24 : la transcription d'archive etait faite en 8 morceaux de
+    19 min avec VAD. Mesure sur l'audio reel : le depart est juste (0,00-0,12 s)
+    mais la derive atteint 1,92 s sur 30 s -> les sous-titres filent.
+    Correctif verifie ici : l'outil de mesure existe, il sait mesurer, il est dans
+    le rendu comme porte, et la transcription des sous-titres se fait sans VAD.
+    """
+    outil = ROOT / "FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py"
+    assert outil.is_file(), "l'outil de mesure de synchro n'existe pas"
+
+    # il doit savoir mesurer : autotest sur un audio synthetique, sans reseau
+    r = subprocess.run([sys.executable, str(outil), "--autotest", "--vod", "x",
+                        "--start", "0", "--end", "1", "--transcript", "x"],
+                       capture_output=True, text=True)
+    assert r.returncode == 0, "l'outil de synchro ne sait pas mesurer : " + r.stdout[-600:]
+    assert r.stdout.count("ok") >= 3, "les trois cas connus ne passent pas"
+
+    # il doit etre branche comme porte AVANT le rendu des sous-titres
+    w = (ROOT / ".github/workflows/murus_rendu.yml").read_text(encoding="utf-8")
+    assert "verifier_synchro.py" in w, "le rendu ne mesure pas la synchro"
+    assert "PORTE SYNCHRO" in w, "le rendu n'a pas de porte de synchro"
+    assert w.index("verifier_synchro.py") < w.index("postprod.py"),         "la synchro est mesuree apres le rendu des sous-titres, donc trop tard"
+
+    # et la transcription des sous-titres ne doit plus passer par le VAD
+    assert "--vad off" in w, "la transcription des sous-titres garde le VAD"
+
+    # le service Modal doit accepter ce choix (sinon le drapeau ne sert a rien)
+    modal_app = (ROOT / "MODAL/transcribe.py").read_text(encoding="utf-8")
+    assert "vad: bool = True" in modal_app, "le service Modal ne sait pas desactiver le VAD"
+    assert "vad_filter=bool(vad)" in modal_app, "le service Modal ignore le drapeau vad"
+

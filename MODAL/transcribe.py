@@ -131,7 +131,7 @@ async def transcribe(request: Request):
             language=language or None,
             word_timestamps=True,
             beam_size=5,
-            vad_filter=True,
+            vad_filter=bool(vad),
         )
 
         words = []
@@ -175,8 +175,15 @@ async def transcribe(request: Request):
 # calcul côté client. C'est ce que `FR_A_CERVEAU/SF_05_VOX/CODEBASE/
 # transcrire_vod.py` appelle. Aucun secret ici : le token Modal vit hors dépôt.
 @app.function(image=image, timeout=3600, max_containers=20, **_GPU_KWARGS)
-def transcribe_chunk(data: bytes, offset: float = 0.0, language: str | None = None) -> dict:
-    """Transcrit UN morceau d'audio et rend ses mots en temps global (offset)."""
+def transcribe_chunk(data: bytes, offset: float = 0.0, language: str | None = None,
+                     vad: bool = True) -> dict:
+    """Transcrit UN morceau d'audio et rend ses mots en temps global (offset).
+
+    `vad=False` est indispensable pour les sous-titres : quand le VAD retire les
+    silences, les temps de mots sont poses sur l'audio filtre, et la remise a
+    l'echelle derive (mesure : jusqu'a 1,92 s sur 30 s). Le VAD reste utile pour
+    une transcription de selection, pas pour caler des sous-titres.
+    """
     import tempfile
 
     tmp_path = None
@@ -190,7 +197,7 @@ def transcribe_chunk(data: bytes, offset: float = 0.0, language: str | None = No
             language=language or None,
             word_timestamps=True,
             beam_size=5,
-            vad_filter=True,
+            vad_filter=bool(vad),
         )
         words = []
         for seg in segments:

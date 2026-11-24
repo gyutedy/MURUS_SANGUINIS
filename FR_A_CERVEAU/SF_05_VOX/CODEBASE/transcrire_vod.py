@@ -97,7 +97,7 @@ def decouper(source, travail, chunks, duree_totale, overlap):
     return morceaux
 
 
-def appeler(fn_name, app_name, charge, modele_cpu, langue):
+def appeler(fn_name, app_name, charge, modele_cpu, langue, vad=True):
     """Modal d'abord ; CPU seulement si Modal est indisponible — et on le dit."""
     t0 = time.monotonic()
     try:
@@ -105,7 +105,7 @@ def appeler(fn_name, app_name, charge, modele_cpu, langue):
         if not (os.environ.get("MODAL_TOKEN_ID") and os.environ.get("MODAL_TOKEN_SECRET")):
             raise RuntimeError("MODAL_TOKEN_ID / MODAL_TOKEN_SECRET absents")
         fn = modal.Function.from_name(app_name, fn_name)
-        args = [(c["octets"], c["debut"], langue) for c in charge]
+        args = [(c["octets"], c["debut"], langue, vad) for c in charge]
         # starmap, pas map : la fonction prend (data, offset, language), et
         # `map` envoyerait le tuple entier dans `data` (bytes-like required).
         resultats = list(fn.starmap(args))
@@ -192,6 +192,8 @@ def segments_de(mots, pause=0.6, max_mots=12):
             "text": " ".join(g["text"] for g in groupe).strip(),
             "words": [{"start": g["start"], "end": g["end"], "text": g["text"]} for g in groupe],
             "word_timing": "measured",
+        "vad": args.vad,
+        "decalage_applique_sec": args.decaler,
         })
     return sortie
 
@@ -209,6 +211,12 @@ def main(argv=None):
     ap.add_argument("--function", default="transcribe_chunk")
     ap.add_argument("--report", default=None)
     ap.add_argument("--travail", default=None)
+    ap.add_argument("--vad", choices=("on", "off"), default="on",
+                    help="off = pas de suppression des silences (temps de mots justes, "
+                         "obligatoire pour des sous-titres)")
+    ap.add_argument("--decaler", type=float, default=0.0,
+                    help="ajoute ce decalage a tous les temps (une fenetre transcrite "
+                         "seule doit etre ramenee en temps de la VOD)")
     ap.add_argument("--fenetres", default=None,
                     help="JSON [{id, start, end}] : ne transcrire que ces fenetres "
                          "(cout CPU divise par le rapport des durees, sans GPU)")
@@ -253,9 +261,15 @@ def main(argv=None):
     charge = []
     for m in morceaux:
         charge.append({**m, "octets": m["chemin"].read_bytes()})
-    resultats, meta = appeler(args.function, args.app, charge, args.model, args.language)
+    resultats, meta = appeler(args.function, args.app, charge, args.model, args.language,
+                              vad=(args.vad == "on"))
 
     mots = fusionner(morceaux, resultats)
+    if args.decaler:
+        # une fenetre transcrite seule part de 0 : on la ramene en temps de la VOD
+        for m in mots:
+            m["start"] = round(m["start"] + args.decaler, 3)
+            m["end"] = round(m["end"] + args.decaler, 3)
     segments = segments_de(mots)
     if not segments:
         die(1, "aucune parole transcrite : une transcription vide est un refus, pas un succès")
@@ -282,6 +296,8 @@ def main(argv=None):
         "chunks": len(morceaux),
         "vms": meta["vm_utilisees"],
         "word_timing": "measured",
+        "vad": args.vad,
+        "decalage_applique_sec": args.decaler,
         "segments": segments,
     }
     out = Path(args.out)

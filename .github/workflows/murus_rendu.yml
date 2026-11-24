@@ -66,6 +66,19 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Deployer le service de transcription (le VAD est un choix explicite)
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          WHISPER_GPU: none
+        run: |
+          if [ -z "$MODAL_TOKEN_ID" ]; then
+            echo "::error::MODAL_TOKEN_ID absent : la fenetre ne peut pas etre transcrite, et un clip sans sous-titres ne sort pas"
+            exit 1
+          fi
+          pip install --quiet modal
+          modal deploy MODAL/transcribe.py 2>&1 | tail -6
+
       - name: Porte — les DEUX codex signes, le pack, le PNG (entrees seulement)
         id: select
         env:
@@ -236,16 +249,31 @@ jobs:
             --entry 0
           ls -la /tmp/work/look
 
-      - name: 5a. Sous-titres - la decoupe de la transcription est faite par le depot
+      - name: 5a. Sous-titres — la fenetre est transcrite elle-meme (plus de decoupe d'archive)
+        env:
+          ID: ${{ matrix.clip.id }}
+          START: ${{ matrix.clip.start }}
+          END: ${{ matrix.clip.end }}
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: |
+          # POURQUOI : l'archive de 2 h 35 a ete transcrite en 8 morceaux de 19 min
+          # avec VAD. Mesure du 2026-11-24 : le depart est juste (0,00-0,12 s) mais
+          # la derive atteint 1,92 s sur 30 s. Decouper cette archive pour sous-titrer
+          # transporte donc l'erreur. On transcrit LA FENETRE, sans VAD, en une passe.
+          mkdir -p /tmp/work/pp
+          SRC=$(ls /tmp/work/clips/*.mp4 | head -1)
+          echo "source du clip : $SRC"
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/transcrire_vod.py             --vod "$SRC"             --out "/tmp/work/pp/transcript_${ID}.json"             --vad off             --decaler "$START"             --model small.en             --language en             --max-minutes 2             --chunks 1             --report "/tmp/work/pp/transcription_${ID}.json"
+
+      - name: 5a-bis. PORTE SYNCHRO — les sous-titres doivent tomber sur la parole
         env:
           ID: ${{ matrix.clip.id }}
           START: ${{ matrix.clip.start }}
           END: ${{ matrix.clip.end }}
         run: |
-          python FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption/transcript_slice.py \
-            --vod "https://www.twitch.tv/videos/2909800627"\
-            --start "$START" --end "$END" \
-            --id "$ID" --out "/tmp/work/pp/transcript_${ID}.json"
+          SRC=$(ls /tmp/work/clips/*.mp4 | head -1)
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py             --vod "$SRC" --start "$START" --end "$END"             --transcript "/tmp/work/pp/transcript_${ID}.json"             --report "/tmp/work/pp/synchro_${ID}.json" --seuil 0.25             || { echo "::error::PORTE SYNCHRO : les sous-titres ne tombent pas sur la parole pour ${ID} — le clip ne sort pas"; exit 1; }
 
       - name: 5. PP2 — glow, sous-titres, lut, fade (ordre grave)
         env:

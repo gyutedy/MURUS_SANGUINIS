@@ -37,7 +37,18 @@ def run(cmd, **kw):
 
 
 def fenetre_audio(vod, debut, fin, travail):
-    """Telecharge la section et rend un WAV mono 16 kHz de la fenetre."""
+    """Rend un WAV mono 16 kHz de la fenetre.
+
+    Un fichier local (la fenetre deja coupee par le rendu) est utilise tel quel :
+    on ne retelecharge pas ce qu'on possede, et on mesure exactement l'audio qui
+    sera sous-titre.
+    """
+    local = Path(vod)
+    if local.is_file():
+        wav = travail / "fenetre.wav"
+        run(["ffmpeg", "-v", "error", "-y", "-i", str(local), "-ac", "1", "-ar", "16000",
+             "-vn", str(wav)])
+        return wav
     if shutil.which("yt-dlp") is None:
         die(2, "yt-dlp absent")
     if shutil.which("ffmpeg") is None:

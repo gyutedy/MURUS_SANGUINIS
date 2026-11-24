@@ -564,8 +564,14 @@ def test_t27_rendu_un_job_par_clip():
     assert "REVIEW/render/luther_batch_report.json" in w, "la preuve qa_pass n'est pas copiee vers REVIEW/render"
     assert "git add -f REVIEW/render/render_report.json" in w, "les preuves ne sont pas ajoutees explicitement"
     assert "PORTE SOUS-TITRES" in w, "aucune porte n'interdit un clip sans sous-titres"
-    # E-18 : la decoupe de la transcription est un OUTIL du depot, pas un python inline
-    assert "transcript_slice.py" in w, "le workflow ne passe pas par l'outil de decoupe du depot"
+    # E-18 : les outils sont des fichiers du depot, pas du python inline.
+    # Depuis la mesure du 2026-11-24, on ne decoupe plus l'archive (derive 1,92 s
+    # sur 30 s) : la fenetre est transcrite elle-meme, sans VAD.
+    assert "transcrire_vod.py" in w, "le workflow ne transcrit pas la fenetre avec l'outil du depot"
+    assert "--vad off" in w, "le workflow transcrit avec VAD : les temps de mots derivent"
+    assert "--decaler" in w, "la fenetre transcrite seule n'est pas ramenee en temps de la VOD"
+    assert "verifier_synchro.py" in w, "aucune porte ne mesure la synchro des sous-titres"
+    assert "PORTE SYNCHRO" in w, "aucune porte ne refuse un clip dont les sous-titres sont decales"
     assert '--transcript "/tmp/work/pp/transcript_${ID}.json"' in w, "postprod ne recoit aucun transcript"
 
     # l'outil de decoupe : la transcription reelle suffit a produire des sous-titres
