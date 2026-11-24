@@ -1,0 +1,189 @@
+{
+ "schema": "murus.synchro_batch.v1",
+ "seuil_s": 0.25,
+ "clips": 9,
+ "decales": [
+  "A01",
+  "A02",
+  "A03",
+  "A04",
+  "A05",
+  "A06",
+  "A07",
+  "A08",
+  "A09"
+ ],
+ "mesures": [
+  {
+   "schema": "murus.synchro.v1",
+   "fenetre": {
+    "debut": 1376.2,
+    "fin": 1406.2
+   },
+   "audio": {
+    "duree_mesuree_s": 31.0,
+    "tranche_s": 0.02
+   },
+   "mots": 85,
+   "decalage_optimal_s": 0.0,
+   "derive_debut_fin_s": 0.56,
+   "energie_debut_de_mot": 0.002233,
+   "gain_vs_decalage_nul": 1.0,
+   "seuil_s": 0.25,
+   "verdict": "decale",
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+  },
+  {
+   "schema": "murus.synchro.v1",
+   "fenetre": {
+    "debut": 709.1,
+    "fin": 739.1
+   },
+   "audio": {
+    "duree_mesuree_s": 31.0,
+    "tranche_s": 0.02
+   },
+   "mots": 57,
+   "decalage_optimal_s": 0.12,
+   "derive_debut_fin_s": -0.98,
+   "energie_debut_de_mot": 0.001781,
+   "gain_vs_decalage_nul": 1.07,
+   "seuil_s": 0.25,
+   "verdict": "decale",
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+  },
+  {
+   "schema": "murus.synchro.v1",
+   "fenetre": {
+    "debut": 1727.5,
+    "fin": 1757.5
+   },
+   "audio": {
+    "duree_mesuree_s": 31.0,
+    "tranche_s": 0.02
+   },
+   "mots": 93,
+   "decalage_optimal_s": 0.06,
+   "derive_debut_fin_s": -1.92,
+   "energie_debut_de_mot": 0.001878,
+   "gain_vs_decalage_nul": 1.14,
+   "seuil_s": 0.25,
+   "verdict": "decale",
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+  },
+  {
+   "schema": "murus.synchro.v1",
+   "fenetre": {
+    "debut": 1296.0,
+    "fin": 1326.0
+   },
+   "audio": {
+    "duree_mesuree_s": 31.0,
+    "tranche_s": 0.02
+   },
+   "mots": 109,
+   "decalage_optimal_s": 0.48,
+   "derive_debut_fin_s": 1.62,
+   "energie_debut_de_mot": 0.001661,
+   "gain_vs_decalage_nul": 1.2,
+   "seuil_s": 0.25,
+   "verdict": "decale",
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+  },
+  {
+   "schema": "murus.synchro.v1",
+   "fenetre": {
+    "debut": 1587.5,
+    "fin": 1617.5
+   },
+   "audio": {
+    "duree_mesuree_s": 31.0,
+    "tranche_s": 0.02
+   },
+   "mots": 100,
+   "decalage_optimal_s": -1.0,
+   "derive_debut_fin_s": 0.6,
+   "energie_debut_de_mot": 0.001806,
+   "gain_vs_decalage_nul": 1.37,
+   "seuil_s": 0.25,
+   "verdict": "decale",
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+  },
+  {
+   "schema": "murus.synchro.v1",
+   "fenetre": {
+    "debut": 1623.7,
+    "fin": 1653.7
+   },
+   "audio": {
+    "duree_mesuree_s": 31.0,
+    "tranche_s": 0.02
+   },
+   "mots": 73,
+   "decalage_optimal_s": 1.84,
+   "derive_debut_fin_s": 0.0,
+   "energie_debut_de_mot": 0.001911,
+   "gain_vs_decalage_nul": 1.3,
+   "seuil_s": 0.25,
+   "verdict": "decale",
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+  },
+  {
+   "schema": "murus.synchro.v1",
+   "fenetre": {
+    "debut": 294.0,
+    "fin": 324.0
+   },
+   "audio": {
+    "duree_mesuree_s": 31.0,
+    "tranche_s": 0.02
+   },
+   "mots": 121,
+   "decalage_optimal_s": 0.7,
+   "derive_debut_fin_s": 0.12,
+   "energie_debut_de_mot": 0.00165,
+   "gain_vs_decalage_nul": 1.22,
+   "seuil_s": 0.25,
+   "verdict": "decale",
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+  },
+  {
+   "schema": "murus.synchro.v1",
+   "fenetre": {
+    "debut": 381.0,
+    "fin": 411.0
+   },
+   "audio": {
+    "duree_mesuree_s": 31.0,
+    "tranche_s": 0.02
+   },
+   "mots": 105,
+   "decalage_optimal_s": -0.82,
+   "derive_debut_fin_s": -1.76,
+   "energie_debut_de_mot": 0.001734,
+   "gain_vs_decalage_nul": 1.15,
+   "seuil_s": 0.25,
+   "verdict": "decale",
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+  },
+  {
+   "schema": "murus.synchro.v1",
+   "fenetre": {
+    "debut": 422.1,
+    "fin": 452.1
+   },
+   "audio": {
+    "duree_mesuree_s": 31.0,
+    "tranche_s": 0.02
+   },
+   "mots": 56,
+   "decalage_optimal_s": -1.24,
+   "derive_debut_fin_s": 0.62,
+   "energie_debut_de_mot": 0.002112,
+   "gain_vs_decalage_nul": 1.55,
+   "seuil_s": 0.25,
+   "verdict": "decale",
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+  }
+ ]
+}

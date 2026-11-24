@@ -1,0 +1,19 @@
+{
+ "schema": "murus.synchro.v1",
+ "fenetre": {
+  "debut": 381.0,
+  "fin": 411.0
+ },
+ "audio": {
+  "duree_mesuree_s": 31.0,
+  "tranche_s": 0.02
+ },
+ "mots": 105,
+ "decalage_optimal_s": -0.82,
+ "derive_debut_fin_s": -1.76,
+ "energie_debut_de_mot": 0.001734,
+ "gain_vs_decalage_nul": 1.15,
+ "seuil_s": 0.25,
+ "verdict": "decale",
+ "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+}
