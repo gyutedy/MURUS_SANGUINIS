@@ -524,5 +524,19 @@ def test_t33_decoupe_locale_des_mots():
     for drapeau in ("--vad", "--decaler", "--fenetres"):
         assert drapeau in aide, "drapeau absent du CLI : %s" % drapeau
 
+def test_t34_fenetre_coupee_au_bon_endroit():
+    """T34 — la fenetre rendue doit etre celle qui a ete signee.
+
+    Panne du 2026-11-24 : `--force-keyframes-at-cuts` faisait demarrer le fichier au
+    keyframe precedent (-1,76 s mesures), puis un depart lu a 0.000 dans un fichier
+    de section a fait avancer la coupe de 1376 s -> clip vide. On verifie ici les
+    trois garde-fous.
+    """
+    src = (ROOT / "FR_B_CREATION/tools/recuperer_clip.py").read_text(encoding="utf-8")
+    assert '"--force-keyframes-at-cuts"' not in src,         "le drapeau d'image cle revient : la fenetre ne commencera plus a l'instant signe"
+    assert "start - 5.0" in src,         "aucun garde-fou sur le depart mesure : un 0.000 ferait avancer la coupe de toute la fenetre"
+    assert "_duree_ok" in src and "clip de %.2f s pour" in src,         "un clip vide pourrait partir sans etre refuse"
+
+
 if __name__ == "__main__":
     sys.exit(_main())

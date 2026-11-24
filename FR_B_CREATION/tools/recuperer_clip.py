@@ -89,6 +89,24 @@ def demarrage(src):
         return None
 
 
+def _duree_ok(clip, duree):
+    """Un clip doit durer ce qu'on a demande. Un fichier vide ne part jamais."""
+    rc = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                         "-of", "default=nw=1:nk=1", str(clip)],
+                        capture_output=True, text=True)
+    try:
+        d = float(rc.stdout.strip())
+    except ValueError:
+        print("[RECUP] ECHEC — duree du clip illisible")
+        return False
+    if d < float(duree) * 0.8:
+        print("[RECUP] ECHEC — clip de %.2f s pour %.2f s demandees : il est vide ou tronque"
+              % (d, float(duree)))
+        return False
+    print("[RECUP] duree du clip = %.3f s pour %.3f s demandees" % (d, float(duree)))
+    return True
+
+
 def frame(src, out, at=1.0):
     out.parent.mkdir(parents=True, exist_ok=True)
     return _run(["ffmpeg", "-y", "-loglevel", "error", "-ss", str(at), "-i", str(src),
@@ -139,12 +157,20 @@ def main() -> int:
     # La fenetre demandee commence a `start`. Si le fichier telecharge demarre
     # ailleurs, on le dit et on recale : sans ca, on rend une autre fenetre que
     # celle qui a ete signee, et les sous-titres prennent de l'avance.
+    # ATTENTION : dans un fichier de section, les horodatages repartent de 0. Un
+    # depart lu a 0 ne dit donc RIEN sur la position reelle. On n'utilise la mesure
+    # que si elle ressemble a un horodatage global (proche de la fenetre demandee) ;
+    # sinon on coupe a zero. Le 2026-11-24, un depart lu a 0.000 a fait avancer la
+    # coupe de 1376 s dans un fichier de 31 s : clip vide, Remotion refuse de le lire.
     avance = 0.0
     depart = demarrage(src) if src else None
-    if depart is not None and depart < start - 0.01:
+    if depart is not None and (start - 5.0) < depart < (start - 0.01):
         avance = start - depart
         print("[RECUP] le fichier telecharge commence a %.3f s, la fenetre a %.3f s : "
               "on avance de %.3f s" % (depart, start, avance))
+    else:
+        print("[RECUP] depart mesure = %s : horodatages locaux, on coupe a zero "
+              "(la section est deja calee sur %.3f s)" % (depart, start))
     if src is None:
         print("[RECUP] ECHEC — telechargement de la fenetre impossible (VOD privee/expiree ?)")
         return 1
@@ -155,7 +181,7 @@ def main() -> int:
         # clipFileCandidates() = [pur_<id>.mp4, <id>_look.mp4, <id>.mp4].
         # On ecrit donc le PREMIER nom attendu, sinon la page reste noire.
         clip = a.out_dir / ("pur_%s.mp4" % (asset.get("id") or idx))
-        if not couper(src, clip, duree, avance):
+        if not couper(src, clip, duree, avance) or not _duree_ok(clip, duree):
             print("[RECUP] ECHEC — coupe ffmpeg")
             return 1
         print("[RECUP] clip ->", clip)
@@ -168,7 +194,7 @@ def main() -> int:
         return 0
 
     clip = PREVIEW_1 / "clip.mp4"
-    if not couper(src, clip, duree, avance):
+    if not couper(src, clip, duree, avance) or not _duree_ok(clip, duree):
         print("[RECUP] ECHEC — coupe ffmpeg")
         return 1
     prev = PREVIEW_2 / "frame.png"
