@@ -5,39 +5,48 @@
   "livrables": [
     {
       "clip": "A01",
-      "octets": 20929816
+      "fichier": "LUTH_A01_final.mp4",
+      "octets": 20390142
     },
     {
       "clip": "A02",
-      "octets": 20480914
+      "fichier": "LUTH_A02_final.mp4",
+      "octets": 19920216
     },
     {
       "clip": "A03",
-      "octets": 21102981
+      "fichier": "LUTH_A03_final.mp4",
+      "octets": 21783669
     },
     {
       "clip": "A04",
-      "octets": 21318469
+      "fichier": "LUTH_A04_final.mp4",
+      "octets": 20631554
     },
     {
       "clip": "A05",
-      "octets": 21658228
+      "fichier": "LUTH_A05_final.mp4",
+      "octets": 21627823
     },
     {
       "clip": "A06",
-      "octets": 23307581
+      "fichier": "LUTH_A06_final.mp4",
+      "octets": 22276670
     },
     {
       "clip": "A07",
-      "octets": 16939468
+      "fichier": "LUTH_A07_final.mp4",
+      "octets": 16880372
     },
     {
       "clip": "A08",
-      "octets": 16600408
+      "fichier": "LUTH_A08_final.mp4",
+      "octets": 16220550
     },
     {
       "clip": "A09",
-      "octets": 18833838
+      "fichier": "LUTH_A09_final.mp4",
+      "octets": 18795249
     }
   ],
   "etages": [
