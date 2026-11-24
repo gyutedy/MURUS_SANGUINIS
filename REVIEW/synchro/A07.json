@@ -10,10 +10,15 @@
  },
  "mots": 121,
  "decalage_optimal_s": 0.7,
+ "decalage_median_par_mot_s": 0.72,
+ "mots_ancres": 33,
+ "confiance": 0.27,
+ "decalage_retenu_s": 0.7,
  "derive_debut_fin_s": 0.12,
+ "derive_par_mot_s": null,
  "energie_debut_de_mot": 0.00165,
  "gain_vs_decalage_nul": 1.22,
  "seuil_s": 0.25,
  "verdict": "decale",
- "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+ "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que la moitie des mots sont ancres, sinon la correlation globale"
 }

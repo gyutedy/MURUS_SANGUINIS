@@ -26,12 +26,17 @@
    },
    "mots": 85,
    "decalage_optimal_s": 0.0,
+   "decalage_median_par_mot_s": 0.007,
+   "mots_ancres": 27,
+   "confiance": 0.32,
+   "decalage_retenu_s": 0.0,
    "derive_debut_fin_s": 0.56,
+   "derive_par_mot_s": null,
    "energie_debut_de_mot": 0.002233,
    "gain_vs_decalage_nul": 1.0,
    "seuil_s": 0.25,
    "verdict": "decale",
-   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que la moitie des mots sont ancres, sinon la correlation globale"
   },
   {
    "schema": "murus.synchro.v1",
@@ -45,12 +50,17 @@
    },
    "mots": 57,
    "decalage_optimal_s": 0.12,
+   "decalage_median_par_mot_s": 0.12,
+   "mots_ancres": 13,
+   "confiance": 0.23,
+   "decalage_retenu_s": 0.12,
    "derive_debut_fin_s": -0.98,
+   "derive_par_mot_s": null,
    "energie_debut_de_mot": 0.001781,
    "gain_vs_decalage_nul": 1.07,
    "seuil_s": 0.25,
    "verdict": "decale",
-   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que la moitie des mots sont ancres, sinon la correlation globale"
   },
   {
    "schema": "murus.synchro.v1",
@@ -64,12 +74,17 @@
    },
    "mots": 93,
    "decalage_optimal_s": 0.06,
+   "decalage_median_par_mot_s": 0.057,
+   "mots_ancres": 23,
+   "confiance": 0.25,
+   "decalage_retenu_s": 0.06,
    "derive_debut_fin_s": -1.92,
+   "derive_par_mot_s": null,
    "energie_debut_de_mot": 0.001878,
    "gain_vs_decalage_nul": 1.14,
    "seuil_s": 0.25,
    "verdict": "decale",
-   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que la moitie des mots sont ancres, sinon la correlation globale"
   },
   {
    "schema": "murus.synchro.v1",
@@ -83,12 +98,17 @@
    },
    "mots": 109,
    "decalage_optimal_s": 0.48,
+   "decalage_median_par_mot_s": 0.487,
+   "mots_ancres": 24,
+   "confiance": 0.22,
+   "decalage_retenu_s": 0.48,
    "derive_debut_fin_s": 1.62,
+   "derive_par_mot_s": null,
    "energie_debut_de_mot": 0.001661,
    "gain_vs_decalage_nul": 1.2,
    "seuil_s": 0.25,
    "verdict": "decale",
-   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que la moitie des mots sont ancres, sinon la correlation globale"
   },
   {
    "schema": "murus.synchro.v1",
@@ -102,12 +122,17 @@
    },
    "mots": 100,
    "decalage_optimal_s": -1.0,
+   "decalage_median_par_mot_s": -1.003,
+   "mots_ancres": 20,
+   "confiance": 0.2,
+   "decalage_retenu_s": -1.0,
    "derive_debut_fin_s": 0.6,
+   "derive_par_mot_s": null,
    "energie_debut_de_mot": 0.001806,
    "gain_vs_decalage_nul": 1.37,
    "seuil_s": 0.25,
    "verdict": "decale",
-   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que la moitie des mots sont ancres, sinon la correlation globale"
   },
   {
    "schema": "murus.synchro.v1",
@@ -121,12 +146,17 @@
    },
    "mots": 73,
    "decalage_optimal_s": 1.84,
+   "decalage_median_par_mot_s": 1.837,
+   "mots_ancres": 17,
+   "confiance": 0.23,
+   "decalage_retenu_s": 1.84,
    "derive_debut_fin_s": 0.0,
+   "derive_par_mot_s": null,
    "energie_debut_de_mot": 0.001911,
    "gain_vs_decalage_nul": 1.3,
    "seuil_s": 0.25,
    "verdict": "decale",
-   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que la moitie des mots sont ancres, sinon la correlation globale"
   },
   {
    "schema": "murus.synchro.v1",
@@ -140,12 +170,17 @@
    },
    "mots": 121,
    "decalage_optimal_s": 0.7,
+   "decalage_median_par_mot_s": 0.72,
+   "mots_ancres": 33,
+   "confiance": 0.27,
+   "decalage_retenu_s": 0.7,
    "derive_debut_fin_s": 0.12,
+   "derive_par_mot_s": null,
    "energie_debut_de_mot": 0.00165,
    "gain_vs_decalage_nul": 1.22,
    "seuil_s": 0.25,
    "verdict": "decale",
-   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que la moitie des mots sont ancres, sinon la correlation globale"
   },
   {
    "schema": "murus.synchro.v1",
@@ -159,12 +194,17 @@
    },
    "mots": 105,
    "decalage_optimal_s": -0.82,
+   "decalage_median_par_mot_s": -0.82,
+   "mots_ancres": 24,
+   "confiance": 0.23,
+   "decalage_retenu_s": -0.82,
    "derive_debut_fin_s": -1.76,
+   "derive_par_mot_s": null,
    "energie_debut_de_mot": 0.001734,
    "gain_vs_decalage_nul": 1.15,
    "seuil_s": 0.25,
    "verdict": "decale",
-   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que la moitie des mots sont ancres, sinon la correlation globale"
   },
   {
    "schema": "murus.synchro.v1",
@@ -178,12 +218,17 @@
    },
    "mots": 56,
    "decalage_optimal_s": -1.24,
+   "decalage_median_par_mot_s": -1.24,
+   "mots_ancres": 13,
+   "confiance": 0.23,
+   "decalage_retenu_s": -1.24,
    "derive_debut_fin_s": 0.62,
+   "derive_par_mot_s": null,
    "energie_debut_de_mot": 0.002112,
    "gain_vs_decalage_nul": 1.55,
    "seuil_s": 0.25,
    "verdict": "decale",
-   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip"
+   "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que la moitie des mots sont ancres, sinon la correlation globale"
   }
  ]
 }
