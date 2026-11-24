@@ -13,12 +13,14 @@
  "decalage_median_par_mot_s": 0.487,
  "mots_ancres": 24,
  "confiance": 0.22,
- "decalage_retenu_s": 0.48,
+ "decalage_retenu_s": 0.487,
  "derive_debut_fin_s": 1.62,
- "derive_par_mot_s": null,
+ "derive_par_mot_s": 1.61,
  "energie_debut_de_mot": 0.001661,
  "gain_vs_decalage_nul": 1.2,
  "seuil_s": 0.25,
+ "source_mesure": "mediane_par_mot",
+ "seuil_derive_s": 0.35,
  "verdict": "decale",
- "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que la moitie des mots sont ancres, sinon la correlation globale"
+ "lecture": "decalage negatif = les mots sont en avance sur la parole (sous-titres qui filent) ; positif = en retard ; derive = l'ecart entre la premiere et la seconde moitie du clip ; le decalage retenu est la mediane mot par mot des que 8 mots sont ancres, sinon la correlation globale si son gain depasse 1,15, sinon la mesure est declaree incertaine"
 }
