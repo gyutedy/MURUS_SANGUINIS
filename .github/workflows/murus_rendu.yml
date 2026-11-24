@@ -398,7 +398,8 @@ jobs:
           import json
           from pathlib import Path
 
-          finals = sorted(Path("/tmp/all/final").glob("*.mp4")) if Path("/tmp/all/final").exists() else []
+          # les livrables sont dans /tmp/all/livre/<ID>/LUTH_<ID>_final.mp4
+          finals = sorted(Path("/tmp/all").glob("livre/*/LUTH_*_final.mp4"))
           pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
           demande = len(pack.get("assets") or [])
           rapport = {
@@ -421,7 +422,7 @@ jobs:
         with:
           name: rendu-pack
           path: |
-            /tmp/all/final
+            /tmp/all/livre/*/LUTH_*_final.mp4
             REVIEW/render/render_report.json
           if-no-files-found: warn
           retention-days: 14
@@ -491,13 +492,14 @@ jobs:
           import json
           from pathlib import Path
 
-          livres = sorted(Path("/tmp/all").glob("livre/*/pur_*_LIVRABLE.mp4"))
+          livres = sorted(Path("/tmp/all").glob("livre/*/LUTH_*_final.mp4"))
           pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
           rapport = {
               "pack_token": pack.get("pack_token"),
               "nb_demande": len(pack.get("assets") or []),
               "nb_livrable": len(livres),
-              "livrables": [{"clip": p.name.split("_")[1], "octets": p.stat().st_size} for p in livres],
+              "livrables": [{"clip": p.name.split("_")[1], "fichier": p.name,
+                             "octets": p.stat().st_size} for p in livres],
               "etages": ["postprod", "camouflage", "luther"],
               "note": "un clip absent est annonce absent, jamais compense",
           }
