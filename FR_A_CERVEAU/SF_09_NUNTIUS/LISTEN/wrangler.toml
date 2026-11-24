@@ -1,0 +1,13 @@
+name = "murus-nuntius"
+main = "src/index.js"
+compatibility_date = "2026-11-24"
+
+# Le Worker ne connait qu'un seul workflow : il relaie, le depot decide.
+[vars]
+GH_OWNER = "gyutedy"
+GH_REPO = "MURUS_SANGUINIS"
+GH_WORKFLOW = "murus_telegram.yml"
+GH_REF = "v2"
+
+# Secrets a poser avec `wrangler secret put` (jamais ici) :
+#   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_IDS, TELEGRAM_WEBHOOK_SECRET, GITHUB_DISPATCH_TOKEN

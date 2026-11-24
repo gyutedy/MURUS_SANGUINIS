@@ -1,0 +1,85 @@
+# MURUS — TELEGRAM (une commande = un run)
+#
+# Relais : Cloudflare Worker (webhook) -> ce workflow -> nuntius.py
+# Le Worker a deja verifie le secret Telegram et la liste blanche des chats.
+# Ici on execute, on journalise (ARCHIVUM/telegram/journal.jsonl) et on repond.
+#
+# Inputs :
+#   cmd        /etat | /clips | /rapport | /rendu | /stop | /publier
+#   arguments  "A01" pour /rapport, l'id du run pour /stop, la phrase pour /publier
+#   update_id  identifiant Telegram : un rejeu ne relance JAMAIS deux fois
+#   chat_id    chat Telegram demandeur (verifie encore ici, ceinture et bretelles)
+
+name: murus-telegram
+
+on:
+  workflow_dispatch:
+    inputs:
+      cmd:
+        description: "Commande (/etat, /clips, /rapport, /rendu, /stop)"
+        required: true
+        type: string
+      arguments:
+        description: "Arguments eventuels"
+        required: false
+        default: ""
+        type: string
+      update_id:
+        description: "Identifiant Telegram (anti-rejeu)"
+        required: false
+        default: ""
+        type: string
+      chat_id:
+        description: "Chat Telegram demandeur"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: murus-telegram
+  cancel-in-progress: false
+
+jobs:
+  commande:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verifier que le demandeur est bien l'operateur
+        env:
+          CHAT_DEMANDE: ${{ inputs.chat_id }}
+          OPERATEUR: ${{ secrets.TELEGRAM_OPERATEUR_ID }}
+        run: |
+          if [ -n "$OPERATEUR" ] && [ "$CHAT_DEMANDE" != "$OPERATEUR" ]; then
+            echo "::error::chat non autorise ($CHAT_DEMANDE) : commande refusee"
+            exit 1
+          fi
+          echo "demandeur autorise"
+
+      - name: Executer la commande et repondre
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_OPERATEUR_ID: ${{ secrets.TELEGRAM_OPERATEUR_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python FR_A_CERVEAU/SF_09_NUNTIUS/CODEBASE/nuntius.py             --commande "${{ inputs.cmd }}"             --arguments "${{ inputs.arguments }}"             --update-id "${{ inputs.update_id }}"             --chat-id "${{ inputs.chat_id }}"
+
+      - name: Enregistrer le journal des decisions (append-only)
+        run: |
+          if [ ! -s ARCHIVUM/telegram/journal.jsonl ]; then
+            echo "aucun evenement a enregistrer"
+            exit 0
+          fi
+          git config user.name "MURUS NUNTIUS"
+          git config user.email "nuntius@murus.local"
+          git add ARCHIVUM/telegram/journal.jsonl
+          git commit -m "telegram: ${{ inputs.cmd }} ${{ inputs.arguments }} (update ${{ inputs.update_id }})" || true
+          git push || echo "::warning::journal non pousse (course git) — la decision reste dans le log du run"
