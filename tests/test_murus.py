@@ -569,7 +569,8 @@ def test_t27_rendu_un_job_par_clip():
     # sur 30 s) : la fenetre est transcrite elle-meme, sans VAD.
     assert "transcrire_vod.py" in w, "le workflow ne transcrit pas la fenetre avec l'outil du depot"
     assert "--vad off" in w, "le workflow transcrit avec VAD : les temps de mots derivent"
-    assert "--decaler" in w, "la fenetre transcrite seule n'est pas ramenee en temps de la VOD"
+    assert "--mots-relatifs" in w, "la porte synchro ne sait pas que les mots sont dans le temps du clip"
+    assert "--decaler" not in w, "les mots seraient ramenes en temps VOD : l'ASS graverait hors du clip"
     assert "verifier_synchro.py" in w, "aucune porte ne mesure la synchro des sous-titres"
     assert "PORTE SYNCHRO" in w, "aucune porte ne refuse un clip dont les sous-titres sont decales"
     assert '--transcript "/tmp/work/pp/transcript_${ID}.json"' in w, "postprod ne recoit aucun transcript"

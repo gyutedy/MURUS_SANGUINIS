@@ -195,6 +195,10 @@ def segments_de(mots, pause=0.6, max_mots=12):
         debut, fin = groupe[0]["start"], groupe[-1]["end"]
         sortie.append({
             "start": round(debut, 3),
+            # `end` en plus de `duration` : le graveur de sous-titres lit des fins de
+            # segment. Sans `end`, il jetait chaque segment (mesure du 2026-11-24 :
+            # 77 mots transcrits, 0 cue grave, "aucun cue exploitable").
+            "end": round(fin, 3),
             "duration": round(max(0.01, fin - debut), 3),
             "text": " ".join(g["text"] for g in groupe).strip(),
             # "word" est la cle que lit la decoupe des sous-titres ; "text" reste
@@ -307,6 +311,10 @@ def main(argv=None):
         "vad": args.vad,
         "decalage_applique_sec": args.decaler,
         "segments": segments,
+        # liste plate : n'importe quel lecteur (graveur, siege, archive) trouve les
+        # mots sans parcourir les segments
+        "words": [{"word": w["word"], "start": w["start"], "end": w["end"]}
+                  for sg in segments for w in sg["words"]],
     }
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

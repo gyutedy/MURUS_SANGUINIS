@@ -277,7 +277,7 @@ jobs:
           python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py --autotest              --vod x --start 0 --end 1 --transcript x             || { echo "::warning::PORTE SYNCHRO : l'outil de mesure ne retrouve plus ses trois cas connus — la mesure ci-dessous n'est pas fiable, on le declare au lieu de bloquer"; }
           SRC=$(ls /tmp/work/clips/*.mp4 | head -1)
           echo "source du clip : $SRC"
-          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/transcrire_vod.py             --vod "$SRC"             --out "/tmp/work/pp/transcript_${ID}.json"             --vad off             --decaler "$START"             --model small.en             --language en             --max-minutes 2             --chunks 1             --report "/tmp/work/pp/transcription_${ID}.json"
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/transcrire_vod.py             --vod "$SRC"             --out "/tmp/work/pp/transcript_${ID}.json"             --vad off             --model small.en             --language en             --max-minutes 2             --chunks 1             --report "/tmp/work/pp/transcription_${ID}.json"
 
       - name: 5a-bis. PORTE SYNCHRO — les sous-titres doivent tomber sur la parole
         env:
@@ -291,7 +291,7 @@ jobs:
           # ORDRE OPERATEUR (2026-11-24) : la synchro se MESURE et se DECLARE, elle
           # n'etrangle pas le rendu. Un retard connu est signale, jamais cache.
           set +e
-          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py             --vod "$SRC" --start "$START" --end "$END"             --transcript "/tmp/work/pp/transcript_${ID}.json"             --report "/tmp/work/pp/synchro_${ID}.json" --seuil 0.25
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py             --vod "$SRC" --start "$START" --end "$END"             --transcript "/tmp/work/pp/transcript_${ID}.json"             --mots-relatifs             --report "/tmp/work/pp/synchro_${ID}.json" --seuil 0.25
           RC=$?
           set -e
           if [ "$RC" -eq 1 ]; then

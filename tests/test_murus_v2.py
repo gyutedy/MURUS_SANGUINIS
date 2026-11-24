@@ -550,6 +550,50 @@ def test_t35_synchro_declaree_pas_bloquante():
     assert "::warning::SYNCHRO DECALEE" in bloc,         "un retard mesure ne serait pas declare"
     assert "exit 1" not in bloc.split("5. PP2")[0],         "la porte synchro redevient un goulot : elle refuse au lieu de declarer"
 
+def test_t36_transcript_ecrit_est_transcript_lu():
+    """T36 — l'ecrivain et le lecteur doivent parler la meme langue.
+
+    Panne du 2026-11-24 : 77 mots transcrits, et « aucun cue exploitable » a la
+    gravure, parce que les segments portaient `duration` et jamais `end`. On ecrit
+    ici un transcript a la forme reelle et on le relit avec le graveur.
+    """
+    import json as _json
+    import sys as _sys
+
+    _sys.path.insert(0, str(ROOT / "FR_B_CREATION/SF_13_POLITURA/CODEBASE/caption"))
+    import ass_render  # noqa: PLC0415
+
+    faux = {
+        "schema": "murus.transcript.v2",
+        "segments": [{
+            "start": 380.0, "end": 381.0, "duration": 1.0,
+            "text": "hello world",
+            "words": [{"word": "hello", "start": 380.0, "end": 380.3},
+                      {"word": "world", "start": 380.35, "end": 380.7}],
+        }],
+        "transcript": {"text": "hello world", "segments": [], "status": "OK"},
+    }
+    tmp = ROOT / ".tmp"; tmp.mkdir(exist_ok=True)
+    chemin = tmp / "t36_transcript.json"
+    chemin.write_text(_json.dumps(faux), encoding="utf-8")
+    try:
+        mots = ass_render.words_from_transcript(chemin)
+        assert len(mots) == 2, "le graveur jette les mots d'un transcript valide"
+        cues = ass_render.cues_from_words(mots, max_words=1)
+        assert len(cues) == 2, "aucun cue construit alors que les mots sont la"
+
+        # forme ancienne : segments seuls, avec duration et sans end
+        faux2 = {"segments": [{"start": 0.0, "duration": 2.0, "text": "une phrase"}]}
+        chemin.write_text(_json.dumps(faux2), encoding="utf-8")
+        assert ass_render.words_from_transcript(chemin),             "un transcript a phrases seules est encore jete"
+    finally:
+        chemin.unlink(missing_ok=True)
+
+    # et l'ecrivain doit declarer la fin des segments, pas seulement leur duree
+    ecrivain = (ROOT / "FR_A_CERVEAU/SF_05_VOX/CODEBASE/transcrire_vod.py").read_text(encoding="utf-8")
+    assert '"end": round(fin, 3)' in ecrivain, "les segments n'annoncent plus leur fin"
+    assert '"words": [' in ecrivain, "le transcript n'expose plus la liste plate des mots"
+
 
 if __name__ == "__main__":
     sys.exit(_main())

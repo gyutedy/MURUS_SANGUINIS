@@ -1,0 +1,1 @@
+{"schema": "x", "segments": [{"start": 380.0, "duration": 2.0, "text": "hello world", "words": [{"start": 380.0, "end": 380.3, "word": "hello", "text": "hello"}, {"start": 380.35, "end": 380.7, "word": "world", "text": "world"}]}], "transcript": {"text": "hello world", "segments": []}}

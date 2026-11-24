@@ -204,6 +204,9 @@ def main(argv=None):
     ap.add_argument("--transcript", required=True)
     ap.add_argument("--report", default=None)
     ap.add_argument("--seuil", type=float, default=SEUIL_DEFAUT)
+    ap.add_argument("--mots-relatifs", action="store_true",
+                    help="les mots sont deja dans le temps de la fenetre (0..duree), "
+                         "comme ce que grave le sous-titreur : on ne retranche rien")
     ap.add_argument("--travail", default=None)
     ap.add_argument("--autotest", action="store_true",
                     help="verifie l'outil sur un audio synthetique connu (aucun reseau)")
@@ -218,7 +221,11 @@ def main(argv=None):
     wav = fenetre_audio(args.vod, args.start, args.end, travail)
     env = enveloppe(wav)
     duree = len(env) * TRANCHE
-    mots = mots_de(args.transcript, args.start, args.end)
+    # Un transcript de fenetre est ecrit dans le temps du CLIP : c'est ce que grave
+    # le sous-titreur, et c'est donc dans ce repere qu'on mesure.
+    debut_mots = 0.0 if args.mots_relatifs else args.start
+    fin_mots = duree if args.mots_relatifs else args.end
+    mots = mots_de(args.transcript, debut_mots, fin_mots)
     if not mots:
         die(2, "aucun mot dans la fenetre %.1f-%.1f : rien a mesurer" % (args.start, args.end))
 

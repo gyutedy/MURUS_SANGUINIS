@@ -204,20 +204,51 @@ def _ass_time(seconds: float) -> str:
 # ── transcription ────────────────────────────────────────────────────────────
 
 def words_from_transcript(path: Path) -> list[dict]:
+    """Lit les mots d'un transcript, quelle que soit sa forme connue.
+
+    Trois formes existent dans ARCHIVUM : liste plate `words`, mots dans
+    `segments[].words` (la seule qui porte des temps mesures), et segments seuls
+    (une phrase par entree). On les accepte dans cet ordre, et on ne jette jamais un
+    document valide : le 2026-11-24, un transcript de 77 mots a rendu 0 cue parce
+    que les segments portaient `duration` et pas `end`.
+    """
     raw = json.loads(Path(path).read_text(encoding="utf-8"))
-    words = raw.get("words") if isinstance(raw, dict) else None
-    if not words and isinstance(raw, dict):
-        words = [
-            {"word": item.get("text") or item.get("word"), "start": item.get("start"), "end": item.get("end")}
-            for item in (raw.get("segments") or [])
-        ]
-    if not words:
+    if isinstance(raw, dict) and isinstance(raw.get("transcript"), dict):
+        interieur = raw["transcript"]
+        if not raw.get("segments") and not raw.get("words"):
+            raw = interieur
+    if not isinstance(raw, dict):
+        raise CaptionError(f"transcript illisible : {path}")
+
+    def fin(item: dict) -> float | None:
+        if item.get("end") is not None:
+            return float(item["end"])
+        if item.get("start") is not None and item.get("duration") is not None:
+            return float(item["start"]) + float(item["duration"])
+        return None
+
+    mots: list[dict] = []
+    for item in (raw.get("words") or []):           # 1. liste plate
+        debut, f = item.get("start"), fin(item)
+        texte = str(item.get("word") or item.get("text") or "").strip()
+        if texte and debut is not None and f is not None and f > debut:
+            mots.append({"word": texte, "start": float(debut), "end": float(f)})
+    if not mots:
+        for seg in (raw.get("segments") or []):     # 2. mots mesures dans les segments
+            for item in (seg.get("words") or []):
+                debut, f = item.get("start", seg.get("start")), fin(item)
+                texte = str(item.get("word") or item.get("text") or "").strip()
+                if texte and debut is not None and f is not None and f > debut:
+                    mots.append({"word": texte, "start": float(debut), "end": float(f)})
+    if not mots:
+        for seg in (raw.get("segments") or []):     # 3. une phrase par segment
+            debut, f = seg.get("start"), fin(seg)
+            texte = str(seg.get("text") or seg.get("word") or "").strip()
+            if texte and debut is not None and f is not None and f > debut:
+                mots.append({"word": texte, "start": float(debut), "end": float(f)})
+    if not mots:
         raise CaptionError(f"transcript sans mots : {path}")
-    return [
-        {"word": str(w.get("word") or "").strip(), "start": float(w["start"]), "end": float(w["end"])}
-        for w in words
-        if w.get("word") and w.get("start") is not None and w.get("end") is not None
-    ]
+    return sorted(mots, key=lambda w: w["start"])
 
 
 def words_from_whisper(video: Path, model_name: str = "base") -> list[dict]:
