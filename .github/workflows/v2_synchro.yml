@@ -1,0 +1,120 @@
+name: MURUS V2 — synchro des sous-titres (mesure)
+
+# Diagnostic, pas un rendu : on telecharge la fenetre, on extrait l'audio, et on
+# compare les debuts de mots de la transcription a l'energie reelle de la parole.
+# Si l'ecart depasse le seuil, le job echoue en le disant : c'est la mesure qui
+# doit exister avant tout correctif.
+
+on:
+  workflow_dispatch:
+    inputs:
+      clip_ids:
+        description: 'Clips a mesurer (ex. A01,A02) — vide = tous les assets du pack'
+        required: false
+        default: ''
+        type: string
+      seuil:
+        description: 'Seuil en secondes au-dela duquel on declare le clip decale'
+        required: false
+        default: '0.25'
+        type: string
+  push:
+    paths:
+      - 'FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py'
+      - '.github/workflows/v2_synchro.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: v2-synchro-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  mesurer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installer ffmpeg + yt-dlp
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg
+          pip install --upgrade pip
+          pip install yt-dlp
+
+      - name: L'outil se verifie lui-meme sur un audio connu
+        run: python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py --autotest --vod x --start 0 --end 1 --transcript x
+
+      - name: Mesurer chaque clip du pack
+        env:
+          IDS: ${{ inputs.clip_ids }}
+          SEUIL: ${{ inputs.seuil }}
+          VOD: https://www.twitch.tv/videos/2909800627
+        run: |
+          set -e
+          mkdir -p REVIEW/synchro
+          python - <<'PYEOF'
+          import json, os, subprocess, sys
+          from pathlib import Path
+          pack = json.loads(Path("REVIEW/pack_stage.json").read_text(encoding="utf-8"))
+          assets = pack.get("assets") or []
+          ids = [x.strip() for x in (os.environ.get("IDS") or "").split(",") if x.strip()]
+          if ids:
+              assets = [a for a in assets if a.get("id") in ids]
+          if not assets:
+              print("::error::PORTE MESURE : aucun asset a mesurer")
+              sys.exit(1)
+          seuil = float(os.environ.get("SEUIL") or 0.25)
+          resultats, decales = [], []
+          for a in assets:
+              ident = a.get("id")
+              rap = "REVIEW/synchro/%s.json" % ident
+              rc = subprocess.run([sys.executable,
+                  "FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py",
+                  "--vod", os.environ["VOD"],
+                  "--start", str(a["start_sec"]), "--end", str(a["end_sec"]),
+                  "--transcript", "ARCHIVUM/montage/transcripts/v2909800627_transcript.json",
+                  "--report", rap, "--seuil", str(seuil)]).returncode
+              d = json.loads(Path(rap).read_text(encoding="utf-8")) if Path(rap).is_file() else {}
+              resultats.append(d)
+              if rc != 0:
+                  decales.append(ident)
+              print("%s : decalage %+.2f s, derive %+.2f s, %s" % (
+                  ident, d.get("decalage_optimal_s", 0.0),
+                  d.get("derive_debut_fin_s", 0.0), d.get("verdict", "mesure impossible")))
+          Path("REVIEW/synchro/synchro_batch.json").write_text(json.dumps(
+              {"schema": "murus.synchro_batch.v1", "seuil_s": seuil,
+               "clips": len(resultats), "decales": decales, "mesures": resultats},
+              ensure_ascii=False, indent=1), encoding="utf-8")
+          if decales:
+              print("::error::PORTE SYNCHRO : %d clip(s) decale(s) : %s" % (len(decales), ", ".join(decales)))
+              sys.exit(1)
+          print("PORTE SYNCHRO : %d clip(s) mesures, aucun au-dela de %.2f s" % (len(resultats), seuil))
+          PYEOF
+
+      - name: Publier les mesures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synchro-mesures
+          path: REVIEW/synchro
+          if-no-files-found: warn
+
+      - name: Committer la preuve (jamais bloquant)
+        if: always()
+        run: |
+          git config user.name "MurusSynchro"
+          git config user.email "synchro@murus.sanguinis"
+          git add REVIEW/synchro
+          git commit -m "[SF_05_VOX] mesure de synchro des sous-titres" || echo "rien a committer"
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            echo "push rejete, tentative $i"
+            sleep 6
+          done
+          echo "::warning::push impossible apres 5 tentatives — la mesure reste dans l'artefact"
