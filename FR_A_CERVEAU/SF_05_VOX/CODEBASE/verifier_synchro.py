@@ -151,6 +151,46 @@ def meilleur_decalage(env, debuts, plage_max=2.0):
     return round(arg, 3), meilleur
 
 
+def ancrage_par_mot(env, debuts, plage=0.20, garde=0.6, centre=0.0):
+    """Decalage mesure mot par mot : combien de temps la parole arrive apres le mot.
+
+    La correlation globale est trompeuse quand peu de mots sont prononces : un mot
+    long attire le maximum et deplace tout l'alignement (mesure du 2026-11-24 :
+    "decalage -0,36 s" avec 8 % de gain sur un decalage nul, donc du bruit).
+    Ici chaque debut de mot est apparie a l'attaque la plus forte juste autour de
+    lui, et on garde la mediane : un mot aberrant ne deplace plus le resultat.
+
+    `centre` : le decalage grossier deja trouve par la correlation ; on cherche
+    l'attaque autour de ce decalage, ce qui permet de retrouver un ecart de 0,8 s
+    aussi bien que de 0,05 s sans elargir la fenetre de recherche (des mots sont
+    espaces de moins de 0,4 s : elargir ferait attraper le mot voisin).
+
+    `garde` : on ne garde que les mots dont l'attaque locale depasse ce seuil
+    (fraction du maximum des attaques), c'est-a-dire les mots reellement entendus.
+    """
+    on = onsets(env)
+    if not on:
+        return None, 0, 0.0
+    maximum = max(on) or 1.0
+    ecarts = []
+    for t in debuts:
+        c = t / TRANCHE + centre / TRANCHE
+        a = max(0, int(c - plage / TRANCHE))
+        b = min(len(on), int(c + plage / TRANCHE) + 1)
+        if b <= a:
+            continue
+        pic = max(on[a:b])
+        if pic < garde * maximum:
+            continue                      # mot non entendu : il n'ancre rien
+        i_pic = a + on[a:b].index(pic)
+        ecarts.append(i_pic * TRANCHE - t)   # ecart absolu, dans le repere du clip
+    if not ecarts:
+        return None, 0, 0.0
+    ecarts.sort()
+    med = ecarts[len(ecarts) // 2] if len(ecarts) % 2 else         0.5 * (ecarts[len(ecarts) // 2 - 1] + ecarts[len(ecarts) // 2])
+    return round(med, 3), len(ecarts), round(len(ecarts) / max(1, len(debuts)), 2)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="verifie la synchro transcription/audio")
     ap.add_argument("--vod", required=True)
@@ -179,6 +219,18 @@ def main(argv=None):
 
     debuts = [t for t, _ in mots]
     decalage, energie = meilleur_decalage(env, debuts)
+    median, ancres, confiance = ancrage_par_mot(env, debuts, centre=decalage)
+    # La mediane par mot est retenue des qu'assez de mots sont ancres : elle resiste
+    # a un mot long ou a un mot non prononce, la correlation globale non.
+    retenu = median if (median is not None and confiance >= 0.5) else decalage
+    derive_mot = None
+    if median is not None and confiance >= 0.5:
+        m1, _, c1 = ancrage_par_mot(env, [t for t in debuts if t <= duree / 2.0],
+                                    centre=decalage_debut)
+        m2, _, c2 = ancrage_par_mot(env, [t for t in debuts if t > duree / 2.0],
+                                    centre=decalage_fin)
+        if m1 is not None and m2 is not None:
+            derive_mot = round(m2 - m1, 3)
     milieu = duree / 2.0
     decalage_debut, _ = meilleur_decalage(env, [t for t in debuts if t <= milieu])
     decalage_fin, _ = meilleur_decalage(env, [t for t in debuts if t > milieu])
@@ -192,16 +244,24 @@ def main(argv=None):
         "audio": {"duree_mesuree_s": round(duree, 2), "tranche_s": TRANCHE},
         "mots": len(mots),
         "decalage_optimal_s": decalage,
+        "decalage_median_par_mot_s": median,
+        "mots_ancres": ancres,
+        "confiance": confiance,
+        "decalage_retenu_s": retenu,
         "derive_debut_fin_s": derive,
+        "derive_par_mot_s": derive_mot,
         "energie_debut_de_mot": round(energie, 6),
         "gain_vs_decalage_nul": gain,
         "seuil_s": args.seuil,
-        "verdict": ("a_l_heure" if abs(decalage) <= args.seuil and abs(derive) <= args.seuil
+        "verdict": ("a_l_heure"
+                    if abs(retenu) <= args.seuil
+                    and abs(derive_mot if derive_mot is not None else derive) <= args.seuil
                     else "decale"),
         "lecture": (
             "decalage negatif = les mots sont en avance sur la parole (sous-titres "
             "qui filent) ; positif = en retard ; derive = l'ecart entre la premiere "
-            "et la seconde moitie du clip"),
+            "et la seconde moitie du clip ; le decalage retenu est la mediane mot par "
+            "mot des que la moitie des mots sont ancres, sinon la correlation globale"),
     }
     if args.report:
         Path(args.report).parent.mkdir(parents=True, exist_ok=True)
@@ -242,9 +302,14 @@ def autotest():
     echecs = []
     for nom, mots, attendu in cas:
         mesure, _ = meilleur_decalage(env, mots)
-        ok = abs(mesure - attendu) <= 0.05
-        print("AUTOTEST %-7s : mesure %+.2f s, attendu %+.2f s -> %s"
-              % (nom, mesure, attendu, "ok" if ok else "ECHEC"))
+        median, ancres, conf = ancrage_par_mot(env, mots, centre=mesure)
+        # la mediane par mot est le chiffre retenu quand la confiance suffit :
+        # elle doit elle aussi retrouver le decalage connu
+        ok = abs(mesure - attendu) <= 0.05 and median is not None             and abs(median - attendu) <= 0.05
+        print("AUTOTEST %-7s : correlation %+.2f s, mediane %+.2f s (ancres %d, "
+              "confiance %.2f), attendu %+.2f s -> %s"
+              % (nom, mesure, median if median is not None else float("nan"),
+                 ancres, conf, attendu, "ok" if ok else "ECHEC"))
         if not ok:
             echecs.append(nom)
     return 0 if not echecs else 1

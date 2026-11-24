@@ -273,6 +273,8 @@ jobs:
           # la derive atteint 1,92 s sur 30 s. Decouper cette archive pour sous-titrer
           # transporte donc l'erreur. On transcrit LA FENETRE, sans VAD, en une passe.
           mkdir -p /tmp/work/pp
+          # l'instrument de mesure doit prouver qu'il mesure : trois cas connus
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py --autotest              --vod x --start 0 --end 1 --transcript x             || { echo "::error::PORTE SYNCHRO : l'outil de mesure ne retrouve plus ses trois cas connus, on ne l'utilise pas"; exit 1; }
           SRC=$(ls /tmp/work/clips/*.mp4 | head -1)
           echo "source du clip : $SRC"
           python FR_A_CERVEAU/SF_05_VOX/CODEBASE/transcrire_vod.py             --vod "$SRC"             --out "/tmp/work/pp/transcript_${ID}.json"             --vad off             --decaler "$START"             --model small.en             --language en             --max-minutes 2             --chunks 1             --report "/tmp/work/pp/transcription_${ID}.json"
@@ -283,6 +285,8 @@ jobs:
           START: ${{ matrix.clip.start }}
           END: ${{ matrix.clip.end }}
         run: |
+          # l'instrument de mesure doit prouver qu'il mesure : trois cas connus
+          python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py --autotest              --vod x --start 0 --end 1 --transcript x             || { echo "::error::PORTE SYNCHRO : l'outil de mesure ne retrouve plus ses trois cas connus, on ne l'utilise pas"; exit 1; }
           SRC=$(ls /tmp/work/clips/*.mp4 | head -1)
           python FR_A_CERVEAU/SF_05_VOX/CODEBASE/verifier_synchro.py             --vod "$SRC" --start "$START" --end "$END"             --transcript "/tmp/work/pp/transcript_${ID}.json"             --report "/tmp/work/pp/synchro_${ID}.json" --seuil 0.25             || { echo "::error::PORTE SYNCHRO : les sous-titres ne tombent pas sur la parole pour ${ID} — le clip ne sort pas"; exit 1; }
 
