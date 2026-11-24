@@ -108,7 +108,14 @@ def appeler(fn_name, app_name, charge, modele_cpu, langue, vad=True):
         args = [(c["octets"], c["debut"], langue, vad) for c in charge]
         # starmap, pas map : la fonction prend (data, offset, language), et
         # `map` envoyerait le tuple entier dans `data` (bytes-like required).
-        resultats = list(fn.starmap(args))
+        try:
+            resultats = list(fn.starmap(args))
+        except TypeError as e:
+            if "positional argument" in str(e) or "positional arguments" in str(e):
+                die(3, "le service Modal deploye ne connait pas l'argument `vad` "
+                       "(ancienne version en ligne : %s). Redeployer MODAL/transcribe.py. "
+                       "Aucun sous-titre n'est produit plutot que des sous-titres faux." % str(e)[:120])
+            raise
         conteneurs = {r.get("container") for r in resultats if r.get("container")}
         return resultats, {
             "moteur": "modal-fanout",

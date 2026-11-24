@@ -76,8 +76,17 @@ jobs:
             echo "::error::MODAL_TOKEN_ID absent : la fenetre ne peut pas etre transcrite, et un clip sans sous-titres ne sort pas"
             exit 1
           fi
-          pip install --quiet modal
-          modal deploy MODAL/transcribe.py 2>&1 | tail -6
+          # le service importe fastapi : sans lui, `modal deploy` echoue et
+          # l'ancienne version (3 arguments) restait en ligne -> run 45390219321.
+          pip install --quiet modal fastapi python-multipart
+          set +e
+          modal deploy MODAL/transcribe.py 2>&1 | tee /tmp/deploy.log | tail -8
+          RC=${PIPESTATUS[0]}
+          if [ "$RC" -ne 0 ] || ! grep -q "transcribe_chunk" /tmp/deploy.log; then
+            echo "::error::le service de transcription n'a pas ete (re)deploye : les clips ne peuvent pas sous-titrer, et ils refuseront"
+            exit 1
+          fi
+          echo "service de transcription deploye (4 arguments : data, offset, language, vad)"
 
       - name: Porte — les DEUX codex signes, le pack, le PNG (entrees seulement)
         id: select
