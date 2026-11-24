@@ -13,6 +13,11 @@
 name: murus-telegram
 
 on:
+  # Un declencheur push est necessaire pour que GitHub indexe le workflow : sans lui,
+  # un workflow_dispatch sur un fichier neuf repond 404. Le job ne fait rien sur push.
+  push:
+    paths:
+      - ".github/workflows/murus_telegram.yml"
   workflow_dispatch:
     inputs:
       cmd:
@@ -45,6 +50,7 @@ concurrency:
 
 jobs:
   commande:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
