@@ -118,7 +118,12 @@ def appeler(fn_name, app_name, charge, modele_cpu, langue):
         }
     except Exception as e:
         print("TRANSCRIPTION : repli CPU (%s)" % str(e)[:200], file=sys.stderr)
-        from faster_whisper import WhisperModel
+        try:
+            from faster_whisper import WhisperModel
+        except Exception:
+            die(3, "repli CPU impossible : faster_whisper absent sur ce runner. "
+                   "Le fan-out Modal a echoue (%s). Rien n'a ete transcrit, "
+                   "et on ne fait pas semblant." % str(e)[:160])
         model = WhisperModel(modele_cpu, device="cpu", compute_type="int8")
         resultats = []
         for c in charge:
