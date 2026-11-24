@@ -51,18 +51,42 @@ def telecharger(vod, start, duree, work):
     cible = work / "src.%(ext)s"
     rc = _run(["yt-dlp", "--no-playlist", "-f", "bv*[height<=1080]+ba/b[height<=1080]",
                "--download-sections", "*%s-%s" % (start, fin),
-               "--force-keyframes-at-cuts", "-o", str(cible), vod])
+               # PAS de --force-keyframes-at-cuts : ce drapeau force une image cle
+               # AVANT la fenetre, donc le fichier demarre avant l'instant signe et
+               # les sous-titres prennent de l'avance. La coupe est de toute facon
+               # reencodee ensuite (libx264), donc aucune image cle n'est requise.
+               "-o", str(cible), vod])
     if rc != 0:
         return None
     hits = sorted(glob.glob(str(work / "src.*")))
     return Path(hits[0]) if hits else None
 
 
-def couper(src, out, duree):
+def couper(src, out, duree, avance=0.0):
     out.parent.mkdir(parents=True, exist_ok=True)
-    return _run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-t", str(duree),
+    cmd = ["ffmpeg", "-y", "-loglevel", "error"]
+    if avance and avance > 0.01:
+        cmd += ["-ss", "%.3f" % avance]
+    cmd += ["-i", str(src), "-t", str(duree),
                  "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
-                 "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", str(out)]) == 0
+            "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", str(out)]
+    return _run(cmd) == 0
+
+
+def demarrage(src):
+    """Instant reel de depart du fichier telecharge, en secondes.
+
+    yt-dlp ecrit un fichier qui peut commencer avant la section demandee : sans ce
+    controle, on sous-titre une fenetre et on rend une autre. On mesure, on ne
+    suppose pas.
+    """
+    rc = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=start_time",
+                         "-of", "default=nw=1:nk=1", str(src)],
+                        capture_output=True, text=True)
+    try:
+        return float(rc.stdout.strip())
+    except ValueError:
+        return None
 
 
 def frame(src, out, at=1.0):
@@ -110,6 +134,18 @@ def main() -> int:
 
     src = telecharger(vod, start, duree, a.work)
     if src is None:
+        print("[RECUP] ECHEC — telechargement de la fenetre")
+
+    # La fenetre demandee commence a `start`. Si le fichier telecharge demarre
+    # ailleurs, on le dit et on recale : sans ca, on rend une autre fenetre que
+    # celle qui a ete signee, et les sous-titres prennent de l'avance.
+    avance = 0.0
+    depart = demarrage(src) if src else None
+    if depart is not None and depart < start - 0.01:
+        avance = start - depart
+        print("[RECUP] le fichier telecharge commence a %.3f s, la fenetre a %.3f s : "
+              "on avance de %.3f s" % (depart, start, avance))
+    if src is None:
         print("[RECUP] ECHEC — telechargement de la fenetre impossible (VOD privee/expiree ?)")
         return 1
 
@@ -119,7 +155,7 @@ def main() -> int:
         # clipFileCandidates() = [pur_<id>.mp4, <id>_look.mp4, <id>.mp4].
         # On ecrit donc le PREMIER nom attendu, sinon la page reste noire.
         clip = a.out_dir / ("pur_%s.mp4" % (asset.get("id") or idx))
-        if not couper(src, clip, duree):
+        if not couper(src, clip, duree, avance):
             print("[RECUP] ECHEC — coupe ffmpeg")
             return 1
         print("[RECUP] clip ->", clip)
@@ -132,7 +168,7 @@ def main() -> int:
         return 0
 
     clip = PREVIEW_1 / "clip.mp4"
-    if not couper(src, clip, duree):
+    if not couper(src, clip, duree, avance):
         print("[RECUP] ECHEC — coupe ffmpeg")
         return 1
     prev = PREVIEW_2 / "frame.png"
