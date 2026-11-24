@@ -465,9 +465,6 @@ def _main():
     return 1 if echecs else 0
 
 
-if __name__ == "__main__":
-    sys.exit(_main())
-
 def test_t32_synchro_des_sous_titres():
     """T32 — le decalage des sous-titres est mesure, et un clip decale ne sort pas.
 
@@ -491,7 +488,7 @@ def test_t32_synchro_des_sous_titres():
     w = (ROOT / ".github/workflows/murus_rendu.yml").read_text(encoding="utf-8")
     assert "verifier_synchro.py" in w, "le rendu ne mesure pas la synchro"
     assert "PORTE SYNCHRO" in w, "le rendu n'a pas de porte de synchro"
-    assert w.index("verifier_synchro.py") < w.index("postprod.py"),         "la synchro est mesuree apres le rendu des sous-titres, donc trop tard"
+    assert w.index("PORTE SYNCHRO") < w.index("5. PP2"),         "la synchro est mesuree apres le rendu des sous-titres, donc trop tard"
 
     # et la transcription des sous-titres ne doit plus passer par le VAD
     assert "--vad off" in w, "la transcription des sous-titres garde le VAD"
@@ -527,3 +524,5 @@ def test_t33_decoupe_locale_des_mots():
     for drapeau in ("--vad", "--decaler", "--fenetres"):
         assert drapeau in aide, "drapeau absent du CLI : %s" % drapeau
 
+if __name__ == "__main__":
+    sys.exit(_main())
