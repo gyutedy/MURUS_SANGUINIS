@@ -207,6 +207,9 @@ def main(argv=None):
     ap.add_argument("--function", default="transcribe_chunk")
     ap.add_argument("--report", default=None)
     ap.add_argument("--travail", default=None)
+    ap.add_argument("--fenetres", default=None,
+                    help="JSON [{id, start, end}] : ne transcrire que ces fenetres "
+                         "(cout CPU divise par le rapport des durees, sans GPU)")
     args = ap.parse_args(argv)
 
     for outil in ("ffmpeg", "ffprobe"):
@@ -221,8 +224,27 @@ def main(argv=None):
     total = duree(audio)
     if args.max_minutes and total > args.max_minutes * 60:
         total = args.max_minutes * 60
-    chunks = max(1, min(int(args.chunks), 32))
-    morceaux = decouper(audio, travail, chunks, total, args.overlap)
+    if args.fenetres:
+        import json as _json
+        fen = _json.loads(Path(args.fenetres).read_text(encoding="utf-8"))
+        if isinstance(fen, dict):
+            fen = fen.get("fenetres") or fen.get("moments") or []
+        if not fen:
+            die(4, "--fenetres ne contient aucune fenetre")
+        morceaux = []
+        for i, f in enumerate(fen):
+            debut = max(0.0, float(f["start"]) - args.overlap)
+            fin = min(total, float(f["end"]) + args.overlap)
+            chemin = travail / ("fen_%02d.wav" % i)
+            run(["ffmpeg", "-v", "error", "-y", "-ss", "%.3f" % debut, "-to", "%.3f" % fin,
+                 "-i", str(audio), "-ac", "1", "-ar", "16000", str(chemin)])
+            morceaux.append({"chemin": chemin, "debut": debut, "duree": fin - debut,
+                             "borne": debut, "id": f.get("id", "F%02d" % i)})
+        print("FENETRES : %d fenetres, %.1f s d'audio au total"
+              % (len(morceaux), sum(m["duree"] for m in morceaux)), file=sys.stderr)
+    else:
+        chunks = max(1, min(int(args.chunks), 32))
+        morceaux = decouper(audio, travail, chunks, total, args.overlap)
     if not morceaux:
         die(2, "aucun morceau produit (audio vide ?)")
 
