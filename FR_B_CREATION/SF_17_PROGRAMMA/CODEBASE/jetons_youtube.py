@@ -60,6 +60,12 @@ def main(argv=None):
     ap.add_argument("--client-secret", required=True)
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--chainon", default="YouTube", help="nom lisible, pour l'affichage")
+    # Mode sans serveur : Google renvoie sur http://localhost:8080/?code=... meme si
+    # rien n'ecoute. On recupere le code dans la barre d'adresse et on l'echange ici.
+    ap.add_argument("--code", default=None,
+                    help="code d'autorisation copie depuis la barre d'adresse (mode sans serveur)")
+    ap.add_argument("--url-seule", action="store_true",
+                    help="affiche seulement l'URL d'autorisation puis s'arrete")
     args = ap.parse_args(argv)
 
     redirection = "http://localhost:%d/" % args.port
@@ -74,7 +80,10 @@ def main(argv=None):
     })
     print("\n%s — ouvre cette adresse dans le navigateur du compte de la chaine :\n" % args.chainon)
     print(url + "\n")
-    print("En attente du retour sur %s (Ctrl+C pour abandonner)..." % redirection)
+    if args.url_seule:
+        return 0
+    if args.code:
+        return echanger(args, args.code, redirection, "collé")
 
     with socketserver.TCPServer(("127.0.0.1", args.port), Retour) as srv:
         srv.timeout = 300
@@ -91,9 +100,13 @@ def main(argv=None):
     if not _code.get("code"):
         print("Aucune autorisation : %s" % (_code.get("erreur") or "timeout"))
         return 2
+    return echanger(args, _code["code"], redirection, "localhost")
 
+
+def echanger(args, code, redirection, origine):
+    """Echange un code d'autorisation contre un jeton de rafraichissement."""
     donnees = urllib.parse.urlencode({
-        "code": _code["code"],
+        "code": code,
         "client_id": args.client_id,
         "client_secret": args.client_secret,
         "redirect_uri": redirection,
@@ -113,6 +126,7 @@ def main(argv=None):
         return 1
     print("\nrefresh_token obtenu. A poser comme secret GitHub (nom seulement ici) :\n")
     print("  " + refresh)
+    print("Origine du code : %s" % origine)
     print("\nNe le copie pas dans un fichier du depot. Pose-le par le script de secrets.")
     return 0
 
