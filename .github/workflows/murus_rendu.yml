@@ -35,7 +35,12 @@ on:
         default: '9'
         type: string
       clip_ids:
-        description: 'Clips precis (ex. A01,A02) — vide = tous selon nb_clips'
+        description: 'Clips precis (ex. A01,A02) — vide = tous selon nb_clips. Un sous-ensemble est REFUSE sauf derogation=controle'
+        required: false
+        default: ''
+        type: string
+      derogation:
+        description: 'Vide = rendu de TOUS les assets signes. Ecrire exactement controle pour un rendu partiel de diagnostic'
         required: false
         default: ''
         type: string
@@ -66,6 +71,7 @@ jobs:
         env:
           NB: ${{ inputs.nb_clips }}
           IDS: ${{ inputs.clip_ids }}
+          DEROG: ${{ inputs.derogation }}
         run: |
           python - << 'PYEOF'
           import json, os, sys
@@ -120,6 +126,29 @@ jobs:
           if not want:
               print("::error::PORTE FERMEE : aucun clip selectionne")
               sys.exit(1)
+
+          # REGLE OPERATEUR (2026-11-24) : un rendu rend TOUS les assets signes.
+          # Rendre un seul clip pour aller plus vite laisse croire que le pack est
+          # sorti alors qu'il manque huit livrables : c'est un remplissage a
+          # l'envers. Un sous-ensemble n'est permis que comme CONTROLE explicite,
+          # en tapant derogation=controle, et l'artefact s'appelle alors
+          # controle-<id> pour qu'il ne puisse pas passer pour un livrable.
+          derog = (os.environ.get("DEROG") or "").strip()
+          if len(want) != len(assets):
+              manquants = sorted({a.get("id") for a in assets} - {w["id"] for w in want})
+              if derog != "controle":
+                  print("::error::PORTE FERMEE : le pack signe porte %d assets, ce rendu en demande %d "
+                        "(manquants : %s)" % (len(assets), len(want), ", ".join(manquants)))
+                  print("::error::un rendu se fait sur TOUS les assets signes, jamais sur un sous-ensemble")
+                  print("::error::pour un simple controle, relancer avec derogation=controle")
+                  sys.exit(1)
+              print("::warning::CONTROLE : rendu partiel demande en derogation (%d/%d, manquants : %s) — "
+                    "les artefacts seront nommes controle-*, pas livrable-*"
+                    % (len(want), len(assets), ", ".join(manquants)))
+              env_file = os.environ.get("GITHUB_ENV")
+              if env_file:
+                  with open(env_file, "a", encoding="utf-8") as f:
+                      f.write("CONTROLE=1" + chr(10))
 
           out = Path(os.environ["GITHUB_OUTPUT"])
           with out.open("a", encoding="utf-8") as f:
@@ -287,7 +316,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: livrable-${{ matrix.clip.id }}
+          name: ${{ env.CONTROLE == '1' && 'controle' || 'livrable' }}-${{ matrix.clip.id }}
           path: /tmp/work/livre/${{ matrix.clip.id }}
           if-no-files-found: error
           retention-days: 30
