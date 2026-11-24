@@ -139,9 +139,9 @@ async def transcribe(request: Request):
             for w in getattr(seg, "words", None) or []:
                 words.append(
                     {
-                        "word": w.word,
-                        "start": round(w.start + offset, 3),
-                        "end": round(w.end + offset, 3),
+                        "word": str(w.word),
+                        "start": float(round(w.start + offset, 3)),
+                        "end": float(round(w.end + offset, 3)),
                     }
                 )
 
@@ -196,9 +196,9 @@ def transcribe_chunk(data: bytes, offset: float = 0.0, language: str | None = No
         for seg in segments:
             for w in getattr(seg, "words", None) or []:
                 words.append({
-                    "word": w.word,
-                    "start": round(w.start + offset, 3),
-                    "end": round(w.end + offset, 3),
+                    "word": str(w.word),
+                    "start": float(round(w.start + offset, 3)),
+                    "end": float(round(w.end + offset, 3)),
                 })
         return {
             "words": words,
