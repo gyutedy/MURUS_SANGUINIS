@@ -83,14 +83,21 @@ jobs:
         run: |
           python FR_A_CERVEAU/SF_09_NUNTIUS/CODEBASE/nuntius.py             --commande "${{ inputs.cmd }}"             --arguments "${{ inputs.arguments }}"             --update-id "${{ inputs.update_id }}"             --chat-id "${{ inputs.chat_id }}"             --fichier-id "${{ inputs.fichier_id }}"
 
-      - name: Enregistrer le journal des decisions (append-only)
+      - name: Enregistrer les actes (journal, verdicts, campagne, directive)
         run: |
-          if [ ! -s ARCHIVUM/telegram/journal.jsonl ]; then
-            echo "aucun evenement a enregistrer"
-            exit 0
-          fi
+          # Un acte qui n'est pas pousse n'existe pas : le runner disparait avec ses
+          # fichiers. On pousse donc TOUT ce qu'une commande peut ecrire.
           git config user.name "MURUS NUNTIUS"
           git config user.email "nuntius@murus.local"
-          git add ARCHIVUM/telegram/journal.jsonl
+          git add ARCHIVUM/telegram/journal.jsonl ARCHIVUM/campagnes/journal.jsonl                   ARCHIVUM/campaign/ REVIEW/campagnes.json REVIEW/verdicts.jsonl 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "aucun acte a enregistrer"
+            exit 0
+          fi
           git commit -m "telegram: ${{ inputs.cmd }} ${{ inputs.arguments }} (update ${{ inputs.update_id }})" || true
-          git push || echo "::warning::journal non pousse (course git) — la decision reste dans le log du run"
+          for essai in 1 2 3; do
+            if git push; then echo "actes pousses"; exit 0; fi
+            git pull --rebase --autostash || true
+            sleep 5
+          done
+          echo "::warning::actes non pousses (course git) — la trace reste dans le log du run"
