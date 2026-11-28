@@ -26,6 +26,11 @@ const AIDE =
   "/publier — donne la phrase de validation complete\n" +
   "/aide — ce message";
 
+// Les seules cles qu'un bloc de directive peut porter.
+const CLES_DIRECTIVE = new Set(["plateformes", "requirements", "banned",
+  "taux", "budget", "financee", "compte", "focus", "createur", "langue",
+  "campaign_id", "watermark", "star"]);
+
 // Un bloc de directive peut arriver SANS commande : l'operateur colle son bloc.
 export function estBlocDirective(texte) {
   const lignes = String(texte || "").split("\n").map((l) => l.trim())
