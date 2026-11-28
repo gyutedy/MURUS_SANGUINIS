@@ -1,7 +1,23 @@
 #!/usr/bin/env python3
-"""F06 LUTHER — normalisation finale MP4 pour diffusion.
+"""F06 LUTHER — dernier passage : retirer les metadonnees, SANS reencoder.
 
-Reencode H.264 yuv420p CFR, AAC, faststart, metadonnees vides.
+Doctrine (PARCOURS_UNIQUE, PARCOURS_REEL) : luther est un **stream copy**. Tout
+reencodage apres lui remettrait une empreinte et surtout une generation de perte
+supplementaire. Le fichier livre doit etre **bit pour bit** celui qui vient de passer
+le controle de camouflage.
+
+Panne payee le 2026-11-24 : ce fichier reencodait en libx264 CRF 18 + AAC 192k et
+declarait `stream_copy: False` dans son propre rapport. Le rapport disait donc vrai,
+c'est le code qui violait la doctrine : le livrable n'etait plus celui qui avait ete
+controle, et il grossissait (19,9 -> 20,9 Mo).
+
+Desormais :
+  - `-c copy` pour la video et l'audio (aucune generation de perte en plus) ;
+  - `-map_metadata -1`, `-map_chapters -1`, encoder vide : les empreintes partent ;
+  - **preuve** par empreinte de flux (md5 des paquets) avant/apres : `stream_copy`
+    est MESURE, plus declare. Si les empreintes different, `qa_pass` est faux et la
+    livraison est refusee.
+
 Mode mono (--input) ou batch (--batch dossier de N MP4).
 """
 from __future__ import annotations
@@ -41,14 +57,28 @@ def probe(path: Path) -> dict:
     }
 
 
-def encode_youtube(source: Path, destination: Path) -> None:
+def empreinte_flux(source: Path, selecteur: str) -> str:
+    """md5 des paquets d'un flux. Deux fichiers identiques ont la meme empreinte.
+
+    C'est ce qui transforme "luther copie" d'une declaration en une mesure : si la
+    video ou l'audio a bouge d'un octet, les empreintes different.
+    """
+    command = [FFMPEG, "-v", "error", "-i", str(source), "-map", selecteur,
+               "-c", "copy", "-f", "md5", "-"]
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode:
+        raise RuntimeError(result.stderr[-1000:])
+    return result.stdout.strip().split("=")[-1]
+
+
+def copier_sans_metadonnees(source: Path, destination: Path) -> None:
+    """Copie les flux tels quels, retire les metadonnees, faststart pour le web."""
     command = [
         FFMPEG, "-y", "-i", str(source),
         "-map", "0:v:0", "-map", "0:a:0?",
-        "-c:v", "libx264", "-preset", "medium", "-crf", "18",
-        "-pix_fmt", "yuv420p", "-r", "25", "-fps_mode", "cfr",
-        "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
-        "-map_metadata", "-1", "-metadata", "encoder=",
+        "-c", "copy",
+        "-map_metadata", "-1", "-map_chapters", "-1",
+        "-metadata", "encoder=",
         "-movflags", "+faststart", str(destination),
     ]
     result = subprocess.run(command, capture_output=True, text=True)
@@ -58,7 +88,15 @@ def encode_youtube(source: Path, destination: Path) -> None:
 
 def luther_one(source: Path, destination: Path, stamp_date: str) -> dict:
     before = probe(source)
-    encode_youtube(source, destination)
+    empreintes_avant = {
+        "video": empreinte_flux(source, "0:v:0"),
+        "audio": empreinte_flux(source, "0:a:0"),
+    }
+    copier_sans_metadonnees(source, destination)
+    empreintes_apres = {
+        "video": empreinte_flux(destination, "0:v:0"),
+        "audio": empreinte_flux(destination, "0:a:0"),
+    }
     try:
         dt = datetime.strptime(stamp_date, "%Y-%m-%d").replace(hour=12)
         os.utime(destination, (dt.timestamp(), dt.timestamp()))
@@ -74,9 +112,14 @@ def luther_one(source: Path, destination: Path, stamp_date: str) -> dict:
         "before": before,
         "after": after,
         "suspicious_tags_after": residual,
-        "stream_copy": False,
-        "youtube_normalized": True,
-        "qa_pass": not residual and bool(after["streams"]),
+        "empreintes": {"avant": empreintes_avant, "apres": empreintes_apres},
+        # MESURE, plus une declaration : les flux sont-ils identiques ?
+        "stream_copy": empreintes_avant == empreintes_apres,
+        "youtube_normalized": False,
+        "note_normalisation": ("le loudnorm est fait par CAMOUFLAGE, une seule fois ; "
+                               "luther ne touche plus a l'audio"),
+        "qa_pass": (empreintes_avant == empreintes_apres) and not residual
+                   and bool(after["streams"]),
     }
 
 

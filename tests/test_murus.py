@@ -773,3 +773,15 @@ def test_t30_v2_socle():
     for oracle in ("T20", "T21", "T22", "T23", "T24", "T25", "T26", "T27", "T28", "T29"):
         assert oracle in plan_txt, "oracle absent du plan : %s" % oracle
 
+def test_luther_copie_sans_reencoder():
+    """LUTHER est un stream copy, et il le PROUVE.
+
+    Panne payee : le fichier reencodait en libx264 et declairait `stream_copy: False`
+    dans son rapport ; le livrable n'etait donc plus celui qui avait ete controle.
+    """
+    src = (ROOT / "FR_B_CREATION/SF_15_LUTHER/CODEBASE/lac_f06_luther.py").read_text(encoding="utf-8")
+    assert '"-c", "copy"' in src, "luther ne copie plus les flux : il reencode"
+    assert "libx264" not in src, "luther reencode en H.264 : une generation de perte en plus"
+    assert "empreinte_flux" in src, "luther ne prouve pas que les flux sont identiques"
+    assert '"stream_copy": empreintes_avant == empreintes_apres' in src,         "stream_copy doit etre MESURE, pas declare"
+

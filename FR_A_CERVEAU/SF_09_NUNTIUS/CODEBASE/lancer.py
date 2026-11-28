@@ -18,6 +18,11 @@ import os
 import urllib.request
 from pathlib import Path
 
+sys_path = str(Path(__file__).resolve().parents[2] / "SF_01_VIGILIA" / "CODEBASE")
+if sys_path not in __import__("sys").path:
+    __import__("sys").path.insert(0, sys_path)
+import campagnes  # noqa: E402  (qui a le droit de lire la campagne active)
+
 DEPOT = "gyutedy/MURUS_SANGUINIS"
 REF = "v2"
 
@@ -83,8 +88,19 @@ def entree(workflow, inputs):
     return code, texte
 
 
-def lancer(arguments, verdicts, campagne="PREME", url_defaut=None, registre=None):
-    """Rend le texte de reponse. Ne leve pas : une porte fermee se dit."""
+def lancer(arguments, verdicts, campagne="PREME", url_defaut=None, registre=None,
+           registre_campagnes=None):
+    """Rend le texte de reponse. Ne leve pas : une porte fermee se dit.
+
+    Premier controle, avant tout : **pour quelle campagne on travaille**. Sans
+    campagne active, on ne lance rien — un rendu sans campagne n'a pas de directive,
+    donc pas de watermark, donc pas de livrable valable.
+    """
+    try:
+        active = campagnes.exiger_active(registre_campagnes)
+    except campagnes.Refus as e:
+        return ("REFUS : %s. Rien n'a ete lance." % e)
+    campagne = active.get("campagne_id") or campagne
     morceaux = (arguments or "").split()
     if not morceaux:
         return ("Forme attendue :\n" + "\n".join(FORMES.values()))
@@ -113,6 +129,9 @@ def lancer(arguments, verdicts, campagne="PREME", url_defaut=None, registre=None
 
     code, texte = entree(workflow, inputs)
     if code == 204:
-        return ("%s ouvert (%s). Suis avec /etat, puis porte ton verdict : "
-                "/verdict %s valide <sortie>." % (fregate, workflow, fregate))
+        campagnes.noter(acte="ouvrir_fregate", fregate=fregate, workflow=workflow,
+                        campagne=active.get("star"), token=active.get("token"))
+        return ("%s ouvert pour la campagne %s (%s). Suis avec /etat ; quand c'est "
+                "fini, tape /verdict %s valide <sortie> (la sortie exacte est dans "
+                "/parcours)." % (fregate, active.get("star"), workflow, fregate))
     return "%s refuse par GitHub (HTTP %s) : %s" % (fregate, code, texte)

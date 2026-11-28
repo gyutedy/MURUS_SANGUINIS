@@ -35,11 +35,22 @@ def _reg(tmp):
     return Path(tmp) / "verdicts.jsonl"
 
 
+def _campagne(tmp):
+    """Un registre de campagnes avec Preme active : sinon /lancer refuse tout."""
+    import campagnes
+
+    chemin = Path(tmp) / "campagnes.json"
+    if not chemin.exists():
+        campagnes.creer("Preme", token="70f120a8", etat=chemin)
+        campagnes.activer("preme", etat=chemin)
+    return chemin
+
+
 def test_t60_siege_ouvre_sans_verdict(tmp_path):
     faux = _Faux()
     lancer.entree = faux
     r = lancer.lancer("siege https://www.twitch.tv/videos/2909800627", verdicts,
-                      registre=_reg(tmp_path))
+                      registre=_reg(tmp_path), registre_campagnes=_campagne(tmp_path))
     assert "ouvert" in r, r
     assert faux.appels and faux.appels[0][0] == "murus_siege.yml"
     assert faux.appels[0][1]["vod_url"].startswith("https://")
@@ -48,7 +59,7 @@ def test_t60_siege_ouvre_sans_verdict(tmp_path):
 def test_t61_siege_sans_lien_refuse(tmp_path):
     faux = _Faux()
     lancer.entree = faux
-    r = lancer.lancer("siege", verdicts, registre=_reg(tmp_path))
+    r = lancer.lancer("siege", verdicts, registre=_reg(tmp_path), registre_campagnes=_campagne(tmp_path))
     assert "lien de la VOD" in r and not faux.appels, \
         "aucun declenchement quand il manque le lien"
 
@@ -56,7 +67,7 @@ def test_t61_siege_sans_lien_refuse(tmp_path):
 def test_t62_look_ferme_sans_siege_valide(tmp_path):
     faux = _Faux()
     lancer.entree = faux
-    r = lancer.lancer("look", verdicts, registre=_reg(tmp_path))
+    r = lancer.lancer("look", verdicts, registre=_reg(tmp_path), registre_campagnes=_campagne(tmp_path))
     assert "REFUS" in r and not faux.appels, \
         "LOOK ne doit pas s'ouvrir sans verdict du siege, et ne doit rien declencher"
 
@@ -66,7 +77,7 @@ def test_t63_look_ouvre_apres_siege_valide(tmp_path):
     verdicts.enregistrer("PREME", "siege", "valide", "pack:70f120a8", registre=reg)
     faux = _Faux()
     lancer.entree = faux
-    r = lancer.lancer("look", verdicts, registre=reg)
+    r = lancer.lancer("look", verdicts, registre=reg, registre_campagnes=_campagne(tmp_path))
     assert "ouvert" in r, r
     assert faux.appels[0][0] == "murus_preview_1.yml"
 
@@ -76,12 +87,12 @@ def test_t64_chaine_complete_et_fregate_inconnue(tmp_path):
     verdicts.enregistrer("PREME", "siege", "valide", "pack:70f120a8", registre=reg)
     faux = _Faux()
     lancer.entree = faux
-    assert "REFUS" in lancer.lancer("postprod", verdicts, registre=reg)
+    assert "REFUS" in lancer.lancer("postprod", verdicts, registre=reg, registre_campagnes=_campagne(tmp_path))
     verdicts.enregistrer("PREME", "look", "valide", "codex:render", registre=reg)
-    assert "ouvert" in lancer.lancer("postprod", verdicts, registre=reg)
-    assert "REFUS" in lancer.lancer("livraison", verdicts, registre=reg)
+    assert "ouvert" in lancer.lancer("postprod", verdicts, registre=reg, registre_campagnes=_campagne(tmp_path))
+    assert "REFUS" in lancer.lancer("livraison", verdicts, registre=reg, registre_campagnes=_campagne(tmp_path))
 
-    inconnue = lancer.lancer("hyperespace", verdicts, registre=reg)
+    inconnue = lancer.lancer("hyperespace", verdicts, registre=reg, registre_campagnes=_campagne(tmp_path))
     assert "inconnue" in inconnue
 
 
@@ -92,7 +103,7 @@ def test_t65_aucun_declenchement_sans_porte(tmp_path):
     faux = _Faux()
     lancer.entree = faux
     for fregate in ("look", "postprod", "livraison"):
-        lancer.lancer(fregate, verdicts, registre=reg)
+        lancer.lancer(fregate, verdicts, registre=reg, registre_campagnes=_campagne(tmp_path))
     assert not faux.appels, "une fregate fermee ne doit jamais appeler GitHub"
 
 
@@ -118,6 +129,32 @@ def _main():
     print("\n%s" % ("TOUTES LES PORTES DE /lancer SONT VERTES" if not echecs
                     else "%d PORTE(S) EN ECHEC" % echecs))
     return 1 if echecs else 0
+
+def test_t66_refus_sans_campagne_active(tmp_path):
+    """Sans campagne active, on ne lance rien : pas de directive, pas de livrable."""
+    reg = _reg(tmp_path)
+    regc = tmp_path / "campagnes.json"
+    faux = _Faux()
+    lancer.entree = faux
+    r = lancer.lancer("siege https://www.twitch.tv/videos/2909800627", verdicts,
+                      registre=reg, registre_campagnes=regc)
+    assert "campagne active" in r, r
+    assert not faux.appels, "aucun declenchement sans campagne active"
+
+
+def test_t67_lance_quand_la_campagne_est_active(tmp_path):
+    import campagnes
+
+    reg = _reg(tmp_path)
+    regc = tmp_path / "campagnes.json"
+    campagnes.creer("Preme", token="70f120a8", etat=regc)
+    campagnes.activer("preme", etat=regc)
+    faux = _Faux()
+    lancer.entree = faux
+    r = lancer.lancer("siege https://www.twitch.tv/videos/2909800627", verdicts,
+                      registre=reg, registre_campagnes=regc)
+    assert "ouvert" in r and "campagne Preme" in r, r
+    assert faux.appels[0][0] == "murus_siege.yml", "le siege doit appeler son workflow"
 
 
 if __name__ == "__main__":
