@@ -16,6 +16,16 @@ from __future__ import annotations
 
 import re
 
+# Un bloc de directive peut arriver SANS commande devant : l'operateur colle son
+# bloc, il ne le precede pas de /directive. Ces cles sont les seules acceptees, donc
+# un texte quelconque n'est jamais pris pour une directive.
+CLES_DIRECTIVE = {
+    "plateformes": True, "requirements": True, "banned": True, "taux": True,
+    "budget": True, "financee": True, "compte": True, "focus": True,
+    "createur": True, "langue": True, "campaign_id": True, "watermark": True,
+    "star": True,
+}
+
 # Actes qui ne se reparent pas : on ne les declenche pas d'un bouton ni d'un mot.
 # (Les rendus ne sont PAS dans cette liste : l'operateur a refuse cette serrure.)
 ACTES_IRREVERSIBLES = {"publier"}
@@ -35,6 +45,7 @@ NOMS_ATTENDUS = {
     "verdict": "valider ou refuser la sortie d'une fregate",
     "lancer": "ouvrir une fregate (siege, look, postprod, livraison)",
     "campagne": "voir, activer ou desactiver une campagne",
+    "watermark": "voir ou remplacer le PNG du watermark",
     "directive": "recevoir un bloc de directive et le repartir",
     "rendu": "lancer les 9 clips (mode non-live)",
     "vive": "lancer la coupe par le moteur (mode live)",
@@ -98,6 +109,21 @@ def decouper(texte):
     return nom.lower(), arguments
 
 
+def est_bloc_directive(texte):
+    """Vrai si le message EST un bloc de directive (cles connues, une par ligne)."""
+    lignes = [l.strip() for l in str(texte or "").splitlines()
+              if l.strip() and not l.strip().startswith("#")]
+    if not lignes:
+        return False
+    for ligne in lignes:
+        if ":" not in ligne:
+            return False
+        cle = ligne.split(":", 1)[0].strip().lower()
+        if cle not in CLES_DIRECTIVE:
+            return False
+    return True
+
+
 def analyser(update, autorises):
     """Rend une decision : {action, ...}. Jamais d'exception sur une entree tordue."""
     msg, chat_id = _chat(update)
@@ -118,6 +144,12 @@ def analyser(update, autorises):
 
     nom, arguments = decouper(texte)
     if not nom:
+        # bloc colle sans commande : c'est une directive, on le prend tel quel
+        if est_bloc_directive(texte):
+            return {"action": "dispatch", "chat_id": chat_id, "commande": "/directive",
+                    "arguments": str(texte).strip(), "workflow": None,
+                    "update_id": (update or {}).get("update_id"),
+                    "message_id": msg.get("message_id")}
         return {"action": "repondre", "chat_id": chat_id, "raison": "pas_une_commande",
                 "texte": "Commande inconnue. /aide pour la liste."}
     if nom not in NOMS_ATTENDUS:

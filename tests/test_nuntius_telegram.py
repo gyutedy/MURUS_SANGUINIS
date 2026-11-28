@@ -1,13 +1,4 @@
-"""Tests du pilotage Telegram (NUNTIUS).
-
-Ce qui est verrouille ici :
-  - un chat etranger est ignore, sans reponse (aucune fuite) ;
-  - une commande inconnue ne declenche rien ;
-  - un acte irreversible sans la phrase complete est refuse ;
-  - `update_id` deja journalise = ignoré (rejeu Telegram impossible) ;
-  - le Worker Cloudflare et le contrat Python disent la meme chose ;
-  - le workflow refuse un demandeur qui n'est pas l'operateur.
-"""
+"""Tests du pilotage Telegram (NUNTIUS).\n\nCe qui est verrouille ici :\n- un chat etranger est ignore, sans reponse (aucune fuite) ;\n- une commande inconnue ne declenche rien ;\n- un acte irreversible sans la phrase complete est refuse ;\n- `update_id` deja journalise = ignoré (rejeu Telegram impossible) ;\n- le Worker Cloudflare et le contrat Python disent la meme chose ;\n- le workflow refuse un demandeur qui n'est pas l'operateur.\n"""
 from __future__ import annotations
 
 import json
@@ -121,6 +112,40 @@ def _main():
     print("\n%s" % ("TOUTES LES PORTES TELEGRAM SONT VERTES" if not echecs
                     else "%d PORTE(S) TELEGRAM EN ECHEC" % echecs))
     return 1 if echecs else 0
+
+def test_t48_bloc_de_directive_sans_commande():
+    """L'operateur colle son bloc, il ne tape pas /directive devant."""
+    bloc = "plateformes: youtube_shorts, instagram_reels\ntaux: 0.6\nbudget: 2500"
+    d = parse.analyser(_up(bloc), [OPERATEUR])
+    assert d["action"] == "dispatch", "un bloc colle doit etre reconnu"
+    assert d["commande"] == "/directive"
+    assert "taux: 0.6" in d["arguments"], "le bloc doit passer entier, pas la 1re ligne"
+
+    libre = parse.analyser(_up("salut, ca va ?"), [OPERATEUR])
+    assert libre["action"] == "repondre", "un texte libre n'est pas une directive"
+
+
+def test_t49_watermark_refuse_ce_qui_n_est_pas_une_image():
+    import watermark
+
+    tmp = RACINE / ".tmp"
+    tmp.mkdir(exist_ok=True)
+    faux = tmp / "pas_une_image.png"
+    faux.write_text("ceci est du texte", encoding="utf-8")
+    try:
+        watermark.verifier_image(faux)
+        raise AssertionError("un fichier texte ne doit pas passer pour un watermark")
+    except watermark.Refus as e:
+        assert "entete" in str(e) or "image" in str(e)
+    vide = tmp / "vide.png"
+    vide.write_bytes(b"")
+    try:
+        watermark.verifier_image(vide)
+        raise AssertionError("un fichier vide doit etre refuse")
+    except watermark.Refus as e:
+        assert "vide" in str(e)
+    faux.unlink(missing_ok=True)
+    vide.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

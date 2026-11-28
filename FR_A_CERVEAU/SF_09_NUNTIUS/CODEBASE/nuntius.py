@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import verdicts  # noqa: E402  (registre des verdicts de l'operateur)
 import lancer  # noqa: E402  (ouvrir une fregate, si l'amont est valide)
 import commandes_campagne  # noqa: E402  (campagne et directives)
+import watermark  # noqa: E402  (le PNG du watermark)
 
 RACINE = Path(__file__).resolve().parents[3]
 JOURNAL = RACINE / "ARCHIVUM" / "telegram" / "journal.jsonl"
@@ -166,6 +167,22 @@ def cmd_directive(arguments, chat_id):
     return commandes_campagne.repondre_directive(arguments)
 
 
+def cmd_watermark(arguments, chat_id):
+    """Voir le watermark, ou le remplacer avec une image envoyee et sa legende."""
+    fichier_id = os.environ.get("TELEGRAM_FICHIER_ID") or ""
+    if not fichier_id:
+        return watermark.etat()
+    try:
+        recu = watermark.telecharger(fichier_id)
+        nom = (arguments or "").strip() or None
+        info = watermark.poser(recu, nom=nom)
+    except watermark.Refus as e:
+        return "REFUS : %s. Le watermark precedent reste en place." % e
+    return ("Watermark pose : %s (%s, %.1f Ko). Remplace : %s."
+            % (info["fichier"], info["format"], info["octets"] / 1024,
+               info["ancien"] or "aucun"))
+
+
 def cmd_lancer(arguments, chat_id):
     """Ouvre une fregate. La porte amont est verifiee AVANT tout declenchement."""
     return lancer.lancer(arguments, verdicts, "PREME",
@@ -271,6 +288,7 @@ def cmd_publier(arguments, chat_id):
 
 COMMANDES = {
     "/campagne": cmd_campagne, "/directive": cmd_directive,
+    "/watermark": cmd_watermark,
     "/lancer": cmd_lancer, "/etat": cmd_etat, "/clips": cmd_clips, "/rapport": cmd_rapport,
     "/parcours": cmd_parcours, "/verdict": cmd_verdict, "/vive": cmd_vive,
     "/rendu": cmd_rendu, "/stop": cmd_stop, "/publier": cmd_publier,
@@ -283,8 +301,11 @@ def main(argv=None):
     ap.add_argument("--arguments", default="")
     ap.add_argument("--update-id", default="")
     ap.add_argument("--chat-id", default=None)
+    ap.add_argument("--fichier-id", default="")
     args = ap.parse_args(argv)
 
+    if args.fichier_id:
+        os.environ["TELEGRAM_FICHIER_ID"] = args.fichier_id
     chat_id = args.chat_id or os.environ.get("TELEGRAM_OPERATEUR_ID")
     if deja_vu(args.update_id):
         print("[NUNTIUS] update_id %s deja traite : ignore (rejeu impossible)" % args.update_id)

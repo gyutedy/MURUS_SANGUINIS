@@ -15,7 +15,7 @@
  */
 
 const NOMS = new Set(["etat", "clips", "rapport", "parcours", "verdict", "lancer",
-  "campagne", "directive", "rendu", "vive", "publier", "stop", "aide"]);
+  "campagne", "directive", "watermark", "rendu", "vive", "publier", "stop", "aide"]);
 const AIDE =
   "MURUS — commandes\n" +
   "/etat — ce qui tourne, ce qui a echoue\n" +
@@ -25,6 +25,15 @@ const AIDE =
   "/stop <run> — arrete un run\n" +
   "/publier — donne la phrase de validation complete\n" +
   "/aide — ce message";
+
+// Un bloc de directive peut arriver SANS commande : l'operateur colle son bloc.
+export function estBlocDirective(texte) {
+  const lignes = String(texte || "").split("\n").map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#"));
+  if (!lignes.length) return false;
+  return lignes.every((l) => l.includes(":") && CLES_DIRECTIVE.has(
+    l.split(":")[0].trim().toLowerCase()));
+}
 
 // Un acte irreversible exige une phrase tapee en entier, pas un mot recopie.
 const PHRASE_PUBLICATION = /^VALIDER\s+PUBLICATION\s+[A-Z0-9_]+\s+[A-Z]\d{2}$/;
@@ -87,6 +96,11 @@ export function analyser(update, autorises) {
 
   const { nom, arguments: args } = decouper(texte);
   if (!nom) {
+    if (estBlocDirective(texte)) {
+      return { action: "dispatch", chat_id: chatId, commande: "/directive",
+               arguments: String(texte).trim(), update_id: update.update_id,
+               message_id: msg.message_id, fichier_id: photo || "" };
+    }
     return { action: "repondre", chat_id: chatId, raison: "pas_une_commande",
              texte: "Commande inconnue. /aide pour la liste." };
   }
@@ -113,6 +127,7 @@ export function analyser(update, autorises) {
     chat_id: chatId,
     commande: "/" + nom,
     arguments: args,
+    fichier_id: photo || "",
     update_id: update.update_id,
     message_id: msg.message_id,
   };
@@ -198,6 +213,7 @@ async function declencher(env, d) {
         arguments: d.arguments || "",
         update_id: String(d.update_id || ""),
         chat_id: String(d.chat_id || ""),
+        fichier_id: String(d.fichier_id || ""),
       },
     }),
   });

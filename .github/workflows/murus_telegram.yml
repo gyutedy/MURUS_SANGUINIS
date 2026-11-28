@@ -39,6 +39,11 @@ on:
         required: false
         default: ""
         type: string
+      fichier_id:
+        description: "file_id Telegram (photo envoyee avec /watermark)"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: write
@@ -76,7 +81,7 @@ jobs:
           TELEGRAM_OPERATEUR_ID: ${{ secrets.TELEGRAM_OPERATEUR_ID }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python FR_A_CERVEAU/SF_09_NUNTIUS/CODEBASE/nuntius.py             --commande "${{ inputs.cmd }}"             --arguments "${{ inputs.arguments }}"             --update-id "${{ inputs.update_id }}"             --chat-id "${{ inputs.chat_id }}"
+          python FR_A_CERVEAU/SF_09_NUNTIUS/CODEBASE/nuntius.py             --commande "${{ inputs.cmd }}"             --arguments "${{ inputs.arguments }}"             --update-id "${{ inputs.update_id }}"             --chat-id "${{ inputs.chat_id }}"             --fichier-id "${{ inputs.fichier_id }}"
 
       - name: Enregistrer le journal des decisions (append-only)
         run: |
