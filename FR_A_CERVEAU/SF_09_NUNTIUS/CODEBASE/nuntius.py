@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import verdicts  # noqa: E402  (registre des verdicts de l'operateur)
 import lancer  # noqa: E402  (ouvrir une fregate, si l'amont est valide)
+import commandes_campagne  # noqa: E402  (campagne et directives)
 
 RACINE = Path(__file__).resolve().parents[3]
 JOURNAL = RACINE / "ARCHIVUM" / "telegram" / "journal.jsonl"
@@ -155,6 +156,16 @@ def cmd_rapport(arguments, chat_id):
     return "%s\n%s" % (clip, "\n".join(morceaux))
 
 
+def cmd_campagne(arguments, chat_id):
+    """La campagne active, son etat, son activation. Une seule active a la fois."""
+    return commandes_campagne.repondre_campagne(arguments)
+
+
+def cmd_directive(arguments, chat_id):
+    """Recoit un bloc et met chaque information a sa place. Une cle inconnue = refus."""
+    return commandes_campagne.repondre_directive(arguments)
+
+
 def cmd_lancer(arguments, chat_id):
     """Ouvre une fregate. La porte amont est verifiee AVANT tout declenchement."""
     return lancer.lancer(arguments, verdicts, "PREME",
@@ -259,6 +270,7 @@ def cmd_publier(arguments, chat_id):
 
 
 COMMANDES = {
+    "/campagne": cmd_campagne, "/directive": cmd_directive,
     "/lancer": cmd_lancer, "/etat": cmd_etat, "/clips": cmd_clips, "/rapport": cmd_rapport,
     "/parcours": cmd_parcours, "/verdict": cmd_verdict, "/vive": cmd_vive,
     "/rendu": cmd_rendu, "/stop": cmd_stop, "/publier": cmd_publier,

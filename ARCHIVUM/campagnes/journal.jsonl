@@ -1,0 +1,18 @@
+{"acte": "creer", "campagne": "PREME", "token": "70f120a8", "quand": "2026-11-28T09:31:34Z"}
+{"acte": "creer", "campagne": "AUTRE", "token": "abcd1234", "quand": "2026-11-28T09:31:34Z"}
+{"acte": "activer", "campagne": "PREME", "token": "70f120a8", "par": "operateur", "desactivees": [], "quand": "2026-11-28T09:31:34Z"}
+{"acte": "creer", "campagne": "PREME", "token": "70f120a8", "quand": "2026-11-28T09:31:34Z"}
+{"acte": "creer", "campagne": "PREME", "token": "70f120a8", "quand": "2026-11-28T09:31:34Z"}
+{"acte": "creer", "campagne": "PREME", "token": "70f120a8", "quand": "2026-11-28T09:31:49Z"}
+{"acte": "creer", "campagne": "AUTRE", "token": "abcd1234", "quand": "2026-11-28T09:31:49Z"}
+{"acte": "activer", "campagne": "PREME", "token": "70f120a8", "par": "operateur", "desactivees": [], "quand": "2026-11-28T09:31:49Z"}
+{"acte": "activer", "campagne": "AUTRE", "token": "abcd1234", "par": "operateur", "desactivees": ["PREME"], "quand": "2026-11-28T09:31:49Z"}
+{"acte": "creer", "campagne": "PREME", "token": "70f120a8", "quand": "2026-11-28T09:31:49Z"}
+{"acte": "creer", "campagne": "PREME", "token": "70f120a8", "quand": "2026-11-28T09:31:49Z"}
+{"acte": "creer", "campagne": "PREME", "token": "70f120a8", "quand": "2026-11-28T09:33:28Z"}
+{"acte": "creer", "campagne": "PREME", "token": "70f120a8", "quand": "2026-11-28T09:33:51Z"}
+{"acte": "creer", "campagne": "AUTRE", "token": "abcd1234", "quand": "2026-11-28T09:33:51Z"}
+{"acte": "activer", "campagne": "PREME", "token": "70f120a8", "par": "operateur", "desactivees": [], "quand": "2026-11-28T09:33:51Z"}
+{"acte": "activer", "campagne": "AUTRE", "token": "abcd1234", "par": "operateur", "desactivees": ["PREME"], "quand": "2026-11-28T09:33:51Z"}
+{"acte": "creer", "campagne": "PREME", "token": "70f120a8", "quand": "2026-11-28T09:33:51Z"}
+{"acte": "creer", "campagne": "PREME", "token": "70f120a8", "quand": "2026-11-28T09:33:51Z"}

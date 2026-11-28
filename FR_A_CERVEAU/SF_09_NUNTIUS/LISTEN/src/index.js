@@ -15,7 +15,7 @@
  */
 
 const NOMS = new Set(["etat", "clips", "rapport", "parcours", "verdict", "lancer",
-  "rendu", "vive", "publier", "stop", "aide"]);
+  "campagne", "directive", "rendu", "vive", "publier", "stop", "aide"]);
 const AIDE =
   "MURUS — commandes\n" +
   "/etat — ce qui tourne, ce qui a echoue\n" +
@@ -119,14 +119,18 @@ export function analyser(update, autorises) {
 }
 
 function decouper(texte) {
+  // Les lignes suivantes sont conservees : /directive recoit un BLOC.
   const brut = String(texte || "").trim();
   if (!brut.startsWith("/")) return { nom: null, arguments: "" };
-  const premiere = brut.split("\n")[0];
-  const morceaux = premiere.split(/\s+/);
+  const lignes = brut.split("\n");
+  const morceaux = lignes[0].split(/\s+/);
   let nom = morceaux[0].slice(1);
   if (nom.includes("@")) nom = nom.split("@")[0];
-  return { nom: nom.toLowerCase(), arguments: morceaux.slice(1).join(" ").trim() };
+  const reste = lignes.slice(1).join("\n").trim();
+  const args = morceaux.slice(1).join(" ").trim();
+  return { nom: nom.toLowerCase(), arguments: (args + (reste ? "\n" + reste : "")).trim() };
 }
+
 
 function fileIdPhoto(msg) {
   const photos = msg.photo || [];

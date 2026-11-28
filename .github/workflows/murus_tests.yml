@@ -51,6 +51,9 @@ jobs:
 
       - name: Portes de /lancer (aucune fregate sans porte ouverte)
         run: python tests/test_lancer.py
+
+      - name: Portes des campagnes (une seule active, directive sans perte)
+        run: python tests/test_campagnes.py
       - name: Consigner la sortie réelle dans TRACKING/MURUS_LOG.md
         if: always()
         run: |

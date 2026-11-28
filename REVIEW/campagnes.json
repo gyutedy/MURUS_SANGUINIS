@@ -1,0 +1,14 @@
+{
+  "actif": null,
+  "campagnes": {
+    "PREME": {
+      "star": "Preme",
+      "token": "70f120a8",
+      "campaign_id": "PREME_CLIPIFY_OPEN",
+      "statut": "inactive",
+      "cree": "2026-11-28T09:33:28Z",
+      "platforms": [],
+      "directive": "ARCHIVUM/campaign/campaign_directive.json"
+    }
+  }
+}

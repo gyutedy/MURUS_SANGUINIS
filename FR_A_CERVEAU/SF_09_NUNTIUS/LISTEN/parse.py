@@ -25,7 +25,7 @@ PHRASE_PUBLICATION = re.compile(r"^VALIDER\s+PUBLICATION\s+[A-Z0-9_]+\s+[A-Z]\d{
 # commande -> workflow GitHub a declencher (le Worker ne connait qu'une table)
 WORKFLOW = {
     "etat": None, "clips": None, "rapport": None, "aide": None, "parcours": None,
-    "verdict": None, "lancer": None,
+    "verdict": None, "lancer": None, "campagne": None, "directive": None,
     "rendu": "murus_rendu.yml", "vive": "v2_vive.yml",
     "publier": "v2_publish.yml", "stop": None,
 }
@@ -34,13 +34,16 @@ NOMS_ATTENDUS = {
     "parcours": "ou en est la chaine et ce qui attend ton verdict",
     "verdict": "valider ou refuser la sortie d'une fregate",
     "lancer": "ouvrir une fregate (siege, look, postprod, livraison)",
+    "campagne": "voir, activer ou desactiver une campagne",
+    "directive": "recevoir un bloc de directive et le repartir",
     "rendu": "lancer les 9 clips (mode non-live)",
     "vive": "lancer la coupe par le moteur (mode live)",
     "publier": "programmer une publication",
     "stop": "arreter un run", "aide": "le mode d'emploi",
 }
 ARGUMENTS_REQUIS = {"rapport": True, "verdict": True, "lancer": True}
-ARGUMENTS_AUTORISES = {"rapport", "publier", "stop", "verdict", "parcours", "lancer"}
+ARGUMENTS_AUTORISES = {"rapport", "publier", "stop", "verdict", "parcours", "lancer",
+                       "campagne", "directive"}
 
 AIDE = (
     "MURUS — commandes\n"
@@ -76,16 +79,23 @@ def _photo(msg):
 
 
 def decouper(texte):
-    """Rend (nom, arguments) depuis '/rapport A01' ou '/rapport@Kiramtk_bot A01'."""
+    """Rend (nom, arguments). Les lignes suivantes sont CONSERVEES.
+
+    `/directive` recoit un BLOC : ne garder que la premiere ligne reviendrait a
+    ignorer la moitie de ce que l'operateur a ecrit.
+    """
     brut = str(texte or "").strip()
     if not brut.startswith("/"):
         return None, ""
-    premiere = brut.split("\n", 1)[0]
+    premiere, _, reste = brut.partition(chr(10))
     morceaux = premiere.split()
     nom = morceaux[0][1:]
     if "@" in nom:
         nom = nom.split("@")[0]
-    return nom.lower(), " ".join(morceaux[1:]).strip()
+    arguments = " ".join(morceaux[1:]).strip()
+    if reste.strip():
+        arguments = (arguments + chr(10) + reste.strip()).strip()
+    return nom.lower(), arguments
 
 
 def analyser(update, autorises):
