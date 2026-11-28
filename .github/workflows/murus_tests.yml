@@ -48,6 +48,9 @@ jobs:
 
       - name: Portes des verdicts (l'acte de l'operateur)
         run: python tests/test_verdicts.py
+
+      - name: Portes de /lancer (aucune fregate sans porte ouverte)
+        run: python tests/test_lancer.py
       - name: Consigner la sortie réelle dans TRACKING/MURUS_LOG.md
         if: always()
         run: |

@@ -14,7 +14,7 @@
  * Vars wrangler.toml : GH_OWNER, GH_REPO, GH_WORKFLOW, GH_REF
  */
 
-const NOMS = new Set(["etat", "clips", "rapport", "parcours", "verdict",
+const NOMS = new Set(["etat", "clips", "rapport", "parcours", "verdict", "lancer",
   "rendu", "vive", "publier", "stop", "aide"]);
 const AIDE =
   "MURUS — commandes\n" +
@@ -97,7 +97,7 @@ export function analyser(update, autorises) {
   if (nom === "aide") {
     return { action: "repondre", chat_id: chatId, raison: "aide", texte: AIDE };
   }
-  if ((nom === "rapport" || nom === "verdict") && !args) {
+  if ((nom === "rapport" || nom === "verdict" || nom === "lancer") && !args) {
     return { action: "repondre", chat_id: chatId, raison: "argument_manquant",
              texte: "Il manque l'argument : /rapport A01 par exemple." };
   }

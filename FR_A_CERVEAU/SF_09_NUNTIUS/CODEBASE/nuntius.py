@@ -22,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import verdicts  # noqa: E402  (registre des verdicts de l'operateur)
+import lancer  # noqa: E402  (ouvrir une fregate, si l'amont est valide)
 
 RACINE = Path(__file__).resolve().parents[3]
 JOURNAL = RACINE / "ARCHIVUM" / "telegram" / "journal.jsonl"
@@ -154,6 +155,12 @@ def cmd_rapport(arguments, chat_id):
     return "%s\n%s" % (clip, "\n".join(morceaux))
 
 
+def cmd_lancer(arguments, chat_id):
+    """Ouvre une fregate. La porte amont est verifiee AVANT tout declenchement."""
+    return lancer.lancer(arguments, verdicts, "PREME",
+                         url_defaut="https://www.twitch.tv/videos/2909800627")
+
+
 def cmd_parcours(arguments, chat_id):
     """Montre la chaine et dit ce qui attend un acte de l'operateur."""
     lignes = []
@@ -252,7 +259,7 @@ def cmd_publier(arguments, chat_id):
 
 
 COMMANDES = {
-    "/etat": cmd_etat, "/clips": cmd_clips, "/rapport": cmd_rapport,
+    "/lancer": cmd_lancer, "/etat": cmd_etat, "/clips": cmd_clips, "/rapport": cmd_rapport,
     "/parcours": cmd_parcours, "/verdict": cmd_verdict, "/vive": cmd_vive,
     "/rendu": cmd_rendu, "/stop": cmd_stop, "/publier": cmd_publier,
 }
