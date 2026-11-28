@@ -164,8 +164,22 @@ jobs:
       # est fige sur le SHA du run : sans ce fetch, le transcript paraissait absent.
       - name: Récupérer le transcript committé par l'ingestion
         run: |
-          git fetch origin main
-          git merge --ff-only origin/main
+          # On ne FUSIONNE plus une branche ici : `main` et `v2` ont des histoires
+          # distinctes, donc `git merge origin/main` echoue avec
+          # "refusing to merge unrelated histories" et le siege tombait a l'etape 4
+          # (run 46137378858). On lit le fichier, point.
+          ls -la ARCHIVUM/montage/transcripts/ | tail -5
+          if ls ARCHIVUM/montage/transcripts/*_transcript.json >/dev/null 2>&1; then
+            echo "transcript deja present dans cette branche"
+            exit 0
+          fi
+          echo "transcript absent de la branche : on le lit depuis main sans fusionner"
+          git fetch origin main || true
+          for f in $(git ls-tree -r --name-only origin/main -- ARCHIVUM/montage/transcripts/ | grep '_transcript.json$'); do
+            mkdir -p "$(dirname "$f")"
+            git show "origin/main:$f" > "$f"
+            echo "recupere : $f"
+          done
           ls -la ARCHIVUM/montage/transcripts/ | tail -5
 
       - name: DEMANDE À L'OPÉRATEUR — le projet demande, l'opérateur répond, le projet trace
