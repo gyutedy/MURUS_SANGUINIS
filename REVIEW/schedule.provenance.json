@@ -13,7 +13,7 @@
     16277.8,
     23513.4
   ],
-  "sha256_calendrier": "2aecfa3a61061f8d7ef2e2284d7d7cdd5dded7e03b0a6a742ec16d63699658db",
+  "sha256_calendrier": "8fe90556b1b45ba8c6d36ba4610c77ac7715a5dd7879eaf9df2d774cff694d0b",
   "signature_requise": true,
   "note": "sans validated_by_magos: true, la publication refuse (code 3)"
 }

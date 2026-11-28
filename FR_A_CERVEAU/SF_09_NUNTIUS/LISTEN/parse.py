@@ -24,16 +24,21 @@ PHRASE_PUBLICATION = re.compile(r"^VALIDER\s+PUBLICATION\s+[A-Z0-9_]+\s+[A-Z]\d{
 
 # commande -> workflow GitHub a declencher (le Worker ne connait qu'une table)
 WORKFLOW = {
-    "etat": None, "clips": None, "rapport": None, "aide": None,
-    "rendu": "murus_rendu.yml", "publier": "v2_publish.yml", "stop": None,
+    "etat": None, "clips": None, "rapport": None, "aide": None, "parcours": None,
+    "verdict": None, "rendu": "murus_rendu.yml", "vive": "v2_vive.yml",
+    "publier": "v2_publish.yml", "stop": None,
 }
 NOMS_ATTENDUS = {
     "etat": "etat des runs", "clips": "les livrables", "rapport": "rapport d'un clip",
-    "rendu": "lancer les 9 clips", "publier": "programmer une publication",
+    "parcours": "ou en est la chaine et ce qui attend ton verdict",
+    "verdict": "valider ou refuser la sortie d'une fregate",
+    "rendu": "lancer les 9 clips (mode non-live)",
+    "vive": "lancer la coupe par le moteur (mode live)",
+    "publier": "programmer une publication",
     "stop": "arreter un run", "aide": "le mode d'emploi",
 }
-ARGUMENTS_REQUIS = {"rapport": True}
-ARGUMENTS_AUTORISES = {"rapport", "publier", "stop"}
+ARGUMENTS_REQUIS = {"rapport": True, "verdict": True}
+ARGUMENTS_AUTORISES = {"rapport", "publier", "stop", "verdict", "parcours"}
 
 AIDE = (
     "MURUS — commandes\n"

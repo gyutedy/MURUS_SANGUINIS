@@ -20,6 +20,9 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import verdicts  # noqa: E402  (registre des verdicts de l'operateur)
+
 RACINE = Path(__file__).resolve().parents[3]
 JOURNAL = RACINE / "ARCHIVUM" / "telegram" / "journal.jsonl"
 PACK = RACINE / "REVIEW" / "pack_stage.json"
@@ -151,6 +154,78 @@ def cmd_rapport(arguments, chat_id):
     return "%s\n%s" % (clip, "\n".join(morceaux))
 
 
+def cmd_parcours(arguments, chat_id):
+    """Montre la chaine et dit ce qui attend un acte de l'operateur."""
+    lignes = []
+    attente = None
+    for mode in ("non-live", "live"):
+        lignes.append("— mode %s" % mode)
+        for l in verdicts.etat("PREME", mode):
+            marque = {"valide": "OK", "refuse": "REFUS"}.get(l["verdict"], "...")
+            lignes.append("  %-10s %-6s %s" % (l["fregate"], marque, l["sortie"] or ""))
+            if attente is None and l["verdict"] == "en_attente":
+                attente = (mode, l["fregate"])
+    if attente:
+        lignes.append("")
+        lignes.append("Prochain acte : /verdict %s valide <sortie>  (mode %s)"
+                      % (attente[1], attente[0]))
+    return chr(10).join(lignes)
+
+
+AIDE_VERDICT = ("Forme attendue : /verdict <fregate> valide|refuse [sortie] [motif].\n"
+                "Fregates non-live : siege, look, postprod, rendu, livraison.\n"
+                "Fregates live : siege, vive, livraison.")
+
+
+def cmd_verdict(arguments, chat_id):
+    """Ton acte : /verdict <fregate> valide|refuse [sortie] [motif]"""
+    morceaux = (arguments or "").split()
+    if len(morceaux) < 2:
+        return (AIDE_VERDICT)
+    fregate, decision = morceaux[0].lower(), morceaux[1].lower()
+    mode = "live" if fregate == "vive" else "non-live"
+    reste = morceaux[2:]
+    if reste and (":" in reste[0] or reste[0].startswith(("pack", "run"))):
+        sortie, motif = reste[0], " ".join(reste[1:])
+    else:
+        sortie, motif = sortie_par_defaut(fregate), " ".join(reste)
+    try:
+        ligne = verdicts.enregistrer("PREME", fregate, decision, sortie, motif, mode=mode)
+    except verdicts.Refus as e:
+        return "Acte refuse : %s" % e
+    prochain = None
+    for l in verdicts.etat("PREME", mode):
+        if l["verdict"] == "en_attente":
+            prochain = l
+            break
+    return "Acte enregistre : %s %s sur %s. Prochain : %s" % (
+        ligne["fregate"], ligne["verdict"], ligne["sortie"],
+        (prochain or {}).get("fregate") or "chaine complete")
+
+
+def sortie_par_defaut(fregate):
+    """La sortie sur laquelle porte le verdict, quand l'operateur ne la tape pas."""
+    if fregate == "siege" and PACK.exists():
+        return "pack:%s" % (json.loads(PACK.read_text(encoding="utf-8")).get("pack_token") or "?")
+    return {
+        "look": "codex:render", "postprod": "codex:postprod",
+        "rendu": "run:dernier", "vive": "run:dernier", "livraison": "run:dernier",
+    }.get(fregate, "sortie:?")
+
+
+def cmd_vive(arguments, chat_id):
+    """Mode live : coupe par le moteur, sans titre ni sous-titres."""
+    assets = (arguments or "").replace(" ", "") or "A01,A02,A03,A04,A05"
+    code, d = api("/repos/%s/actions/workflows/v2_vive.yml/dispatches" % DEPOT,
+                  methode="POST", corps={"ref": "v2", "inputs": {
+                      "vod": "https://www.twitch.tv/videos/2909800627",
+                      "assets": assets}})
+    if code == 204:
+        return ("Coupe par le moteur lancee (%s), mode live : pas de titre, pas de "
+                "sous-titres, pas de glow. Suis avec /etat." % assets)
+    return "Vive refuse par GitHub (HTTP %s) : %s" % (code, json.dumps(d)[:200])
+
+
 def cmd_rendu(arguments, chat_id):
     """Lance les 9 clips. Pas de serrure : l'operateur l'a refusee explicitement."""
     code, d = api("/repos/%s/actions/workflows/murus_rendu.yml/dispatches" % DEPOT,
@@ -178,6 +253,7 @@ def cmd_publier(arguments, chat_id):
 
 COMMANDES = {
     "/etat": cmd_etat, "/clips": cmd_clips, "/rapport": cmd_rapport,
+    "/parcours": cmd_parcours, "/verdict": cmd_verdict, "/vive": cmd_vive,
     "/rendu": cmd_rendu, "/stop": cmd_stop, "/publier": cmd_publier,
 }
 

@@ -45,6 +45,9 @@ jobs:
 
       - name: Portes Telegram (NUNTIUS)
         run: python tests/test_nuntius_telegram.py
+
+      - name: Portes des verdicts (l'acte de l'operateur)
+        run: python tests/test_verdicts.py
       - name: Consigner la sortie réelle dans TRACKING/MURUS_LOG.md
         if: always()
         run: |
